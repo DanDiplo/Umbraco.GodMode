@@ -1,0 +1,48 @@
+
+#ignore thumbnails created by windows
+Thumbs.db
+
+#Ignore files build by Visual Studio
+*.obj
+*.exe
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+[Bb]in
+[Dd]ebug*/
+*.lib
+*.sbr
+obj/
+[Rr]elease*/
+.vs
+
+#Ignore nuget packages
+/packages/
+BuildPackage/Package/*
+
+#Ignore Umbraco files we don't need
+Umbraco.Web/*
+
+#But we want these...
+!Umbraco.Web/App_Plugins/
+Umbraco.Web/App_Plugins/*
+!Umbraco.Web/App_Plugins/GodMode/
+!Umbraco.Web/bin/
+Umbraco.Web/bin/*
+!Umbraco.Web/bin/Diplo.GodMode.dll
+!Umbraco.Web/bin/Diplo.GodMode.pdb
+
+
+

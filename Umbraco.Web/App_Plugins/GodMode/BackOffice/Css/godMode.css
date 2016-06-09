@@ -1,0 +1,64 @@
+﻿
+.god-mode .accordion-heading {
+    background-color: #f5f5f5;
+}
+
+.god-mode .accordion-toggle small {
+    color: #999;
+}
+
+.god-mode .description {
+    color: #b3b3b3;
+}
+
+.god-mode .umb-panel-header-name small {
+    font-size: smaller;
+    color: #ddd;
+}
+
+.god-mode .umb-panel-header-name .icon {
+    font-size: larger;
+}
+
+.god-mode table {
+    border: 1px solid #DBDBDB;
+}
+
+    .god-mode table tbody tr:nth-child(even) {
+        background-color: #fafafa;
+    }
+
+    .god-mode table td a .icon {
+        color: #dadada;
+    }
+
+    .god-mode table td a:hover .icon {
+        color: #666;
+    }
+
+    .god-mode table th {
+        background-color: #f5f5f5;
+    }
+
+        .god-mode table th a {
+        }
+
+            .god-mode table th a:hover {
+                cursor: pointer;
+            }
+
+.god-mode .umb-sub-views-nav a:hover {
+    color: #2E8AEA;
+}
+
+.god-mode .god-mode-title {
+    transition: all 0.7s ease;
+    display: inline-block;
+}
+
+.god-mode .god-mode-title:hover {
+    transform: rotateY(180deg);
+    transform-style: preserve-3d;
+}
+
+

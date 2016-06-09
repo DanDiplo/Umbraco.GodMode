@@ -1,0 +1,64 @@
+﻿<div ng-controller="GodMode.PartialBrowser.Controller" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Partial Browser"></godmode-header>
+
+        <umb-editor-container>
+
+            <div id="collapse_selects" class="accordion-body collapse in">
+
+                <div class="well">
+
+                    <div class="row">
+
+                        <div class="span4">
+                            <label class="control-label" for="search-partial">Search:</label>
+                            <br />
+                            <input id="search-partial" type="search" ng-model="search.partial" placeholder="Filter partial names" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-template">In Template:</label>
+                            <br />
+                            <select id="search-template" ng-model="search.template" ng-options="item.Name for item in templates" class="input-large">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-isCached">Is Cached?</label>
+                            <br />
+                            <select id="search-isCached" ng-model="search.isCached" ng-options="opt.label for opt in triStateOptions" class="input-medium"></select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><godmode-sortable sort-by="sortBy('Name')" column="Name" sort="sort">Partial Name</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('TemplateAlias')" column="TemplateAlias" sort="sort">Template Name</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('IsCached')" column="Iscached" sort="sort">Cached?</godmode-sortable></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="p in partials | filter: filterPartials | orderBy: sort.column : sort.reverse">
+                        <td><a href="{{ config.editPartialUrl + p.Path}}" target="_blank" title="Edit"><i class="icon icon-edit"></i>&nbsp;{{ p.Name }}</a></td>
+                        <td><a href="{{config.editTemplateUrl + p.TemplateId}}" title="Edit" target="_blank"><i class="icon icon-edit"></i>&nbsp;{{ p.TemplateAlias }}</a></td>
+                        <td><godmode-True-False value="{{p.IsCached}}"></godmode-True-False></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>
