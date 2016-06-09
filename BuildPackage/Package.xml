@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<umbPackage>
+  <info>
+    <package>
+      <name>Diplo God Mode</name>
+      <version>1.0.0</version>
+      <license url="http://opensource.org/licenses/MIT">MIT License</license>
+      <url>http://our.umbraco.org/projects/developer-tools/diplo-trace-log-viewer</url>
+      <requirements>
+        <major>7</major>
+        <minor>4</minor>
+        <patch>0</patch>
+      </requirements>
+    </package>
+    <author>
+      <name>Dan Booth</name>
+      <website>http://www.diplo.co.uk/</website>
+    </author>
+    <readme>
+      <![CDATA[Diplo God Mode makes Umbraco 7 developers invincible! This custom tree in the Developer section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
+        For instance, you can:
+        * Easily see which document types inherit from any of your compositions
+        * See which document types use which property editor or data type instance
+        * See which partials are used by all your templates
+        * Find out which data types are being used (or not)
+        * Browse all media in the Media Library and sort it by file type, size or media type
+        * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
+        * View all generated models (that inherit from PublishedContentModel)
+        * Plus lots more]]>
+    </readme>
+  </info>
+
+  <DocumentTypes />
+  <Templates />
+  <Stylesheets />
+  <Macros />
+  <DictionaryItems />
+  <Languages />
+  <DataTypes />
+
+  <Actions/>
+
+  <control />
+
+  <files />
+
+</umbPackage>
