@@ -82,6 +82,11 @@ namespace Diplo.GodMode.Controllers
 
             tree.Add(CreateTreeNode("reflectionBrowser", parentId, qs, "Content Models", "icon-binarycode", false, baseUrl + "reflectionBrowser/models"));
 
+            tree.Add(CreateTreeNode("converterBrowser", parentId, qs, "Value Converters", "icon-wand", false, baseUrl + "reflectionBrowser/converters"));
+
+            tree.Add(CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"));
+
+
             return tree;
         }
     }

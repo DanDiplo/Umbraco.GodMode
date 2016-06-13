@@ -1,0 +1,55 @@
+﻿<div ng-controller="GodMode.DiagnosticBrowser.Controller" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Diagnostics"></godmode-header>
+
+        <umb-editor-container>
+
+            <div id="collapse_selects" class="accordion-body collapse in">
+                <div class="well">
+                    <div class="row">
+
+                        <div class="span2">
+                            <label class="control-label" for="search-id">Search Names:</label>
+                            <br />
+                            <input type="search" id="search-id" ng-model="search.name" placeholder="Filter by name" class="input-small">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-name">Search Values:</label>
+                            <br />
+                            <input type="search" id="search-name" ng-model="search.value" placeholder="Filter by value" class="input-large">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <div ng-repeat="section in diagnostics">
+
+                <table class="table" ng-show="section.Diagnostics.length > 0">
+                    <caption><h5>{{ section.Heading }}</h5></caption>
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in section.Diagnostics">
+                            <td>{{ item.Key }}</td>
+                            <td>{{ item.Value }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

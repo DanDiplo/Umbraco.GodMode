@@ -47,6 +47,14 @@
                 cursor: pointer;
             }
 
+            .god-mode table th.tkey {
+                width:25%;
+            }
+
+            .god-mode table th.tval {
+                width:75%;
+            }
+
 .god-mode .umb-sub-views-nav a:hover {
     color: #2E8AEA;
 }
@@ -59,6 +67,17 @@
 .god-mode .god-mode-title:hover {
     transform: rotateY(180deg);
     transform-style: preserve-3d;
+}
+
+.god-mode .add-on .icon-delete {
+    color:#aaa;
+    cursor:pointer;
+
+}
+
+.god-mode .add-on .icon-delete:hover {
+    cursor:pointer;
+    color:#000;
 }
 
 

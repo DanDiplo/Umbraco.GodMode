@@ -61,6 +61,16 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
                 $http.get(godModeConfig.baseApiUrl + "GetPublishedContentModels")
             );
         },
+        getPropertyValueConveters: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetPropertyValueConverters")
+            );
+        },
+        getEnvironmentDiagnostics: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetEnvironmentDiagnostics")
+            );
+        },
         getTriStateOptions: function () {
             return [
                 { label: 'Any', value: null },

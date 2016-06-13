@@ -31,6 +31,10 @@ angular.module("umbraco").controller("GodMode.ReflectionBrowser.Controller",
             getControllersFunction = godModeResources.getRenderMvcControllers()
             $scope.heading = "RenderMvc Controllers";
         }
+        else if ($routeParams.id === "converters") {
+            getControllersFunction = godModeResources.getPropertyValueConveters()
+            $scope.heading = "Property Value Converters";
+        }
 
         getControllersFunction.then(function (data) {
             $scope.controllers = data;

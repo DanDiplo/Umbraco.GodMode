@@ -160,6 +160,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SqlServerCe, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\packages\UmbracoCms.Core.7.4.3\lib\System.Data.SqlServerCe.dll</HintPath>
@@ -173,6 +174,7 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
       <Private>True</Private>
@@ -261,6 +263,8 @@
     <Compile Include="Models\ContentTypeData.cs" />
     <Compile Include="Models\ContentTypeMap.cs" />
     <Compile Include="Models\DataTypeMap.cs" />
+    <Compile Include="Models\Diagnostic.cs" />
+    <Compile Include="Models\DiagnosticSection.cs" />
     <Compile Include="Models\ItemBase.cs" />
     <Compile Include="Models\MediaMap.cs" />
     <Compile Include="Models\PartialMap.cs" />
@@ -276,8 +280,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" "$(SolutionDir)Umbraco.Web\bin"
+xcopy /y "$(ProjectDir)$(OutDir)$(TargetName).pdb" "$(SolutionDir)Umbraco.Web\bin"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
