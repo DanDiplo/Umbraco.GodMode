@@ -1,0 +1,68 @@
+﻿<div ng-controller="GodMode.TypeBrowser.Controller" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Interface Browser"></godmode-header>
+
+        <umb-editor-container>
+
+            <div id="collapse_selects" class="accordion-body collapse in">
+
+                <div class="well">
+
+                    <div class="row">
+
+                        <div class="span4">
+                            <label class="control-label" for="search-basetype">Assembly:</label>
+                            <br />
+                            <select id="search-basetype" ng-model="search.assembly" ng-options="item.Name for item in assemblies" class="input-xlarge" ng-change="getInterfaces(search.assembly)">
+                                <option value="">Please Select</option>
+                            </select>
+                        </div>
+
+                        <div class="span4" ng-show="interfaces.length > 0">
+                            <label class="control-label" for="search-namespace">Interface:</label>
+                            <br />
+                            <select id="search-namespace" ng-model="search.interface" ng-options="item.Name for item in interfaces" class="input-xlarge" ng-change="getTypes(search.interface)">
+                                <option value="">Please Select</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <h5 class="text-center">{{ search.assembly.Value }}</h5>
+
+            <p class="alert alert-warning" ng-hide="interfaces.length > 0">Please select an Assembly (above) and then the Interface you wish to browse. You will then see all types that implement the Interface.</p>
+
+            <table class="table" ng-show="interfaces.length > 0">
+                <thead>
+                    <tr>
+                        <th><godmode-sortable sort-by="sortBy('Name')" column="Name" sort="sort">Implemented By</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('Namespace')" column="Namespace" sort="sort">Namespace</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('Module')" column="Module" sort="sort">Module</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('BaseType')" column="BaseType" sort="sort">Base Type</godmode-sortable></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="t in types | orderBy: sort.column : sort.reverse">
+                        <td>{{ t.Name }}</td>
+                        <td>{{ t.Namespace }}</td>
+                        <td title="{{t.Assembly}}">{{ t.Module }}</td>
+                        <td>{{ t.BaseType }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+
+
+</div>

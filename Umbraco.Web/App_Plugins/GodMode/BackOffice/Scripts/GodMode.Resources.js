@@ -71,6 +71,36 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
                 $http.get(godModeConfig.baseApiUrl + "GetEnvironmentDiagnostics")
             );
         },
+        getTypesAssignableFrom: function (baseType) {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetTypesAssignableFrom?baseType=" + baseType)
+            );
+        },
+        getInterfacesFrom: function (assembly) {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetInterfacesFrom?assembly=" + assembly)
+            );
+        },
+        getTypesFrom: function (assembly) {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetTypesFrom?assembly=" + assembly)
+            );
+        },
+        getTypesToBrowse: function (baseType) {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetTypesToBrowse")
+            );
+        },
+        getUmbracoAssemblies: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetUmbracoAssemblies")
+            );
+        },
+        getAssemblies: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetAssembliesWithInterfaces")
+            );
+        },
         getTriStateOptions: function () {
             return [
                 { label: 'Any', value: null },

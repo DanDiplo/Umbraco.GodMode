@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Diplo.GodMode.Helpers;
+using Umbraco.Core;
 
 namespace Diplo.GodMode.Models
 {
@@ -28,13 +29,21 @@ namespace Diplo.GodMode.Models
 
         public List<Diagnostic> Diagnostics { get; set; }
 
-        public void AddDiagnostics(NameValueCollection nvc)
+        public void AddDiagnostics(NameValueCollection nvc, bool skipEmpty = true, Func<string, bool> predicate = null)
         {
             if (nvc != null)
             {
-                foreach (var key in nvc.AllKeys)
+                var keys = nvc.AllKeys;
+
+                if (predicate != null)
+                    keys = keys.Where(predicate).ToArray();
+
+                foreach (var key in keys)
                 {
-                    this.Diagnostics.Add(new Diagnostic(key, nvc[key]));
+                    if (skipEmpty && !String.IsNullOrEmpty(nvc[key]) || !skipEmpty)
+                    {
+                        this.Diagnostics.Add(new Diagnostic(key, nvc[key]));
+                    }
                 }
             }
         }
@@ -50,11 +59,22 @@ namespace Diplo.GodMode.Models
             }
         }
 
-        public void AddDiagnosticsFrom(object obj)
+        public void AddDiagnosticsFrom(object obj, bool onlyUmbraco = true)
         {
             if (obj != null)
             {
-                this.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(obj));
+                this.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(obj, onlyUmbraco));
+            }
+        }
+
+        public void AddDiagnosticsFrom(Type type)
+        {
+            if (type != null)
+            {
+                foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
+                {
+                    this.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
+                } 
             }
         }
     }

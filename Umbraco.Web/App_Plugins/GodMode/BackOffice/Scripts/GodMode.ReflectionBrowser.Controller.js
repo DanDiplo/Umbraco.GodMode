@@ -41,11 +41,6 @@ angular.module("umbraco").controller("GodMode.ReflectionBrowser.Controller",
             $scope.isLoading = false;
         });
 
-        $scope.sortBy = function (column) {
-            $scope.sort.column = column;
-            $scope.sort.reverse = !$scope.sort.reverse;
-        }
-
         $scope.filterByUmbraco = function (c) {
             if (!c.IsUmbraco === $scope.search.isUmbraco.value) {
                 return;

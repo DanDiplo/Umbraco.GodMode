@@ -2,7 +2,7 @@
 
         <umb-editor-view footer="false">
 
-            <godmode-header heading="Diagnostics"></godmode-header>
+            <godmode-header heading="{{heading}}"></godmode-header>
 
             <umb-editor-container>
 
@@ -28,9 +28,9 @@
                                 </div>
                             </div>
                             <div class="span4">
-                                <label class="control-label" for="search-section">Section:</label>
+                                <label class="control-label" for="search-section">Configuration Group:</label>
                                 <br />
-                                <select id="search-section" ng-model="search.section" ng-options="item.heading for item in sections" class="input-large" ng-change="scrollTo(search.section.id)">
+                                <select id="search-section" ng-model="search.group" ng-options="item.Title for item in groups" class="input-large" ng-change="selectGroup(search.group)">
                                     <option value="">Select</option>
                                 </select>
                             </div>
@@ -41,7 +41,9 @@
 
                 <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
 
-                <div ng-repeat="section in diagnostics" id="section{{$index}}">
+                <h4 class="text-center">{{ group.Title }}</h4>
+
+                <div ng-repeat="section in group.Sections" id="section{{$index}}">
 
                     <table class="table" ng-show="(section.Diagnostics | filter: filterValues).length > 0">
                         <caption><h5>{{ section.Heading }}</h5></caption>

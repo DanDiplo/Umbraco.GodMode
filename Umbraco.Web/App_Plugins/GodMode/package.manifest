@@ -8,6 +8,7 @@
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.DataTypeBrowser.Controller.js',
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.MediaBrowser.Controller.js',
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.ReflectionBrowser.Controller.js',
+		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.TypeBrowser.Controller.js',
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.DiagnosticBrowser.Controller.js'
     ],
 	css: [
