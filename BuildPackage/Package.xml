@@ -3,7 +3,7 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>http://our.umbraco.org/projects/developer-tools/diplo-trace-log-viewer</url>
       <requirements>
