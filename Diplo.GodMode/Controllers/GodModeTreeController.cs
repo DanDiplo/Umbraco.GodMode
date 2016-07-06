@@ -13,7 +13,7 @@ using Umbraco.Web.Trees;
 namespace Diplo.GodMode.Controllers
 {
     /// <summary>
-    /// Customm Umbraco developer tree for GodMode
+    /// Custom Umbraco tree for GodMode under the Developer section of Umbraco
     /// </summary>
     [Tree(Constants.Applications.Developer, "godModeTree", "God Mode", sortOrder: 10)]
     [PluginController("GodMode")]
@@ -87,7 +87,6 @@ namespace Diplo.GodMode.Controllers
             tree.Add(CreateTreeNode("typeBrowser", parentId, qs, "Interface Browser", "icon-molecular-network", false, baseUrl + "typeBrowser/browse"));
 
             tree.Add(CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"));
-
 
             return tree;
         }

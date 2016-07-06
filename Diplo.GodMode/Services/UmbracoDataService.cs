@@ -18,9 +18,7 @@ namespace Diplo.GodMode.Services
     public class UmbracoDataService
     {
         private UmbracoHelper umbHelper;
-
         private UmbracoContext umbContext;
-
         private ServiceContext services;
 
         public UmbracoDataService(UmbracoHelper umbHelper)
@@ -30,6 +28,9 @@ namespace Diplo.GodMode.Services
             this.services = umbContext.Application.Services;
         }
 
+        /// <summary>
+        /// Gets all content types (doc types) with associated mapped properties
+        /// </summary>
         public IEnumerable<ContentTypeMap> GetContentTypeMap()
         {
             var cts = services.ContentTypeService;
