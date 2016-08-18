@@ -1,0 +1,101 @@
+﻿<div ng-controller="GodMode.TemplateBrowser.Controller" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Template Browser"></godmode-header>
+
+        <umb-editor-container>
+
+            <div id="collapse_selects" class="accordion-body collapse in">
+                <div class="well">
+                    <div class="row">
+
+                        <div class="span4">
+                            <label class="control-label">Search:</label>
+                            <br />
+                            <input type="search" ng-model="search.template" placeholder="Filter template names" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label">Has Master:</label>
+                            <br />
+                            <select ng-model="search.master" ng-options="item.Name for item in masters" class="input-large">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label">Uses Partial:</label>
+                            <br />
+                            <select ng-model="search.partial" ng-options="item.Name for item in partials | godModeUnique: 'Name' | orderBy: 'Name'" class="input-large">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <div class="accordion" id="accordion_{{temp.Id}}" ng-repeat="temp in templates | filter: filterTemplates">
+
+                <div class="accordion-group">
+
+                    <div class="accordion-heading">
+                        <div class="row">
+                            <div class="span10">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_{{temp.Id}}" href="#collapse_{{temp.Id}}"><strong>{{ temp.Name }}</strong> <small>({{ temp.Alias }})</small></a>
+                            </div>
+                            <div class="span2 text-right">
+                                <a class="accordion-toggle" href="{{config.editTemplateUrl + temp.Id}}" title="Edit" target="_blank"><span class="btn btn-default"><i class="icon icon-edit"></i> Edit</span></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="collapse_{{temp.Id}}" class="accordion-body collapse out">
+                        <div class="accordion-inner">
+
+                            <table class="table" ng-show="temp.Parents">
+                                <caption><h5>Inheritance</h5></caption>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Path</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="t in temp.Parents">
+                                        <td width="50%"><a href="{{config.editTemplateUrl + t.Id}}" target="_blank" title="Edit"><i class="icon icon-edit"></i>&nbsp;{{ t.Name }}</a></td>
+                                        <td width="50%">{{ t.FilePath }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <table class="table" ng-show="temp.Partials">
+                                <caption><h5>Partials</h5></caption>
+                                <thead>
+                                    <tr>
+                                        <th width="50%">Partial Name</th>
+                                        <th width="50%">Cached?</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="p in temp.Partials">
+                                        <td><a href="{{config.editPartialUrl + p.Path}}" target="_blank" title="Edit"><i class="icon icon-edit"></i>&nbsp;{{ p.Name }}</a></td>
+                                        <td><godmode-True-False value="{{ p.IsCached }}"></godmode-True-False></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

@@ -1,4 +1,4 @@
-﻿'use strict'
+﻿'use strict';
 angular.module("umbraco").controller("GodMode.ReflectionBrowser.Controller",
     function ($scope, $routeParams, godModeResources, godModeConfig) {
 
@@ -46,6 +46,11 @@ angular.module("umbraco").controller("GodMode.ReflectionBrowser.Controller",
                 return;
             }
             return c;
+        }
+
+        $scope.sortBy = function (column) {
+            $scope.sort.column = column;
+            $scope.sort.reverse = !$scope.sort.reverse;
         }
 
         $scope.resetFilters = function () {

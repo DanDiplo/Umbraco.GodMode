@@ -9,7 +9,8 @@
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.MediaBrowser.Controller.js',
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.ReflectionBrowser.Controller.js',
 		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.TypeBrowser.Controller.js',
-		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.DiagnosticBrowser.Controller.js'
+		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.DiagnosticBrowser.Controller.js',
+		'~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.UtilityBrowser.Controller.js'
     ],
 	css: [
 		'~/App_Plugins/GodMode/BackOffice/Css/godMode.css',

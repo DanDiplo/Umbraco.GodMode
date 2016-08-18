@@ -88,6 +88,8 @@ namespace Diplo.GodMode.Controllers
 
             tree.Add(CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"));
 
+            tree.Add(CreateTreeNode("utilityBrowser", parentId, qs, "Utilities", "icon-wrench", false, baseUrl + "utilityBrowser/umbraco"));
+
             return tree;
         }
     }

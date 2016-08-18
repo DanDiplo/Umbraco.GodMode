@@ -3,9 +3,9 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>1.1.0</version>
+      <version>1.2.0</version>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
-      <url>http://our.umbraco.org/projects/developer-tools/diplo-trace-log-viewer</url>
+      <url>https://our.umbraco.org/projects/developer-tools/diplo-god-mode/</url>
       <requirements>
         <major>7</major>
         <minor>4</minor>
@@ -26,6 +26,7 @@
         * Browse all media in the Media Library and sort it by file type, size or media type
         * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
         * View all generated models (that inherit from PublishedContentModel)
+        * Clear the various Umbraco caches and even restart the app pool
         * Plus lots more]]>
     </readme>
   </info>

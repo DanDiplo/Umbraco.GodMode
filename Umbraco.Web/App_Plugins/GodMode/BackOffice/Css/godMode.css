@@ -1,4 +1,8 @@
 ﻿
+.god-mode .umb-panel-header {
+    position:relative !important;
+}
+
 .god-mode .accordion-heading {
     background-color: #f5f5f5;
 }
@@ -79,5 +83,3 @@
     cursor:pointer;
     color:#000;
 }
-
-

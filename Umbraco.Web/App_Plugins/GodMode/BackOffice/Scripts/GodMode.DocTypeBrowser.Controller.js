@@ -1,4 +1,4 @@
-﻿'use strict'
+﻿'use strict';
 angular.module("umbraco").controller("GodMode.DocTypeBrowser.Controller",
     function ($scope, $routeParams, $route, godModeResources, godModeConfig) {
 

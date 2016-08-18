@@ -1,4 +1,4 @@
-﻿'use strict'
+﻿'use strict';
 angular.module('umbraco.resources').factory('godModeResources', function ($q, $http, umbRequestHelper, godModeConfig) {
     return {
         getContentTypeMap: function () {
@@ -99,6 +99,16 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
         getAssemblies: function () {
             return umbRequestHelper.resourcePromise(
                 $http.get(godModeConfig.baseApiUrl + "GetAssembliesWithInterfaces")
+            );
+        },
+        clearUmbracoCache: function (cache) {
+            return umbRequestHelper.resourcePromise(
+                $http.post(godModeConfig.baseApiUrl + "ClearUmbracoCache?cache=" + cache)
+            );
+        },
+        restartAppPool: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.post(godModeConfig.baseApiUrl + "RestartAppPool")
             );
         },
         getTriStateOptions: function () {

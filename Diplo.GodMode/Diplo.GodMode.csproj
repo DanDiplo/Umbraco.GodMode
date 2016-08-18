@@ -271,6 +271,8 @@
     <Compile Include="Models\MediaMap.cs" />
     <Compile Include="Models\PartialMap.cs" />
     <Compile Include="Models\PropertyTypeMap.cs" />
+    <Compile Include="Models\ServerResponse.cs" />
+    <Compile Include="Models\ServerResponseType.cs" />
     <Compile Include="Models\TemplateMap.cs" />
     <Compile Include="Models\TemplateModel.cs" />
     <Compile Include="Models\TypeMap.cs" />

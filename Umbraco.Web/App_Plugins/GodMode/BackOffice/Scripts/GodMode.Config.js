@@ -1,9 +1,9 @@
-﻿'use strict'
+﻿'use strict';
 angular.module("umbraco")
     .constant("godModeConfig", {
         "baseApiUrl": "BackOffice/Api/GodModeApi/",
         "config": {
-            "version": "1.1.0",
+            "version": "1.2.0",
             "editTemplateUrl": "#/settings/framed/settings%252FViews%252FEditView.aspx%253FtreeType%253Dtemplates%2526templateID%253D",
             "editDataTypeUrl": "#/developer/datatypes/edit/",
             "editDocTypeUrl": "#/settings/documentTypes/edit/",

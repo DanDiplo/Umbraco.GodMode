@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Web.Mvc;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services;
 using Umbraco.Core;
 using Umbraco.Core.Models.PublishedContent;
 using Umbraco.Core.PropertyEditors;
+using Umbraco.Web;
 using Umbraco.Web.Editors;
 using Umbraco.Web.Mvc;
 using Umbraco.Web.WebApi;
@@ -203,5 +205,63 @@ namespace Diplo.GodMode.Controllers
         {
             return ReflectionHelper.GetNonGenericTypes(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>();
         }
+
+        [HttpPost]
+        public ServerResponse ClearUmbracoCache(string cache)
+        {
+            var caches = UmbracoContext.Application.ApplicationCache;
+
+            try
+            {
+                if (cache == "Request" || cache == "all")
+                {
+                    caches.RequestCache.ClearAllCache();
+                }
+                else if (cache == "Runtime" || cache == "all")
+                {
+                    caches.RuntimeCache.ClearAllCache();
+                }
+                else if (cache == "Static" || cache == "all")
+                {
+                    caches.StaticCache.ClearAllCache();
+                }
+                else if (cache == "Isolated" || cache == "all")
+                {
+                    caches.IsolatedRuntimeCache.ClearAllCaches();
+                }
+                else if (cache == "Partial" || cache == "all")
+                {
+                    caches.ClearPartialViewCache();
+                }
+                else
+                {
+                    return new ServerResponse(cache + " Is not a valid cache type", ServerResponseType.Warning);
+                }
+
+                if (cache == "all")
+                    return new ServerResponse("All Caches were successfully cleared", ServerResponseType.Success);
+                else
+                    return new ServerResponse("The " + cache + " Cache was successfully cleared", ServerResponseType.Success);
+            }
+            catch (Exception ex)
+            {
+                return new ServerResponse("Error deleting cache: " + ex.Message, ServerResponseType.Error);
+            }
+        }
+
+        [HttpPost]
+        public ServerResponse RestartAppPool()
+        {
+            try
+            {
+                UmbracoContext.Application.RestartApplicationPool(UmbracoContext.Current.HttpContext);
+                return new ServerResponse("Restarting the application pool - hold tight...", ServerResponseType.Success);
+            }
+            catch (Exception ex)
+            {
+                return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
+            }
+        }
+
     }
 }
