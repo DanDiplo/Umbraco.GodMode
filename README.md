@@ -13,16 +13,18 @@ For instance, you can:
 * Browse all media in the Media Library and sort it by file type, size or media type
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from PublishedContentModel)
+* Clear internal Umbraco caches and even restart App Pool
 * Plus lots more!
 
 ### Demo
 
 **YouTube:** https://www.youtube.com/watch?v=tkupJOMnOlw
+
 **Blog Post:** http://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/
 
 ### Install
 
-*Important: This is for Umbraco 7.4.3 and above only. It works with 7.5.*
+*Important: This is for Umbraco 7.4.3 and above only. It is also now compatible with 7.5.*
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
