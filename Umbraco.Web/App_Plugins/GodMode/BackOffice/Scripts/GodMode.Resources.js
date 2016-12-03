@@ -41,6 +41,18 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
                 $http.get(godModeConfig.baseApiUrl + "GetMedia")
             );
         },
+        getContentPaged: function (page, pageSize, criteria, orderBy) {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetContentPaged",
+                    { params: { page: page, pageSize: pageSize, name: criteria.Name, alias: criteria.Alias, creatorId: criteria.CreatorId, id: criteria.Id, level: criteria.Level, trashed: criteria.Trashed.value, updaterId: criteria.UpdaterId, orderBy: orderBy }
+                })
+            );
+        },
+        getContentTypeAliases: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetContentTypeAliases")
+            );
+        },
         getSurfaceControllers: function () {
             return umbRequestHelper.resourcePromise(
                 $http.get(godModeConfig.baseApiUrl + "GetSurfaceControllers")

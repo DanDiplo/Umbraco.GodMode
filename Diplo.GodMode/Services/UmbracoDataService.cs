@@ -7,6 +7,7 @@ using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Umbraco.Core;
+using Umbraco.Core.Persistence;
 using Umbraco.Core.Services;
 using Umbraco.Web;
 
@@ -20,12 +21,14 @@ namespace Diplo.GodMode.Services
         private UmbracoHelper umbHelper;
         private UmbracoContext umbContext;
         private ServiceContext services;
+        private UmbracoDatabase db;
 
         public UmbracoDataService(UmbracoHelper umbHelper)
         {
             this.umbHelper = umbHelper;
             this.umbContext = umbHelper.UmbracoContext;
             this.services = umbContext.Application.Services;
+            this.db = umbContext.Application.DatabaseContext.Database;
         }
 
         /// <summary>
@@ -79,6 +82,15 @@ namespace Diplo.GodMode.Services
             }
 
             return mapping;
+        }
+
+        /// <summary>
+        /// Gets all content type (doc type) aliases
+        /// </summary>
+        public IEnumerable<string> GetContentTypeAliases()
+        {
+            const string sql = @"SELECT alias FROM cmsContentType WHERE nodeId in (SELECT contentTypeNodeId FROM cmsDocumentType) ORDER BY alias";
+            return db.Fetch<string>(sql);
         }
 
         /// <summary>
@@ -207,5 +219,68 @@ namespace Diplo.GodMode.Services
 
             return mediaMap;
         }
+
+        public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria =  null, string orderBy = "N.id")
+        {
+            string sql = @"SELECT N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName 
+            FROM cmsContent C 
+            INNER JOIN umbracoNode N ON N.Id = C.nodeId
+            INNER JOIN cmsContentType CT ON C.contentType = CT.nodeId
+            INNER JOIN cmsDocument D ON D.nodeId = C.nodeId 
+            INNER JOIN umbracoUser AS Creator ON Creator.Id = N.nodeUser
+            INNER JOIN umbracoUser AS Updater ON Updater.Id = D.documentUser
+            WHERE D.Newest = 1 ";
+
+            Sql query = new Sql(sql);
+
+            if (criteria != null)
+            {
+                if (!String.IsNullOrEmpty(criteria.Alias))
+                {
+                    query = query.Append(" AND CT.alias = @0", criteria.Alias);
+                }
+
+                if (!String.IsNullOrEmpty(criteria.Name))
+                {
+                    query = query.Append(" AND D.text LIKE @0", "%" + criteria.Name + "%");
+                }
+
+                if (criteria.Id.HasValue)
+                {
+                    query = query.Append(" AND N.id = @0", criteria.Id.Value);
+                }
+
+                if (criteria.Level.HasValue)
+                {
+                    query = query.Append(" AND N.Level = @0", criteria.Level.Value);
+                }
+
+                if (criteria.Trashed.HasValue)
+                {
+                    query = query.Append(" AND N.Trashed = @0", criteria.Trashed.Value);
+                }
+
+                if (criteria.CreatorId.HasValue)
+                {
+                    query = query.Append(" AND Creator.Id = @0", criteria.CreatorId.Value);
+                }
+
+                if (criteria.UpdaterId.HasValue)
+                {
+                    query = query.Append(" AND Updater.Id = @0", criteria.UpdaterId.Value);
+                }
+            }
+
+            if (!String.IsNullOrEmpty(orderBy))
+            {
+                query.Append(" ORDER BY " + orderBy);
+            }
+
+            var paged = db.Page<ContentItem>(page, itemsPerPage, query);
+            return paged;
+        }
+
+
+
     }
 }

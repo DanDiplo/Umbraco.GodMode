@@ -3,7 +3,7 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>1.2.0</version>
+      <version>1.3.0</version>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>https://our.umbraco.org/projects/developer-tools/diplo-god-mode/</url>
       <requirements>
@@ -24,6 +24,7 @@
         * See which partials are used by all your templates
         * Find out which data types are being used (or not)
         * Browse all media in the Media Library and sort it by file type, size or media type
+		* Browse all content and search and filter it
         * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
         * View all generated models (that inherit from PublishedContentModel)
         * Clear the various Umbraco caches and even restart the app pool

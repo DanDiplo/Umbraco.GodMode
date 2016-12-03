@@ -260,6 +260,8 @@
     <Compile Include="Helpers\FileTypeHelper.cs" />
     <Compile Include="Helpers\PartialHelper.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
+    <Compile Include="Models\ContentCriteria.cs" />
+    <Compile Include="Models\ContentItem.cs" />
     <Compile Include="Models\ContentTypeData.cs" />
     <Compile Include="Models\ContentTypeMap.cs" />
     <Compile Include="Models\DataTypeMap.cs" />
@@ -287,8 +289,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" "$(SolutionDir)Umbraco.Web\bin"
-xcopy /y "$(ProjectDir)$(OutDir)$(TargetName).pdb" "$(SolutionDir)Umbraco.Web\bin"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

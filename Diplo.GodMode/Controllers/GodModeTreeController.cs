@@ -72,6 +72,8 @@ namespace Diplo.GodMode.Controllers
 
             tree.Add(CreateTreeNode("dataTypeBrowser", parentId, qs, "DataType Browser", "icon-autofill", false, baseUrl + "dataTypeBrowser/browse"));
 
+            tree.Add(CreateTreeNode("contentBrowser", parentId, qs, "Content Browser", "icon-umb-content", false, baseUrl + "contentBrowser/browse"));
+
             tree.Add(CreateTreeNode("mediaBrowser", parentId, qs, "Media Browser", "icon-picture", false, baseUrl + "mediaBrowser/browse"));
 
             tree.Add(CreateTreeNode("reflectionBrowser", parentId, qs, "Surface Controllers", "icon-planet", false, baseUrl + "reflectionBrowser/surface"));

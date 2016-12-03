@@ -8,6 +8,7 @@ using Diplo.GodMode.Models;
 using Diplo.GodMode.Services;
 using Umbraco.Core;
 using Umbraco.Core.Models.PublishedContent;
+using Umbraco.Core.Persistence;
 using Umbraco.Core.PropertyEditors;
 using Umbraco.Web;
 using Umbraco.Web.Editors;
@@ -95,6 +96,36 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<MediaMap> GetMedia()
         {
             return dataService.GetMedia();
+        }
+
+        /// <summary>
+        /// Gets all content paged
+        /// </summary>
+        /// <param name="page">The current page</param>
+        /// <param name="pageSize">The items per page</param>
+        /// <param name="criteria"></param>
+        public Page<ContentItem> GetContentPaged(long page = 1, long pageSize = 50, string name = null, string alias = null, int? creatorId = null, int? id = null, int? level = null, bool? trashed = null, int? updaterId = null, string orderBy = "N.id")
+        {
+            ContentCriteria criteria = new ContentCriteria()
+            {
+                Name = name,
+                Alias = alias,
+                CreatorId = creatorId,
+                Id = id,
+                Level = level,
+                Trashed = trashed,
+                UpdaterId = updaterId
+            };
+
+            return dataService.GetContent(page, pageSize, criteria, orderBy);
+        }
+
+        /// <summary>
+        /// Gets all content-type aliases
+        /// </summary>
+        public IEnumerable<string> GetContentTypeAliases()
+        {
+            return dataService.GetContentTypeAliases();
         }
 
         /// <summary>
@@ -206,6 +237,10 @@ namespace Diplo.GodMode.Controllers
             return ReflectionHelper.GetNonGenericTypes(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>();
         }
 
+        /// <summary>
+        /// Clears the internal Umbraco cache's
+        /// </summary>
+        /// <param name="cache">The cache name to clear</param>
         [HttpPost]
         public ServerResponse ClearUmbracoCache(string cache)
         {
@@ -249,6 +284,9 @@ namespace Diplo.GodMode.Controllers
             }
         }
 
+        /// <summary>
+        /// Restarts the ASP.NET application pool
+        /// </summary>
         [HttpPost]
         public ServerResponse RestartAppPool()
         {
