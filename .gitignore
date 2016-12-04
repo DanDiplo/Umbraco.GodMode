@@ -34,6 +34,7 @@ BuildPackage/Package/*
 
 #Ignore Umbraco files we don't need
 Umbraco.Web/*
+Umbraco.Web.Build/*
 
 #But we want these...
 !Umbraco.Web/App_Plugins/

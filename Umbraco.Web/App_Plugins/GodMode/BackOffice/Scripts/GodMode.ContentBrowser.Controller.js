@@ -7,7 +7,7 @@ angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
         $scope.criteria = {};
         $scope.page = {};
         $scope.currentPage = 1;
-        $scope.page.ItemsPerPage = 5;
+        $scope.itemsPerPage = 15;
         $scope.content = [];
         $scope.contentTypeAliases = [];
         $scope.sort = {};
@@ -16,7 +16,7 @@ angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
 
         $scope.fetchContent = function (orderBy) {
 
-            godModeResources.getContentPaged($scope.currentPage, 5, $scope.criteria, orderBy).then(function (data) {
+            godModeResources.getContentPaged($scope.currentPage, $scope.itemsPerPage, $scope.criteria, orderBy).then(function (data) {
                 $scope.page = data;
                 $scope.currentPage = $scope.page.CurrentPage;
                 $scope.isLoading = false;
