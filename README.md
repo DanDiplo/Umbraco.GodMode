@@ -10,6 +10,7 @@ For instance, you can:
 * See which document types use which property editor or data type instance
 * See which partials are used by all your templates
 * Find out which data types are being used (or not)
+* View all content pages in a searchable and filterable table (using fast, server-side pagination)
 * Browse all media in the Media Library and sort it by file type, size or media type
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from PublishedContentModel)
