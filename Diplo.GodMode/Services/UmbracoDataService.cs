@@ -7,6 +7,7 @@ using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Umbraco.Core;
+using Umbraco.Core.Models;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Services;
 using Umbraco.Web;
@@ -38,9 +39,11 @@ namespace Diplo.GodMode.Services
         {
             var cts = services.ContentTypeService;
 
+            var allContentTypes = cts.GetAllContentTypes() ?? Enumerable.Empty<IContentType>();
+
             List<ContentTypeMap> mapping = new List<ContentTypeMap>();
 
-            foreach (var ct in cts.GetAllContentTypes().OrderBy(x => x.Name))
+            foreach (var ct in allContentTypes.OrderBy(x => x.Name))
             {
                 ContentTypeMap map = new ContentTypeMap();
 
@@ -49,19 +52,19 @@ namespace Diplo.GodMode.Services
                 map.Name = ct.Name;
                 map.Id = ct.Id;
                 map.Description = ct.Description;
-                map.Templates = ct.AllowedTemplates.
+                map.Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
                 Select(x => new TemplateMap()
                 {
                     Alias = x.Alias,
                     Id = x.Id,
                     Name = x.Name,
                     Path = x.VirtualPath,
-                    IsDefault = ct.DefaultTemplate.Id == x.Id
-                });
+                    IsDefault = ct.DefaultTemplate != null && ct.DefaultTemplate.Id == x.Id
+                }) : Enumerable.Empty<TemplateMap>();
 
-                map.Properties = ct.PropertyTypes.Select(p => new PropertyTypeMap(p));
-                map.CompositionProperties = ct.CompositionPropertyTypes.Where(p => !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt));
-                map.Compositions = ct.ContentTypeComposition.
+                map.Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : Enumerable.Empty<PropertyTypeMap>();
+                map.CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : Enumerable.Empty<PropertyTypeMap>();
+                map.Compositions = ct.ContentTypeComposition != null ? ct.ContentTypeComposition.
                 Select(x => new ContentTypeData()
                 {
                     Alias = x.Alias,
@@ -69,14 +72,14 @@ namespace Diplo.GodMode.Services
                     Id = x.Id,
                     Icon = x.Icon,
                     Name = x.Name
-                });
+                }) : Enumerable.Empty<ContentTypeData>();
 
-                map.AllProperties = map.Properties.Concat(map.CompositionProperties);
-                map.HasCompositions = ct.ContentTypeComposition.Any();
-                map.HasTemplates = ct.AllowedTemplates.Any();
+                map.AllProperties = map.Properties.Concat(map.CompositionProperties ?? Enumerable.Empty<PropertyTypeMap>());
+                map.HasCompositions = ct.ContentTypeComposition != null && ct.ContentTypeComposition.Any();
+                map.HasTemplates = ct.AllowedTemplates != null && ct.AllowedTemplates.Any();
                 map.IsListView = ct.IsContainer;
                 map.AllowedAtRoot = ct.AllowedAsRoot;
-                map.PropertyGroups = ct.PropertyGroups.Select(x => x.Name);
+                map.PropertyGroups = ct.PropertyGroups != null ? ct.PropertyGroups.Select(x => x.Name) : Enumerable.Empty<string>();
 
                 mapping.Add(map);
             }
