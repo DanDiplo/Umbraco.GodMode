@@ -44,4 +44,5 @@ Umbraco.Web/App_Plugins/*
 Umbraco.Web/bin/*
 !Umbraco.Web/bin/Diplo.GodMode.dll
 !Umbraco.Web/bin/Diplo.GodMode.pdb
+!BuildPackage/NuGet.exe
 Build.txt
