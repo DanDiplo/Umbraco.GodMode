@@ -283,7 +283,25 @@ namespace Diplo.GodMode.Services
             return paged;
         }
 
+        public IEnumerable<string> GetTemplateUrlsToPing()
+        {
+            string sql = @";WITH UniqueTemplateNode AS
+            (
+               SELECT D.nodeId, D.templateId, N.[text] as templateName,
+	            ROW_NUMBER() OVER (PARTITION BY TemplateId ORDER BY N.[text]) AS rn
+               FROM cmsDocument D
+               INNER JOIN umbracoNode N ON D.templateId = N.id
+               WHERE templateId IS NOT NULL AND published = 1
+            )
+            SELECT nodeId FROM UniqueTemplateNode WHERE rn = 1
+            ";
 
+            Sql query = new Sql(sql);
+
+            var ids = db.Fetch<int>(query);
+
+            return ids.Select(x => umbHelper.TypedContent(x).UrlAbsolute()) ?? Enumerable.Empty<string>();
+        }
 
     }
 }

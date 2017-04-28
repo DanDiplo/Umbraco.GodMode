@@ -238,6 +238,15 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
+        /// Gets the URL of a single page for each unique template on the site
+        /// </summary>
+        /// <returns>A list of URLs</returns>
+        public IEnumerable<string> GetTemplateUrlsToPing()
+        {
+            return dataService.GetTemplateUrlsToPing();
+        }
+
+        /// <summary>
         /// Clears the internal Umbraco cache's
         /// </summary>
         /// <param name="cache">The cache name to clear</param>

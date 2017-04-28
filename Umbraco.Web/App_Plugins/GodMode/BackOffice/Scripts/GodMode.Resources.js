@@ -123,6 +123,11 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
                 $http.post(godModeConfig.baseApiUrl + "RestartAppPool")
             );
         },
+        getTemplateUrls: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetTemplateUrlsToPing")
+            );
+        },
         getTriStateOptions: function () {
             return [
                 { label: 'Any', value: null },
