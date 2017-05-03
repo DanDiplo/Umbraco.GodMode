@@ -45,6 +45,8 @@
             <div class="row">
                 <h3><i class="icon-application-window-alt"></i> Application</h3>
 
+                <p>Here you wield immense power...</p>
+
                 <div class="span4">
                     <button class="btn btn-danger" title="Restarts the IIS application pool (which will take the site offline momentarily)" ng-click="restartAppPool()"><i class="icon-scull"></i> Restart Application Pool</button>
                 </div>
@@ -52,7 +54,8 @@
                 <div class="span4">
                     <button class="btn btn-primary" title="Hits a single URL for every template in the site to 'warm-up' compilation of views" ng-click="warmUpTemplates()"><i class="icon-server"></i> Warm-Up Templates</button>
 
-                    <p ng-show="warmup.show">
+                    <p ng-show="warmup.current < warmup.count">
+
 
                         <umb-load-indicator ng-show="warmup.current < warmup.count"></umb-load-indicator>
 

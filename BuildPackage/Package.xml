@@ -28,6 +28,7 @@
         * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
         * View all generated models (that inherit from PublishedContentModel)
         * Clear the various Umbraco caches and even restart the app pool
+        * Warm up the compilation of all views in a single bound... erm, click
         * Plus lots more]]>
     </readme>
   </info>

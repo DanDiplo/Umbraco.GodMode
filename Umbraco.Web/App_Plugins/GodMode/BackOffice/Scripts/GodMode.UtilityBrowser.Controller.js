@@ -3,7 +3,6 @@ angular.module("umbraco").controller("GodMode.UtilityBrowser.Controller",
     function ($scope, $route, $http, notificationsService, godModeResources, godModeConfig) {
         $scope.config = godModeConfig.config;
         $scope.warmup = {
-            show: false,
             current: 0,
             count: 0,
             url: null
@@ -42,9 +41,7 @@ angular.module("umbraco").controller("GodMode.UtilityBrowser.Controller",
         }
 
         $scope.warmUpTemplates = function () {
-
             godModeResources.getTemplateUrls().then(function (response) {
-                $scope.warmup.show = true;
                 $scope.warmup.current = 0;
                 $scope.warmup.url = "[waiting...]";
 
@@ -55,19 +52,15 @@ angular.module("umbraco").controller("GodMode.UtilityBrowser.Controller",
                 $scope.warmup.count = response.length;
 
                 angular.forEach(response, function (url) {
-
                     $http.get(url).then(function (res) {
                         $scope.warmup.current++;
                         $scope.warmup.url = url;
-
+                        console.log("Warmed up page: " + url);
                     }, function (err) {
                         $scope.warmup.current++;
                         $scope.warmup.url = url;
                     });
                 });
-
             });
-
         }
-
     });
