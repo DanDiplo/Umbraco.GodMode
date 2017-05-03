@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Diplo.GodMode.Models
 {
+    /// <summary>
+    /// Represents an Event that contain many event items
+    /// </summary>
     public class UmbracoEvent
     {
         public string FullName { get; set; }
@@ -15,6 +15,9 @@ namespace Diplo.GodMode.Models
         public List<UmbracoEventItem> Items { get; set; }
     }
 
+    /// <summary>
+    /// Represents a single event item
+    /// </summary>
     public class UmbracoEventItem
     {
         public string Location { get; set; }

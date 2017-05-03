@@ -17,7 +17,7 @@ namespace Diplo.GodMode.Models
 
         public ServerResponseType ResponseType { get; private set; }
 
-        public string Response {  get { return this.ResponseType.ToString(); } }
+        public string Response { get { return this.ResponseType.ToString(); } }
 
         public string Message { get; private set; }
     }

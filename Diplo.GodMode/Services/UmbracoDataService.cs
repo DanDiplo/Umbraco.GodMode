@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
@@ -223,13 +221,21 @@ namespace Diplo.GodMode.Services
             return mediaMap;
         }
 
-        public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria =  null, string orderBy = "N.id")
+        /// <summary>
+        /// Gets the basic page content for the site
+        /// </summary>
+        /// <param name="page">The pagination page</param>
+        /// <param name="itemsPerPage">The pagination items per page</param>
+        /// <param name="criteria">The filter criteria</param>
+        /// <param name="orderBy">The order by clause</param>
+        /// <returns>A list of content items</returns>
+        public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            string sql = @"SELECT N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName 
-            FROM cmsContent C 
+            string sql = @"SELECT N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName
+            FROM cmsContent C
             INNER JOIN umbracoNode N ON N.Id = C.nodeId
             INNER JOIN cmsContentType CT ON C.contentType = CT.nodeId
-            INNER JOIN cmsDocument D ON D.nodeId = C.nodeId 
+            INNER JOIN cmsDocument D ON D.nodeId = C.nodeId
             INNER JOIN umbracoUser AS Creator ON Creator.Id = N.nodeUser
             INNER JOIN umbracoUser AS Updater ON Updater.Id = D.documentUser
             WHERE D.Newest = 1 ";
@@ -283,6 +289,13 @@ namespace Diplo.GodMode.Services
             return paged;
         }
 
+        /// <summary>
+        /// Gets a list of URLs, each corresponding to a page with a unique template
+        /// </summary>
+        /// <remarks>
+        /// This is used so we can ping each URL to "warm-up" the compilation of the view it uses
+        /// </remarks>
+        /// <returns>A list of URLs</returns>
         public IEnumerable<string> GetTemplateUrlsToPing()
         {
             string sql = @";WITH UniqueTemplateNode AS
@@ -302,6 +315,5 @@ namespace Diplo.GodMode.Services
 
             return ids.Select(x => umbHelper.TypedContent(x).UrlAbsolute()) ?? Enumerable.Empty<string>();
         }
-
     }
 }

@@ -5,7 +5,6 @@ using System.Configuration.Provider;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
@@ -246,7 +245,7 @@ namespace Diplo.GodMode.Services
             }
             catch
             {
-                // deliberate 
+                // deliberate
             }
 
             var domains = umbContext.Application.Services.DomainService.GetAll(true);
@@ -271,8 +270,6 @@ namespace Diplo.GodMode.Services
             }
 
             sections.Add(section);
-
-
 
             group.Add(sections);
             groups.Add(group);
@@ -306,7 +303,7 @@ namespace Diplo.GodMode.Services
 
             section.Diagnostics.Add(new Diagnostic("64 Bit Process?", Environment.Is64BitProcess));
             section.Diagnostics.Add(new Diagnostic("Framework Bits", IntPtr.Size * 8));
-            section.Diagnostics.Add(new Diagnostic("Process Physical Memory", String.Format("{0:n} MB",Environment.WorkingSet / 1048576)));
+            section.Diagnostics.Add(new Diagnostic("Process Physical Memory", String.Format("{0:n} MB", Environment.WorkingSet / 1048576)));
 
             try
             {
@@ -319,7 +316,7 @@ namespace Diplo.GodMode.Services
             }
             catch
             {
-                // deliberate 
+                // deliberate
             }
 
             section.Diagnostics.Add(new Diagnostic("Current Culture", System.Threading.Thread.CurrentThread.CurrentCulture));
@@ -351,7 +348,6 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
-
             group = new DiagnosticGroup(id++, "MVC Configuration");
             sections = new List<DiagnosticSection>();
 
@@ -369,9 +365,8 @@ namespace Diplo.GodMode.Services
             }
             catch
             {
-                // deliberate 
+                // deliberate
             }
-
 
             section = new DiagnosticSection("MVC Routes");
             section.Diagnostics.AddRange(RouteTable.Routes.Select(r => (Route)r).Select(r => new Diagnostic(r.RouteHandler.GetType().Name, r.Url)));
@@ -400,9 +395,7 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
-
             return groups;
         }
-
     }
 }

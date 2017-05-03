@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Diplo.GodMode.Helpers;
 using Umbraco.Core;
 
@@ -74,7 +72,7 @@ namespace Diplo.GodMode.Models
                 foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
                 {
                     this.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
-                } 
+                }
             }
         }
     }

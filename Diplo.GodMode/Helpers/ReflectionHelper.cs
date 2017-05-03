@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Diplo.GodMode.Models;
 using Umbraco.Core;
 
@@ -39,7 +35,7 @@ namespace Diplo.GodMode.Helpers
 
         public static IEnumerable<Type> GetLoadableTypes(Func<Assembly, bool> assemblyPredicate = null)
         {
-             return GetAssemblies(assemblyPredicate).SelectMany(s => GetTypesThatCanBeLoaded(s));
+            return GetAssemblies(assemblyPredicate).SelectMany(s => GetTypesThatCanBeLoaded(s));
         }
 
         public static IEnumerable<Assembly> GetUmbracoAssemblies()
@@ -78,7 +74,6 @@ namespace Diplo.GodMode.Helpers
 
             if (onlyUmbraco)
                 props = props.Where(x => x.Module.Name.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase)).ToArray();
-
 
             List<Diagnostic> diagnostics = new List<Diagnostic>(props.Count());
 

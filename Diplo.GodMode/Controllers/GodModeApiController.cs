@@ -15,7 +15,6 @@ using Umbraco.Web.Editors;
 using Umbraco.Web.Mvc;
 using Umbraco.Web.WebApi;
 using Umbraco.Web.WebApi.Filters;
-using Core = Umbraco.Core;
 
 namespace Diplo.GodMode.Controllers
 {
@@ -25,7 +24,7 @@ namespace Diplo.GodMode.Controllers
     [UmbracoApplicationAuthorize(Constants.Applications.Developer)]
     public class GodModeApiController : UmbracoAuthorizedJsonController
     {
-        UmbracoDataService dataService;
+        private UmbracoDataService dataService;
 
         public GodModeApiController()
         {
@@ -309,6 +308,5 @@ namespace Diplo.GodMode.Controllers
                 return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
             }
         }
-
     }
 }
