@@ -313,7 +313,36 @@ namespace Diplo.GodMode.Services
 
             var ids = db.Fetch<int>(query);
 
-            return ids.Select(x => umbHelper.TypedContent(x).UrlAbsolute()) ?? Enumerable.Empty<string>();
+            foreach (var id in ids)
+            {
+                IPublishedContent node = null;
+
+                try
+                {
+                    node = umbHelper.TypedContent(id);
+                }
+                catch
+                {
+                    // we ignore it if we can't get an instance
+                }
+
+                if (node != null)
+                {
+                    string url = null;
+
+                    try
+                    {
+                        url = node.UrlAbsolute();
+                    }
+                    catch
+                    {
+                        // we ignore it if the node doesn't have an absolute URL
+                    }
+
+                    if (!String.IsNullOrEmpty(url))
+                        yield return url;
+                }
+            }
         }
     }
 }
