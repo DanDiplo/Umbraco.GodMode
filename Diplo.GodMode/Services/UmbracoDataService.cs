@@ -5,6 +5,7 @@ using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Umbraco.Core;
+using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Services;
@@ -86,12 +87,13 @@ namespace Diplo.GodMode.Services
         }
 
         /// <summary>
-        /// Gets all content type (doc type) aliases
+        /// Gets all content type (doc type) aliases for content
         /// </summary>
         public IEnumerable<string> GetContentTypeAliases()
         {
-            const string sql = @"SELECT alias FROM cmsContentType WHERE nodeId in (SELECT contentTypeNodeId FROM cmsDocumentType) ORDER BY alias";
-            return db.Fetch<string>(sql);
+            string sql = @"SELECT CT.alias FROM cmsContentType CT INNER JOIN umbracoNode N ON CT.nodeId = N.id WHERE N.nodeObjectType = @0 ORDER BY CT.alias";
+            Sql query = new Sql(sql, Constants.ObjectTypes.DocumentTypeGuid);
+            return db.Fetch<string>(query);
         }
 
         /// <summary>
@@ -343,6 +345,63 @@ namespace Diplo.GodMode.Services
                         yield return url;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets what content types are used and how many instances of each there are
+        /// </summary>
+        /// <param name="id">Optional ID of the content type to filter by</param>
+        /// <returns>A list of data</returns>
+        public List<UsageModel> GetContentUsageData(int? id = null, string orderBy = "CT.alias")
+        {
+            string sql = @"SELECT COUNT(N.id) as NodeCount, CT.description as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
+            FROM cmsContentType CT
+            LEFT JOIN cmsContent C ON C.contentType = CT.nodeId
+            LEFT JOIN umbracoNode N ON CT.nodeId = N.id ";
+
+            Sql query = new Sql(sql);
+
+            if (id != null)
+            {
+                query = query.Append(" AND CT.pk = @0", id);
+            }
+
+            query.Append(" GROUP BY CT.alias, CT.icon, CT.description, CT.pk, N.nodeObjectType ");
+
+            if (!String.IsNullOrEmpty(orderBy))
+            {
+                query.Append(" ORDER BY " + orderBy);
+            }
+
+            return db.Fetch<UsageModel>(query);
+        }
+
+        internal IEnumerable<ServerModel> GetRegistredServers()
+        {
+            var ctx = ApplicationContext.Current.DatabaseContext;
+            var helper = new DatabaseSchemaHelper(ctx.Database, ApplicationContext.Current.ProfilingLogger.Logger, ctx.SqlSyntax);
+
+            if (helper.TableExist("umbracoServer"))
+            {
+                const string sql = @"SELECT Id, Address, ComputerName, RegisteredDate, LastNotifiedDate, IsActive, IsMaster FROM umbracoServer";
+                return db.Fetch<ServerModel>(sql);
+            }
+
+            return null;
+        }
+
+        internal IEnumerable<MigrationModel> GetMigrations()
+        {
+            var ctx = ApplicationContext.Current.DatabaseContext;
+            var helper = new DatabaseSchemaHelper(ctx.Database, ApplicationContext.Current.ProfilingLogger.Logger, ctx.SqlSyntax);
+
+            if (helper.TableExist("umbracoMigration"))
+            {
+                const string sql = @"select Id, Name, CreateDate, Version from umbracoMigration";
+                return db.Fetch<MigrationModel>(sql);
+            }
+
+            return null;
         }
     }
 }

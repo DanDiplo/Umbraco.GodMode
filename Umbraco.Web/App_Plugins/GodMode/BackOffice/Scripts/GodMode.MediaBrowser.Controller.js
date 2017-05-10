@@ -9,6 +9,7 @@ angular.module("umbraco").controller("GodMode.MediaBrowser.Controller",
         $scope.sort = {};
         $scope.sort.column = "Name";
         $scope.sort.reverse = false;
+        var param = $routeParams.id;
 
         $scope.fileSizes = [
             { "min": 0, "max": 10240, "title": "Under 10KB" },
@@ -27,6 +28,7 @@ angular.module("umbraco").controller("GodMode.MediaBrowser.Controller",
             $scope.media = data;
             $scope.isLoading = false;
         });
+
 
         $scope.sortBy = function (column) {
             $scope.sort.column = column;

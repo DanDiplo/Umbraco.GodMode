@@ -1,0 +1,69 @@
+﻿<div ng-controller="GodMode.UsageBrowser.Controller" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Content Usage Browser" title="Because statistics don't lie..."></godmode-header>
+
+        <umb-editor-container>
+
+            <div id="collapse_selects" class="accordion-body collapse in">
+                <div class="well">
+                    <div class="row">
+
+                        <div class="span4">
+                            <label class="control-label" for="search-name">Alias:</label>
+                            <br />
+                            <input type="search" id="search-name" ng-model="criteria.Alias" placeholder="Search content-type aliases" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-name">Description:</label>
+                            <br />
+                            <input type="search" id="search-name" ng-model="criteria.Description" placeholder="Search content-type descriptions" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-type">Type:</label>
+                            <br />
+                            <select ng-model="criteria.Type" id="search-type" ng-options="item.Type as item.Type for item in usage | godModeUnique: 'Type'" class="input-medium">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <table class="table">
+                <colgroup>
+                    <col style="width:30%">
+                    <col style="width:60%">
+                    <col style="width:10%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th><godmode-sortable sort-by="sortBy('CT.Alias')" column="CT.Alias" sort="sort">Alias</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('CT.description')" column="CT.description'" sort="sort">Description</godmode-sortable></th>
+                        <th align="center"><godmode-sortable sort-by="sortBy('NodeCount')" column="NodeCount" sort="sort">Count</godmode-sortable></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="c in usage | filter: criteria">
+                        <td>
+                            <span class="{{c.Icon}}"></span>
+                            <a ng-show="c.Type === 'Content'" href="{{config.baseTreeUrl + 'contentBrowser/' + c.Alias}}" title="View related content">{{ c.Alias }}</a>
+                            <span ng-show="c.Type !== 'Content'">{{ c.Alias }}</span>
+                        </td>
+                        <td><small>{{ c.Description }}</small></td>
+                        <td align="center">{{ c.NodeCount }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

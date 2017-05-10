@@ -215,7 +215,7 @@ namespace Diplo.GodMode.Controllers
         /// <returns></returns>
         public IEnumerable<NameValue> GetAssembliesWithInterfaces()
         {
-            return ReflectionHelper.GetAssemblies(a => !a.IsDynamic && a.GetTypes().Any(t => t.IsInterface && !t.IsGenericTypeDefinition && t.IsPublic)).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
+            return ReflectionHelper.GetAssemblies(a => !a.IsDynamic && a.GetLoadableTypes().Any(t => t.IsInterface && !t.IsGenericTypeDefinition && t.IsPublic)).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
         }
 
         /// <summary>
@@ -243,6 +243,17 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<string> GetTemplateUrlsToPing()
         {
             return dataService.GetTemplateUrlsToPing();
+        }
+
+        /// <summary>
+        /// Gets a list of content types and a count of their usage
+        /// </summary>
+        /// <param name="id">Optional Id of the content type to filter by</param>
+        /// <param name="orderBy">Optional order by parameter</param>
+        /// <returns>A list of content usage</returns>
+        public IEnumerable<UsageModel> GetContentUsageData(int? id = null, string orderBy = null)
+        {
+            return dataService.GetContentUsageData(id, orderBy);
         }
 
         /// <summary>

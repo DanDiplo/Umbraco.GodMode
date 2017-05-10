@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Diplo.GodMode.Helpers;
@@ -126,6 +127,35 @@ namespace Diplo.GodMode.Services
                 section.Diagnostics.Add(new Diagnostic("External Logger Enabled Audit Trail", lc.ExternalLoggerEnableAuditTrail));
             }
             sections.Add(section);
+
+            UmbracoDataService dataService = new UmbracoDataService(umbHelper);
+            var servers = dataService.GetRegistredServers();
+
+            if (servers != null && servers.Any())
+            {
+                section = new DiagnosticSection("Server Registration");
+
+                foreach (var server in servers)
+                {
+                    section.Diagnostics.Add(new Diagnostic(server.ComputerName, server.ToDiagnostic()));
+                }
+
+                sections.Add(section);
+            }
+
+            var migrations = dataService.GetMigrations();
+
+            if (migrations != null && migrations.Any()) 
+            {
+                section = new DiagnosticSection("Migration History");
+
+                foreach (var migration in migrations)
+                {
+                    section.Diagnostics.Add(new Diagnostic(migration.Name, migration.ToDiagnostic()));
+                }
+
+                sections.Add(section);
+            }
 
             var pack = UmbracoConfig.For.UmbracoSettings().PackageRepositories;
             section = new DiagnosticSection("Package Repositories");
@@ -280,10 +310,9 @@ namespace Diplo.GodMode.Services
             section = new DiagnosticSection("Server Settings");
             section.Diagnostics.Add(new Diagnostic("Machine Name", Environment.MachineName));
             section.Diagnostics.Add(new Diagnostic("OS Version", Environment.OSVersion));
-            section.Diagnostics.Add(new Diagnostic("64 Bit OS?", System.Environment.Is64BitOperatingSystem));
+            section.Diagnostics.Add(new Diagnostic("64 Bit OS?", Environment.Is64BitOperatingSystem));
             section.Diagnostics.Add(new Diagnostic("Processor Count", Environment.ProcessorCount));
             section.Diagnostics.Add(new Diagnostic("Network Domain", Environment.UserDomainName));
-
             section.Diagnostics.Add(new Diagnostic("ASP.NET Version", Environment.Version));
 
             if (httpContext != null && httpContext.Request != null)
@@ -295,12 +324,10 @@ namespace Diplo.GodMode.Services
                     section.Diagnostics.Add(new Diagnostic("Web Server", request["SERVER_SOFTWARE"]));
                     section.Diagnostics.Add(new Diagnostic("Host", request["HTTP_HOST"]));
                     section.Diagnostics.Add(new Diagnostic("App Pool ID", request["APP_POOL_ID"]));
-                    section.Diagnostics.Add(new Diagnostic("Application Path", request.PhysicalApplicationPath));
                 }
             }
 
             section.Diagnostics.Add(new Diagnostic("Current Directory", Environment.CurrentDirectory));
-
             section.Diagnostics.Add(new Diagnostic("64 Bit Process?", Environment.Is64BitProcess));
             section.Diagnostics.Add(new Diagnostic("Framework Bits", IntPtr.Size * 8));
             section.Diagnostics.Add(new Diagnostic("Process Physical Memory", String.Format("{0:n} MB", Environment.WorkingSet / 1048576)));
@@ -321,6 +348,27 @@ namespace Diplo.GodMode.Services
 
             section.Diagnostics.Add(new Diagnostic("Current Culture", System.Threading.Thread.CurrentThread.CurrentCulture));
             section.Diagnostics.Add(new Diagnostic("Current Thread State", System.Threading.Thread.CurrentThread.ThreadState));
+
+            sections.Add(section);
+
+            section = new DiagnosticSection("Application Settings");
+
+            section.Diagnostics.Add(new Diagnostic("Application ID", HostingEnvironment.ApplicationID));
+            section.Diagnostics.Add(new Diagnostic("Site Name", HostingEnvironment.SiteName));
+            section.Diagnostics.Add(new Diagnostic("Development Env?", HostingEnvironment.IsDevelopmentEnvironment));
+            section.Diagnostics.Add(new Diagnostic("On UNC Share?", HttpRuntime.IsOnUNCShare));
+            section.Diagnostics.Add(new Diagnostic("Bin Directory", HttpRuntime.BinDirectory));
+            section.Diagnostics.Add(new Diagnostic("Code Gen Dir", HttpRuntime.CodegenDir));
+            section.Diagnostics.Add(new Diagnostic("Target Framework", HttpRuntime.TargetFramework));
+            section.Diagnostics.Add(new Diagnostic("App Domain ID", HttpRuntime.AppDomainId));
+            section.Diagnostics.Add(new Diagnostic("App Domain Path", HttpRuntime.AppDomainAppPath));
+
+            if (HostingEnvironment.Cache != null)
+            {
+                section.Diagnostics.Add(new Diagnostic("Cached Items", HostingEnvironment.Cache.Count.ToString()));
+                section.Diagnostics.Add(new Diagnostic("Cache Memory Limit ", HostingEnvironment.Cache.EffectivePercentagePhysicalMemoryLimit + "%"));
+            }
+
 
             sections.Add(section);
 

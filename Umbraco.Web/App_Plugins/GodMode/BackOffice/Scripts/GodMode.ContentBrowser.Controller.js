@@ -13,9 +13,9 @@ angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
         $scope.sort = {};
         $scope.triStateOptions = godModeResources.getTriStateOptions();
         $scope.criteria.Trashed = $scope.triStateOptions[0];
+        var param = $routeParams.id;
 
         $scope.fetchContent = function (orderBy) {
-
             godModeResources.getContentPaged($scope.currentPage, $scope.itemsPerPage, $scope.criteria, orderBy).then(function (data) {
                 $scope.page = data;
                 $scope.currentPage = $scope.page.CurrentPage;
@@ -62,9 +62,17 @@ angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
 
         godModeResources.getContentTypeAliases().then(function (data) {
             $scope.contentTypeAliases = data;
-        });
 
-        $scope.fetchContent();
+            if (param != "browse") {
+                $scope.contentTypeAliases.filter(function (elem) {
+                    if (elem == param) {
+                        $scope.criteria.Alias = elem;
+                    }
+                });
+            };
+
+            $scope.fetchContent();
+        });
 
         navigationService.syncTree({ tree: 'godModeTree', path: ["-1", $routeParams.id], forceReload: false });
     });
