@@ -30,7 +30,7 @@ namespace Diplo.GodMode.Helpers
 
         public static IEnumerable<Assembly> GetAssemblies(Func<Assembly, bool> predicate = null)
         {
-            return predicate != null ? AppDomain.CurrentDomain.GetAssemblies().Where(predicate) : AppDomain.CurrentDomain.GetAssemblies();
+            return predicate != null ? AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic).Where(predicate) : AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic);
         }
 
         public static IEnumerable<Type> GetLoadableTypes(Func<Assembly, bool> assemblyPredicate = null)
@@ -55,12 +55,12 @@ namespace Diplo.GodMode.Helpers
 
         public static IEnumerable<TypeMap> GetNonGenericInterfaces(Assembly assembly)
         {
-            return assembly.GetTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic && !t.IsGenericTypeDefinition && t.IsInterface).Select(t => new TypeMap(t));
+            return assembly.GetLoadableTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic && !t.IsGenericTypeDefinition && t.IsInterface).Select(t => new TypeMap(t));
         }
 
         public static IEnumerable<TypeMap> GetNonGenericTypes(Assembly assembly)
         {
-            return assembly.GetTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic).Select(t => new TypeMap(t));
+            return assembly.GetLoadableTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic).Select(t => new TypeMap(t));
         }
 
         internal static IEnumerable<Diagnostic> PopulateDiagnosticsFrom(object obj, bool onlyUmbraco = true)
@@ -99,6 +99,11 @@ namespace Diplo.GodMode.Helpers
             {
                 return e.Types.Where(t => t != null);
             }
+        }
+
+        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        {
+            return GetTypesThatCanBeLoaded(assembly);
         }
 
         private static string GetPropertyDisplayName(PropertyInfo prop)
