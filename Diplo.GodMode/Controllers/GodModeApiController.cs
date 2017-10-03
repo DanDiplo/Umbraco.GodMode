@@ -15,7 +15,6 @@ using Umbraco.Web.Editors;
 using Umbraco.Web.Mvc;
 using Umbraco.Web.WebApi;
 using Umbraco.Web.WebApi.Filters;
-using Core = Umbraco.Core;
 
 namespace Diplo.GodMode.Controllers
 {
@@ -25,7 +24,7 @@ namespace Diplo.GodMode.Controllers
     [UmbracoApplicationAuthorize(Constants.Applications.Developer)]
     public class GodModeApiController : UmbracoAuthorizedJsonController
     {
-        UmbracoDataService dataService;
+        private UmbracoDataService dataService;
 
         public GodModeApiController()
         {
@@ -216,7 +215,7 @@ namespace Diplo.GodMode.Controllers
         /// <returns></returns>
         public IEnumerable<NameValue> GetAssembliesWithInterfaces()
         {
-            return ReflectionHelper.GetAssemblies(a => !a.IsDynamic && a.GetTypes().Any(t => t.IsInterface && !t.IsGenericTypeDefinition && t.IsPublic)).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
+            return ReflectionHelper.GetAssemblies(a => !a.IsDynamic && a.GetLoadableTypes().Any(t => t.IsInterface && !t.IsGenericTypeDefinition && t.IsPublic)).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
         }
 
         /// <summary>
@@ -235,6 +234,26 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<TypeMap> GetTypesFrom(string assembly)
         {
             return ReflectionHelper.GetNonGenericTypes(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>();
+        }
+
+        /// <summary>
+        /// Gets the URL of a single page for each unique template on the site
+        /// </summary>
+        /// <returns>A list of URLs</returns>
+        public IEnumerable<string> GetTemplateUrlsToPing()
+        {
+            return dataService.GetTemplateUrlsToPing();
+        }
+
+        /// <summary>
+        /// Gets a list of content types and a count of their usage
+        /// </summary>
+        /// <param name="id">Optional Id of the content type to filter by</param>
+        /// <param name="orderBy">Optional order by parameter</param>
+        /// <returns>A list of content usage</returns>
+        public IEnumerable<UsageModel> GetContentUsageData(int? id = null, string orderBy = null)
+        {
+            return dataService.GetContentUsageData(id, orderBy);
         }
 
         /// <summary>
@@ -300,6 +319,5 @@ namespace Diplo.GodMode.Controllers
                 return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
             }
         }
-
     }
 }

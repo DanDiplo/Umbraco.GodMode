@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Umbraco.Core;
 
@@ -37,7 +36,7 @@ namespace Diplo.GodMode.Models
 
         public string BaseType { get; set; }
 
-        public string LoadableName { get; set;  }
+        public string LoadableName { get; set; }
 
         public bool IsUmbraco { get; set; }
     }

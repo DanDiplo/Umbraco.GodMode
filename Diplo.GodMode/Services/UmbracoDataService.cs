@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Umbraco.Core;
+using Umbraco.Core.Logging;
+using Umbraco.Core.Models;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Services;
 using Umbraco.Web;
@@ -38,9 +38,11 @@ namespace Diplo.GodMode.Services
         {
             var cts = services.ContentTypeService;
 
+            var allContentTypes = cts.GetAllContentTypes() ?? Enumerable.Empty<IContentType>();
+
             List<ContentTypeMap> mapping = new List<ContentTypeMap>();
 
-            foreach (var ct in cts.GetAllContentTypes().OrderBy(x => x.Name))
+            foreach (var ct in allContentTypes.OrderBy(x => x.Name))
             {
                 ContentTypeMap map = new ContentTypeMap();
 
@@ -49,19 +51,19 @@ namespace Diplo.GodMode.Services
                 map.Name = ct.Name;
                 map.Id = ct.Id;
                 map.Description = ct.Description;
-                map.Templates = ct.AllowedTemplates.
+                map.Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
                 Select(x => new TemplateMap()
                 {
                     Alias = x.Alias,
                     Id = x.Id,
                     Name = x.Name,
                     Path = x.VirtualPath,
-                    IsDefault = ct.DefaultTemplate.Id == x.Id
-                });
+                    IsDefault = ct.DefaultTemplate != null && ct.DefaultTemplate.Id == x.Id
+                }) : Enumerable.Empty<TemplateMap>();
 
-                map.Properties = ct.PropertyTypes.Select(p => new PropertyTypeMap(p));
-                map.CompositionProperties = ct.CompositionPropertyTypes.Where(p => !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt));
-                map.Compositions = ct.ContentTypeComposition.
+                map.Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : Enumerable.Empty<PropertyTypeMap>();
+                map.CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : Enumerable.Empty<PropertyTypeMap>();
+                map.Compositions = ct.ContentTypeComposition != null ? ct.ContentTypeComposition.
                 Select(x => new ContentTypeData()
                 {
                     Alias = x.Alias,
@@ -69,14 +71,14 @@ namespace Diplo.GodMode.Services
                     Id = x.Id,
                     Icon = x.Icon,
                     Name = x.Name
-                });
+                }) : Enumerable.Empty<ContentTypeData>();
 
-                map.AllProperties = map.Properties.Concat(map.CompositionProperties);
-                map.HasCompositions = ct.ContentTypeComposition.Any();
-                map.HasTemplates = ct.AllowedTemplates.Any();
+                map.AllProperties = map.Properties.Concat(map.CompositionProperties ?? Enumerable.Empty<PropertyTypeMap>());
+                map.HasCompositions = ct.ContentTypeComposition != null && ct.ContentTypeComposition.Any();
+                map.HasTemplates = ct.AllowedTemplates != null && ct.AllowedTemplates.Any();
                 map.IsListView = ct.IsContainer;
                 map.AllowedAtRoot = ct.AllowedAsRoot;
-                map.PropertyGroups = ct.PropertyGroups.Select(x => x.Name);
+                map.PropertyGroups = ct.PropertyGroups != null ? ct.PropertyGroups.Select(x => x.Name) : Enumerable.Empty<string>();
 
                 mapping.Add(map);
             }
@@ -85,12 +87,13 @@ namespace Diplo.GodMode.Services
         }
 
         /// <summary>
-        /// Gets all content type (doc type) aliases
+        /// Gets all content type (doc type) aliases for content
         /// </summary>
         public IEnumerable<string> GetContentTypeAliases()
         {
-            const string sql = @"SELECT alias FROM cmsContentType WHERE nodeId in (SELECT contentTypeNodeId FROM cmsDocumentType) ORDER BY alias";
-            return db.Fetch<string>(sql);
+            string sql = @"SELECT CT.alias FROM cmsContentType CT INNER JOIN umbracoNode N ON CT.nodeId = N.id WHERE N.nodeObjectType = @0 ORDER BY CT.alias";
+            Sql query = new Sql(sql, Constants.ObjectTypes.DocumentTypeGuid);
+            return db.Fetch<string>(query);
         }
 
         /// <summary>
@@ -220,13 +223,21 @@ namespace Diplo.GodMode.Services
             return mediaMap;
         }
 
-        public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria =  null, string orderBy = "N.id")
+        /// <summary>
+        /// Gets the basic page content for the site
+        /// </summary>
+        /// <param name="page">The pagination page</param>
+        /// <param name="itemsPerPage">The pagination items per page</param>
+        /// <param name="criteria">The filter criteria</param>
+        /// <param name="orderBy">The order by clause</param>
+        /// <returns>A list of content items</returns>
+        public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            string sql = @"SELECT N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName 
-            FROM cmsContent C 
+            string sql = @"SELECT N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName
+            FROM cmsContent C
             INNER JOIN umbracoNode N ON N.Id = C.nodeId
             INNER JOIN cmsContentType CT ON C.contentType = CT.nodeId
-            INNER JOIN cmsDocument D ON D.nodeId = C.nodeId 
+            INNER JOIN cmsDocument D ON D.nodeId = C.nodeId
             INNER JOIN umbracoUser AS Creator ON Creator.Id = N.nodeUser
             INNER JOIN umbracoUser AS Updater ON Updater.Id = D.documentUser
             WHERE D.Newest = 1 ";
@@ -280,7 +291,117 @@ namespace Diplo.GodMode.Services
             return paged;
         }
 
+        /// <summary>
+        /// Gets a list of URLs, each corresponding to a page with a unique template
+        /// </summary>
+        /// <remarks>
+        /// This is used so we can ping each URL to "warm-up" the compilation of the view it uses
+        /// </remarks>
+        /// <returns>A list of URLs</returns>
+        public IEnumerable<string> GetTemplateUrlsToPing()
+        {
+            string sql = @";WITH UniqueTemplateNode AS
+            (
+               SELECT D.nodeId, D.templateId, N.[text] as templateName,
+	            ROW_NUMBER() OVER (PARTITION BY TemplateId ORDER BY N.[text]) AS rn
+               FROM cmsDocument D
+               INNER JOIN umbracoNode N ON D.templateId = N.id
+               WHERE templateId IS NOT NULL AND published = 1
+            )
+            SELECT nodeId FROM UniqueTemplateNode WHERE rn = 1
+            ";
 
+            Sql query = new Sql(sql);
 
+            var ids = db.Fetch<int>(query);
+
+            foreach (var id in ids)
+            {
+                IPublishedContent node = null;
+
+                try
+                {
+                    node = umbHelper.TypedContent(id);
+                }
+                catch
+                {
+                    // we ignore it if we can't get an instance
+                }
+
+                if (node != null)
+                {
+                    string url = null;
+
+                    try
+                    {
+                        url = node.UrlAbsolute();
+                    }
+                    catch
+                    {
+                        // we ignore it if the node doesn't have an absolute URL
+                    }
+
+                    if (!String.IsNullOrEmpty(url))
+                        yield return url;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets what content types are used and how many instances of each there are
+        /// </summary>
+        /// <param name="id">Optional ID of the content type to filter by</param>
+        /// <returns>A list of data</returns>
+        public List<UsageModel> GetContentUsageData(int? id = null, string orderBy = "CT.alias")
+        {
+            string sql = @"SELECT COUNT(N.id) as NodeCount, CT.description as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
+            FROM cmsContentType CT
+            LEFT JOIN cmsContent C ON C.contentType = CT.nodeId
+            LEFT JOIN umbracoNode N ON CT.nodeId = N.id ";
+
+            Sql query = new Sql(sql);
+
+            if (id != null)
+            {
+                query = query.Append(" AND CT.pk = @0", id);
+            }
+
+            query.Append(" GROUP BY CT.alias, CT.icon, CT.description, CT.pk, N.nodeObjectType ");
+
+            if (!String.IsNullOrEmpty(orderBy))
+            {
+                query.Append(" ORDER BY " + orderBy);
+            }
+
+            return db.Fetch<UsageModel>(query);
+        }
+
+        internal IEnumerable<ServerModel> GetRegistredServers()
+        {
+            var ctx = ApplicationContext.Current.DatabaseContext;
+            var helper = new DatabaseSchemaHelper(ctx.Database, ApplicationContext.Current.ProfilingLogger.Logger, ctx.SqlSyntax);
+
+            if (helper.TableExist("umbracoServer"))
+            {
+                const string sql = @"SELECT Id, Address, ComputerName, RegisteredDate, LastNotifiedDate, IsActive, IsMaster FROM umbracoServer";
+                return db.Fetch<ServerModel>(sql);
+            }
+
+            return null;
+        }
+
+        internal IEnumerable<MigrationModel> GetMigrations()
+        {
+            var ctx = ApplicationContext.Current.DatabaseContext;
+            var helper = new DatabaseSchemaHelper(ctx.Database, ApplicationContext.Current.ProfilingLogger.Logger, ctx.SqlSyntax);
+
+            if (helper.TableExist("umbracoMigration"))
+            {
+                const string sql = @"select Id, Name, CreateDate, Version from umbracoMigration";
+                return db.Fetch<MigrationModel>(sql);
+            }
+
+            return null;
+        }
     }
 }

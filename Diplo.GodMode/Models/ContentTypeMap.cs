@@ -19,7 +19,7 @@ namespace Diplo.GodMode.Models
 
         public bool HasTemplates { get; set; }
 
-        public bool IsListView { get; set;  }
+        public bool IsListView { get; set; }
 
         public bool AllowedAtRoot { get; set; }
 

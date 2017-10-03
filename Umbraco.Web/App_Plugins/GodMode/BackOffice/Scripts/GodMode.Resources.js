@@ -44,8 +44,9 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
         getContentPaged: function (page, pageSize, criteria, orderBy) {
             return umbRequestHelper.resourcePromise(
                 $http.get(godModeConfig.baseApiUrl + "GetContentPaged",
-                    { params: { page: page, pageSize: pageSize, name: criteria.Name, alias: criteria.Alias, creatorId: criteria.CreatorId, id: criteria.Id, level: criteria.Level, trashed: criteria.Trashed.value, updaterId: criteria.UpdaterId, orderBy: orderBy }
-                })
+                    {
+                        params: { page: page, pageSize: pageSize, name: criteria.Name, alias: criteria.Alias, creatorId: criteria.CreatorId, id: criteria.Id, level: criteria.Level, trashed: criteria.Trashed.value, updaterId: criteria.UpdaterId, orderBy: orderBy }
+                    })
             );
         },
         getContentTypeAliases: function () {
@@ -121,6 +122,19 @@ angular.module('umbraco.resources').factory('godModeResources', function ($q, $h
         restartAppPool: function () {
             return umbRequestHelper.resourcePromise(
                 $http.post(godModeConfig.baseApiUrl + "RestartAppPool")
+            );
+        },
+        getTemplateUrls: function () {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetTemplateUrlsToPing")
+            );
+        },
+        getContentUsage: function (id, orderBy) {
+            return umbRequestHelper.resourcePromise(
+                $http.get(godModeConfig.baseApiUrl + "GetContentUsageData",
+                    {
+                        params: {id: id, orderBy: orderBy }
+                    })
             );
         },
         getTriStateOptions: function () {

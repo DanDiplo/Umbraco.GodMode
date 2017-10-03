@@ -15,6 +15,7 @@ For instance, you can:
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from PublishedContentModel)
 * Clear internal Umbraco caches and even restart App Pool
+* Warm up compilation of all templates ("views") in one click
 * Plus lots more!
 
 ### Demo

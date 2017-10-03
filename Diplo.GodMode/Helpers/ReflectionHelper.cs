@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Diplo.GodMode.Models;
 using Umbraco.Core;
 
@@ -34,12 +30,12 @@ namespace Diplo.GodMode.Helpers
 
         public static IEnumerable<Assembly> GetAssemblies(Func<Assembly, bool> predicate = null)
         {
-            return predicate != null ? AppDomain.CurrentDomain.GetAssemblies().Where(predicate) : AppDomain.CurrentDomain.GetAssemblies();
+            return predicate != null ? AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic).Where(predicate) : AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic);
         }
 
         public static IEnumerable<Type> GetLoadableTypes(Func<Assembly, bool> assemblyPredicate = null)
         {
-             return GetAssemblies(assemblyPredicate).SelectMany(s => GetTypesThatCanBeLoaded(s));
+            return GetAssemblies(assemblyPredicate).SelectMany(s => GetTypesThatCanBeLoaded(s));
         }
 
         public static IEnumerable<Assembly> GetUmbracoAssemblies()
@@ -59,12 +55,12 @@ namespace Diplo.GodMode.Helpers
 
         public static IEnumerable<TypeMap> GetNonGenericInterfaces(Assembly assembly)
         {
-            return assembly.GetTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic && !t.IsGenericTypeDefinition && t.IsInterface).Select(t => new TypeMap(t));
+            return assembly.GetLoadableTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic && !t.IsGenericTypeDefinition && t.IsInterface).Select(t => new TypeMap(t));
         }
 
         public static IEnumerable<TypeMap> GetNonGenericTypes(Assembly assembly)
         {
-            return assembly.GetTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic).Select(t => new TypeMap(t));
+            return assembly.GetLoadableTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic).Select(t => new TypeMap(t));
         }
 
         internal static IEnumerable<Diagnostic> PopulateDiagnosticsFrom(object obj, bool onlyUmbraco = true)
@@ -78,7 +74,6 @@ namespace Diplo.GodMode.Helpers
 
             if (onlyUmbraco)
                 props = props.Where(x => x.Module.Name.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase)).ToArray();
-
 
             List<Diagnostic> diagnostics = new List<Diagnostic>(props.Count());
 
@@ -104,6 +99,11 @@ namespace Diplo.GodMode.Helpers
             {
                 return e.Types.Where(t => t != null);
             }
+        }
+
+        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        {
+            return GetTypesThatCanBeLoaded(assembly);
         }
 
         private static string GetPropertyDisplayName(PropertyInfo prop)

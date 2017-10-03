@@ -271,14 +271,17 @@
     <Compile Include="Models\ItemBase.cs" />
     <Compile Include="Models\KeyValue.cs" />
     <Compile Include="Models\MediaMap.cs" />
+    <Compile Include="Models\MigrationModel.cs" />
     <Compile Include="Models\PartialMap.cs" />
     <Compile Include="Models\PropertyTypeMap.cs" />
+    <Compile Include="Models\ServerModel.cs" />
     <Compile Include="Models\ServerResponse.cs" />
     <Compile Include="Models\ServerResponseType.cs" />
     <Compile Include="Models\TemplateMap.cs" />
     <Compile Include="Models\TemplateModel.cs" />
     <Compile Include="Models\TypeMap.cs" />
     <Compile Include="Models\UmbracoEvent.cs" />
+    <Compile Include="Models\UsageModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\DiagnosticService.cs" />
     <Compile Include="Services\UmbracoDataService.cs" />
