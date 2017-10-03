@@ -16,7 +16,7 @@
 
   <!-- PROPERTIES -->
   <PropertyGroup >
-    <BasePackageVersion>1.3.7.0</BasePackageVersion>
+    <BasePackageVersion>1.3.8.0</BasePackageVersion>
     <VersionSuffix></VersionSuffix>
     <MinUmbracoVersion>7.4.3</MinUmbracoVersion>
   </PropertyGroup>
@@ -27,7 +27,7 @@
     <PackageDir>$(MSBuildProjectDirectory)\Package</PackageDir>
     <BuildNuGetDir>$(MSBuildProjectDirectory)\NugetBuild</BuildNuGetDir>
     <CoreProjectDir>$(RootDir)\Diplo.GodMode</CoreProjectDir>
-    <PropertyEditorProjectDir>$(RootDir)\Umbraco.Web</PropertyEditorProjectDir>
+    <PropertyEditorProjectDir>$(RootDir)\Umbraco.Web.Build</PropertyEditorProjectDir>
   </PropertyGroup>
 
   <!-- TARGETS -->

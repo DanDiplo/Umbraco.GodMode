@@ -153,12 +153,14 @@ namespace Diplo.GodMode.Services
             var cts = services.ContentTypeService;
             var dts = services.DataTypeService;
 
-            var dataTypes = dts.GetAllDataTypeDefinitions();
+            var dataTypes = dts.GetAllDataTypeDefinitions().ToList();
             var contentTypes = cts.GetAllContentTypes();
-            var usedPropertyTypes = contentTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes));
-            var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeDefinitionId).Contains(x.Id)).Select(d => d.Id);
+            var mediaTypes = cts.GetAllMediaTypes();
 
-            return dts.GetAllDataTypeDefinitions().Select(x => new DataTypeMap()
+            var usedPropertyTypes = contentTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)).Union(mediaTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)));
+            var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeDefinitionId).Contains(x.Id)).Select(d => d.Id).ToList();
+
+            return dataTypes.Select(x => new DataTypeMap()
             {
                 Id = x.Id,
                 Name = x.Name,
