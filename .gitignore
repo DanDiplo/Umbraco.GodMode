@@ -37,11 +37,4 @@ Umbraco.Web/*
 Umbraco.Web.Build/*
 
 #But we want these...
-!Umbraco.Web/App_Plugins/
-Umbraco.Web/App_Plugins/*
-!Umbraco.Web/App_Plugins/GodMode/
-!Umbraco.Web/bin/
-Umbraco.Web/bin/*
-!Umbraco.Web/bin/Diplo.GodMode.dll
-!Umbraco.Web/bin/Diplo.GodMode.pdb
 Build.txt
