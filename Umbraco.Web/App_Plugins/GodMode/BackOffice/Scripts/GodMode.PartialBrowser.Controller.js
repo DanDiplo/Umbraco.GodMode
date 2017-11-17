@@ -1,6 +1,6 @@
 ﻿'use strict';
 angular.module("umbraco").controller("GodMode.PartialBrowser.Controller",
-    function ($scope, $routeParams, godModeResources, godModeConfig) {
+    function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
 
         $scope.isLoading = true;
         $scope.config = godModeConfig.config;

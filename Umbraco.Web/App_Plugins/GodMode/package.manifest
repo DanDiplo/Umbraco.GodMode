@@ -15,6 +15,6 @@
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.UsageBrowser.Controller.js"
   ],
 	css: [
-		'~/App_Plugins/GodMode/BackOffice/Css/godMode.css',
+		"~/App_Plugins/GodMode/BackOffice/Css/godMode.css"
 	]
 }

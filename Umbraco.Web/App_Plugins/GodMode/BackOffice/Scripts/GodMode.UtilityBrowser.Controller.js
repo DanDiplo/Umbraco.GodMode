@@ -1,6 +1,7 @@
 ﻿'use strict';
 angular.module("umbraco").controller("GodMode.UtilityBrowser.Controller",
-    function ($scope, $route, $http, notificationsService, godModeResources, godModeConfig) {
+    function ($scope, $route, $http, navigationService, notificationsService, godModeResources, godModeConfig) {
+
         $scope.config = godModeConfig.config;
         $scope.warmup = {
             current: 0,

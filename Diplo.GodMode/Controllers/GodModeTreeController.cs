@@ -60,37 +60,38 @@ namespace Diplo.GodMode.Controllers
         {
             const string baseUrl = "developer/godModeTree/";
 
-            TreeNodeCollection tree = new TreeNodeCollection();
+            TreeNodeCollection tree = new TreeNodeCollection
+            {
+                CreateTreeNode("docTypeBrowser", parentId, qs, "DocType Browser", "icon-item-arrangement", false, baseUrl + "docTypeBrowser/browse"),
 
-            tree.Add(CreateTreeNode("docTypeBrowser", parentId, qs, "DocType Browser", "icon-item-arrangement", false, baseUrl + "docTypeBrowser/browse"));
+                CreateTreeNode("templateBrowser", parentId, qs, "Template Browser", "icon-newspaper-alt", false, baseUrl + "templateBrowser/browse"),
 
-            tree.Add(CreateTreeNode("templateBrowser", parentId, qs, "Template Browser", "icon-newspaper-alt", false, baseUrl + "templateBrowser/browse"));
+                CreateTreeNode("partialBrowser", parentId, qs, "Partial Browser", "icon-article", false, baseUrl + "partialBrowser/browse"),
 
-            tree.Add(CreateTreeNode("partialBrowser", parentId, qs, "Partial Browser", "icon-article", false, baseUrl + "partialBrowser/browse"));
+                CreateTreeNode("dataTypeBrowser", parentId, qs, "DataType Browser", "icon-autofill", false, baseUrl + "dataTypeBrowser/browse"),
 
-            tree.Add(CreateTreeNode("dataTypeBrowser", parentId, qs, "DataType Browser", "icon-autofill", false, baseUrl + "dataTypeBrowser/browse"));
+                CreateTreeNode("contentBrowser", parentId, qs, "Content Browser", "icon-umb-content", false, baseUrl + "contentBrowser/browse"),
 
-            tree.Add(CreateTreeNode("contentBrowser", parentId, qs, "Content Browser", "icon-umb-content", false, baseUrl + "contentBrowser/browse"));
+                CreateTreeNode("usageBrowser", parentId, qs, "Usage Browser", "icon-chart-curve", false, baseUrl + "usageBrowser/browse"),
 
-            tree.Add(CreateTreeNode("usageBrowser", parentId, qs, "Usage Browser", "icon-chart-curve", false, baseUrl + "usageBrowser/browse"));
+                CreateTreeNode("mediaBrowser", parentId, qs, "Media Browser", "icon-picture", false, baseUrl + "mediaBrowser/browse"),
 
-            tree.Add(CreateTreeNode("mediaBrowser", parentId, qs, "Media Browser", "icon-picture", false, baseUrl + "mediaBrowser/browse"));
+                CreateTreeNode("reflectionBrowser", parentId, qs, "Surface Controllers", "icon-planet", false, baseUrl + "reflectionBrowser/surface"),
 
-            tree.Add(CreateTreeNode("reflectionBrowser", parentId, qs, "Surface Controllers", "icon-planet", false, baseUrl + "reflectionBrowser/surface"));
+                CreateTreeNode("reflectionBrowser", parentId, qs, "API Controllers", "icon-rocket", false, baseUrl + "reflectionBrowser/api"),
 
-            tree.Add(CreateTreeNode("reflectionBrowser", parentId, qs, "API Controllers", "icon-rocket", false, baseUrl + "reflectionBrowser/api"));
+                CreateTreeNode("reflectionBrowser", parentId, qs, "RenderMvc Controllers", "icon-satellite-dish", false, baseUrl + "reflectionBrowser/render"),
 
-            tree.Add(CreateTreeNode("reflectionBrowser", parentId, qs, "RenderMvc Controllers", "icon-satellite-dish", false, baseUrl + "reflectionBrowser/render"));
+                CreateTreeNode("reflectionBrowser", parentId, qs, "Content Models", "icon-binarycode", false, baseUrl + "reflectionBrowser/models"),
 
-            tree.Add(CreateTreeNode("reflectionBrowser", parentId, qs, "Content Models", "icon-binarycode", false, baseUrl + "reflectionBrowser/models"));
+                CreateTreeNode("converterBrowser", parentId, qs, "Value Converters", "icon-wand", false, baseUrl + "reflectionBrowser/converters"),
 
-            tree.Add(CreateTreeNode("converterBrowser", parentId, qs, "Value Converters", "icon-wand", false, baseUrl + "reflectionBrowser/converters"));
+                CreateTreeNode("typeBrowser", parentId, qs, "Interface Browser", "icon-molecular-network", false, baseUrl + "typeBrowser/browse"),
 
-            tree.Add(CreateTreeNode("typeBrowser", parentId, qs, "Interface Browser", "icon-molecular-network", false, baseUrl + "typeBrowser/browse"));
+                CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"),
 
-            tree.Add(CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"));
-
-            tree.Add(CreateTreeNode("utilityBrowser", parentId, qs, "Utilities", "icon-wrench", false, baseUrl + "utilityBrowser/umbraco"));
+                CreateTreeNode("utilityBrowser", parentId, qs, "Utilities", "icon-wrench", false, baseUrl + "utilityBrowser/umbraco")
+            };
 
             return tree;
         }

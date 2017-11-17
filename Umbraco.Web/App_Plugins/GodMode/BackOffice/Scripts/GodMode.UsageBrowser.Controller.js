@@ -39,6 +39,4 @@ angular.module("umbraco").controller("GodMode.UsageBrowser.Controller",
         };
 
         $scope.fetchContent();
-
-        navigationService.syncTree({ tree: 'godModeTree', path: ["-1", $routeParams.id], forceReload: false });
     });
