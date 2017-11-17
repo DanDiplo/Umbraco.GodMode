@@ -26,7 +26,7 @@ For instance, you can:
 
 ### Install
 
-*Important: This is for Umbraco 7.4.3 and above only. It is also now compatible with 7.5.*
+*Important: This is for Umbraco 7.4.3 and above only. It works with 7.5, 7.6, 7.7 etc. *
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
