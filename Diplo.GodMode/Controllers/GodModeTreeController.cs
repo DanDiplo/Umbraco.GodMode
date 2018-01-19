@@ -76,6 +76,8 @@ namespace Diplo.GodMode.Controllers
 
                 CreateTreeNode("mediaBrowser", parentId, qs, "Media Browser", "icon-picture", false, baseUrl + "mediaBrowser/browse"),
 
+                CreateTreeNode("memberBrowser", parentId, qs, "Member Browser", "icon-umb-members", false, baseUrl + "memberBrowser/browse"),
+
                 CreateTreeNode("reflectionBrowser", parentId, qs, "Surface Controllers", "icon-planet", false, baseUrl + "reflectionBrowser/surface"),
 
                 CreateTreeNode("reflectionBrowser", parentId, qs, "API Controllers", "icon-rocket", false, baseUrl + "reflectionBrowser/api"),

@@ -319,5 +319,15 @@ namespace Diplo.GodMode.Controllers
                 return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
             }
         }
+
+        public Page<MemberModel> GetMembersPaged(long page = 1, long pageSize = 50, int? groupId = null, string search = null, string orderBy = "MN.text")
+        {
+            return this.dataService.GetMembers(page, pageSize, groupId, search, orderBy);
+        }
+
+        public IEnumerable<MemberGroupModel> GetMemberGroups()
+        {
+            return this.dataService.GetMemberGroups();
+        }
     }
 }

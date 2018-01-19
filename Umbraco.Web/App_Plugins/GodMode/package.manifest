@@ -3,6 +3,7 @@
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.Config.js",
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.Resources.js",
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.ContentBrowser.Controller.js",
+    "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.MemberBrowser.Controller.js",
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.DocTypeBrowser.Controller.js",
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.TemplateBrowser.Controller.js",
     "~/App_Plugins/GodMode/BackOffice/Scripts/GodMode.PartialBrowser.Controller.js",

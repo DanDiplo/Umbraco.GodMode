@@ -271,6 +271,8 @@
     <Compile Include="Models\ItemBase.cs" />
     <Compile Include="Models\KeyValue.cs" />
     <Compile Include="Models\MediaMap.cs" />
+    <Compile Include="Models\MemberGroupModel.cs" />
+    <Compile Include="Models\MemberModel.cs" />
     <Compile Include="Models\MigrationModel.cs" />
     <Compile Include="Models\PartialMap.cs" />
     <Compile Include="Models\PropertyTypeMap.cs" />
