@@ -1,0 +1,86 @@
+﻿<div ng-controller="GodMode.MemberBrowser.Controller" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Members Browser"></godmode-header>
+
+        <umb-editor-container>
+
+            <div id="collapse_selects" class="accordion-body collapse in">
+                <div class="well">
+                    <div class="row">
+
+                        <div class="span6">
+                            <label class="control-label" for="search-alias">Group:</label>
+                            <br />
+                            <select id="search-alias" ng-model="criteria.group" ng-options="item as item.Name for item in memberGroups track by item.Id" class="input-medium" ng-change="filterChange()">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                        <div class="span6">
+                            <label class="control-label" for="search-name">Search:</label>
+                            <br />
+                            <input type="search" id="search-name" ng-model="criteria.search" placeholder="Search members" class="input-lg" ng-change="filterChange()">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <table class="table">
+                <colgroup>
+                    <col style="width:8%">
+                    <col style="width:24%">
+                    <col style="width:24%">
+                    <col style="width:24%">
+                    <col style="width:20%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th><godmode-sortable sort-by="sortBy('M.nodeId')" column="M.nodeId" sort="sort">Id</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('M.LoginName')" column="M.LoginName" sort="sort">UserName</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('MN.Text')" column="MN.Text" sort="sort">Name</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('M.Email')" column="M.Email" sort="sort">Email</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="sortBy('MN.createDate')" column="MN.createDate" sort="sort">Create Date</godmode-sortable></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="m in page.Items">
+                        <td><a href="#/member/member/edit/{{m.Id}}" target="_blank" title="Edit">{{ m.Id }}</a></td>
+                        <td><a href="#/member/member/edit/{{m.Id}}" target="_blank" title="Edit">{{ m.Username }}</a></td>
+                        <td>{{ m.Name }}</td>
+                        <td><a href="mailto:{{m.Email}}" target="_blank" title="Email">{{ m.Email }}</a></td>
+                        <td>{{ m.CreateDate | date:'short' }}</td>
+                    </tr>
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th colspan="8">
+                            <div class="pagination pagination-centered" ng-show="page.TotalPages > 1">
+                                <umb-pagination page-number="page.CurrentPage"
+                                                total-pages="page.TotalPages"
+                                                on-next="nextPage"
+                                                on-prev="prevPage"
+                                                on-go-to-page="setPage">
+                                </umb-pagination>
+                            </div>
+                        </th>
+                    </tr>
+                    <tr ng-hide="page.Items.length > 0 || isLoading">
+                        <td colspan="8">
+                            <p class="text-center"><strong>No members were found for your selected criteria.</strong></p>
+                        </td>
+                    </tr>
+                </tfoot>
+
+            </table>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

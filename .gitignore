@@ -32,9 +32,3 @@ obj/
 /packages/
 BuildPackage/Package/*
 
-#Ignore Umbraco files we don't need
-Umbraco.Web/*
-Umbraco.Web.Build/*
-
-#But we want these...
-Build.txt
