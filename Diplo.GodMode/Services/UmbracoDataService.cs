@@ -16,6 +16,7 @@ namespace Diplo.GodMode.Services
     /// <summary>
     /// Used to get data out of Umbraco
     /// </summary>
+    /// <remarks>Really needs breaking down into smaller classes!</remarks>
     public class UmbracoDataService
     {
         private UmbracoHelper umbHelper;
@@ -44,34 +45,34 @@ namespace Diplo.GodMode.Services
 
             foreach (var ct in allContentTypes.OrderBy(x => x.Name))
             {
-                ContentTypeMap map = new ContentTypeMap();
-
-                map.Alias = ct.Alias;
-                map.Icon = ct.Icon;
-                map.Name = ct.Name;
-                map.Id = ct.Id;
-                map.Description = ct.Description;
-                map.Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
-                Select(x => new TemplateMap()
+                ContentTypeMap map = new ContentTypeMap
                 {
-                    Alias = x.Alias,
-                    Id = x.Id,
-                    Name = x.Name,
-                    Path = x.VirtualPath,
-                    IsDefault = ct.DefaultTemplate != null && ct.DefaultTemplate.Id == x.Id
-                }) : Enumerable.Empty<TemplateMap>();
-
-                map.Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : Enumerable.Empty<PropertyTypeMap>();
-                map.CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : Enumerable.Empty<PropertyTypeMap>();
-                map.Compositions = ct.ContentTypeComposition != null ? ct.ContentTypeComposition.
-                Select(x => new ContentTypeData()
-                {
-                    Alias = x.Alias,
-                    Description = x.Description,
-                    Id = x.Id,
-                    Icon = x.Icon,
-                    Name = x.Name
-                }) : Enumerable.Empty<ContentTypeData>();
+                    Alias = ct.Alias,
+                    Icon = ct.Icon,
+                    Name = ct.Name,
+                    Id = ct.Id,
+                    Description = ct.Description,
+                    Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
+                    Select(x => new TemplateMap()
+                    {
+                        Alias = x.Alias,
+                        Id = x.Id,
+                        Name = x.Name,
+                        Path = x.VirtualPath,
+                        IsDefault = ct.DefaultTemplate != null && ct.DefaultTemplate.Id == x.Id
+                    }) : Enumerable.Empty<TemplateMap>(),
+                    Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : Enumerable.Empty<PropertyTypeMap>(),
+                    CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : Enumerable.Empty<PropertyTypeMap>(),
+                    Compositions = ct.ContentTypeComposition != null ? ct.ContentTypeComposition.
+                    Select(x => new ContentTypeData()
+                    {
+                        Alias = x.Alias,
+                        Description = x.Description,
+                        Id = x.Id,
+                        Icon = x.Icon,
+                        Name = x.Name
+                    }) : Enumerable.Empty<ContentTypeData>()
+                };
 
                 map.AllProperties = map.Properties.Concat(map.CompositionProperties ?? Enumerable.Empty<PropertyTypeMap>());
                 map.HasCompositions = ct.ContentTypeComposition != null && ct.ContentTypeComposition.Any();
@@ -110,7 +111,6 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all compositions
         /// </summary>
-        /// <returns></returns>
         public IEnumerable<ContentTypeData> GetCompositions()
         {
             var cts = services.ContentTypeService;
@@ -147,7 +147,6 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all data types, including the status of whether they are being used
         /// </summary>
-        /// <returns></returns>
         public IEnumerable<DataTypeMap> GetDataTypesStatus()
         {
             var cts = services.ContentTypeService;
@@ -286,7 +285,7 @@ namespace Diplo.GodMode.Services
 
             if (!String.IsNullOrEmpty(orderBy))
             {
-                query.Append(" ORDER BY " + orderBy);
+                query.OrderBy(orderBy);
             }
 
             var paged = db.Page<ContentItem>(page, itemsPerPage, query);
@@ -372,10 +371,54 @@ namespace Diplo.GodMode.Services
 
             if (!String.IsNullOrEmpty(orderBy))
             {
-                query.Append(" ORDER BY " + orderBy);
+                query.OrderBy(orderBy);
             }
 
             return db.Fetch<UsageModel>(query);
+        }
+
+        /// <summary>
+        /// Gets all Umbraco members, paginated, with optional filters
+        /// </summary>
+        /// <param name="page">The current page</param>
+        /// <param name="itemsPerPage">How many results per page</param>
+        /// <param name="groupId">Optional member group Id</param>
+        /// <param name="search">Optional search term</param>
+        /// <param name="orderBy">Column to order results by</param>
+        /// <returns>A collection of members</returns>
+        public Page<MemberModel> GetMembers(long page, long itemsPerPage, int? groupId = null, string search = null, string orderBy = "MN.text")
+        {
+            string sql = @"SELECT M.nodeId as Id, M.LoginName as UserName, MN.text as Name, M.Email, MN.createDate
+            FROM cmsMember M 
+            INNER JOIN umbracoNode MN ON M.nodeId = MN.id ";
+
+            Sql memberQuery = new Sql(sql);
+
+            if (groupId.HasValue)
+            {
+                memberQuery.Append(" LEFT JOIN cmsMember2MemberGroup MG ON MG.Member = M.nodeId WHERE MG.MemberGroup = @0 ", groupId.Value);
+            }
+
+            if (!String.IsNullOrEmpty(search))
+            {
+                sql = String.Format(" {0} (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0)", groupId.HasValue ? "AND" : "WHERE");
+                memberQuery.Append(sql, "%" + search + "%");
+            }
+
+            memberQuery.OrderBy(orderBy);
+
+            return db.Page<MemberModel>(page, itemsPerPage, memberQuery);
+        }
+
+        /// <summary>
+        /// Gets all Umbraco member groups
+        /// </summary>
+        /// <returns>A list of groups</returns>
+        public IEnumerable<MemberGroupModel> GetMemberGroups()
+        {
+            Sql query = new Sql(String.Format("SELECT id as Id, text as Name FROM umbracoNode GN WHERE nodeObjectType = '{0}'", Umbraco.Core.Constants.ObjectTypes.MemberGroup)).OrderBy("text");
+
+            return db.Fetch<MemberGroupModel>(query);
         }
 
         internal IEnumerable<ServerModel> GetRegistredServers()
