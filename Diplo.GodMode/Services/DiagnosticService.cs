@@ -157,14 +157,6 @@ namespace Diplo.GodMode.Services
                 sections.Add(section);
             }
 
-            var pack = UmbracoConfig.For.UmbracoSettings().PackageRepositories;
-            section = new DiagnosticSection("Package Repositories");
-            foreach (var repo in pack.Repositories)
-            {
-                section.Diagnostics.Add(new Diagnostic(repo.Name, repo.RepositoryUrl));
-            }
-            sections.Add(section);
-
             var pro = UmbracoConfig.For.UmbracoSettings().Providers;
             section = new DiagnosticSection("Providers");
             section.Diagnostics.Add(new Diagnostic("Default BackOffice User Provider", pro.DefaultBackOfficeUserProvider));
