@@ -3,8 +3,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Diplo.GodMode</id>
-    <version>1.4.0</version>
-    <title>God Mode for Umbraco 7.4 or higher</title>
+    <version>1.5.0</version>
+    <title>God Mode for Umbraco 7.6 or higher</title>
     <authors>Dan Booth</authors>
     <owners>Dan Booth</owners>
     <projectUrl>http://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/</projectUrl>
@@ -29,7 +29,8 @@
       * Plus lots more
     </description>
     <releaseNotes>
-      New member browser that allows you to search, browse and filter Umbraco members by group. Better compatability with other Umbraco packages (ie. strict mode doesn't interfer)
+      Fix for broken path to edit templates and partials, which changed in Umbraco 7.6 and I never noticed!
+      Fix for breaking change in Umbraco 7.11.0 that removed the PackageRepositories API, which was referenced in Diagnostics.
     </releaseNotes>
     <summary>
       God Mode is a custom Umbraco 7 tree aimed at Developers to make it easy to locate, search and query your Umbraco 7 assets (doctypes, templates, property editors, media, content, members, controllers, models etc)
@@ -40,7 +41,7 @@
     <tags>umbraco umbraco7 developer backoffice</tags>
     <iconUrl>https://our.umbraco.org/media/wiki/154700/636011047916132148_godmodepng.png</iconUrl>
     <dependencies>
-      <dependency id="UmbracoCms.Core" version="7.4.3" />
+      <dependency id="UmbracoCms.Core" version="7.6.0" />
     </dependencies>
   </metadata>
 </package>

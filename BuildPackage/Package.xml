@@ -3,12 +3,12 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>1.4.0</version>
+      <version>1.5.0</version>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>https://our.umbraco.org/projects/developer-tools/diplo-god-mode/</url>
       <requirements>
         <major>7</major>
-        <minor>4</minor>
+        <minor>6</minor>
         <patch>0</patch>
       </requirements>
     </package>
