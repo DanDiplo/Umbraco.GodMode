@@ -4,11 +4,11 @@ angular.module("umbraco")
     .constant("godModeConfig", {
         "baseApiUrl": "BackOffice/Api/GodModeApi/",
         "config": {
-            "version": "1.4.0",
-            "editTemplateUrl": "#/settings/framed/settings%252FViews%252FEditView.aspx%253FtreeType%253Dtemplates%2526templateID%253D",
+            "version": "1.5.0",
+            "editTemplateUrl": "#/settings/templates/edit/",
             "editDataTypeUrl": "#/developer/datatypes/edit/",
             "editDocTypeUrl": "#/settings/documentTypes/edit/",
-            "editPartialUrl": "#/settings/framed/%252Fumbraco%252FSettings%252FViews%252FEditView.aspx%253FtreeType%253DpartialViews%2526file%253D",
+            "editPartialUrl": "#/settings/partialViews/edit/",
             "editMediaUrl": "#/media/media/edit/",
             "baseTreeUrl": "#/developer/godModeTree/"
         }
