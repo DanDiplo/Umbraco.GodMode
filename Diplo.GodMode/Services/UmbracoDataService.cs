@@ -40,16 +40,17 @@ namespace Diplo.GodMode.Services
 
             var allContentTypes = cts.GetAllContentTypes() ?? Enumerable.Empty<IContentType>();
 
-            List<ContentTypeMap> mapping = new List<ContentTypeMap>();
+            var mapping = new List<ContentTypeMap>();
 
             foreach (var ct in allContentTypes.OrderBy(x => x.Name))
             {
-                ContentTypeMap map = new ContentTypeMap
+                var map = new ContentTypeMap
                 {
                     Alias = ct.Alias,
                     Icon = ct.Icon,
                     Name = ct.Name,
                     Id = ct.Id,
+                    Udi = ct.GetUdi().Guid,
                     Description = ct.Description,
                     Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
                     Select(x => new TemplateMap()
