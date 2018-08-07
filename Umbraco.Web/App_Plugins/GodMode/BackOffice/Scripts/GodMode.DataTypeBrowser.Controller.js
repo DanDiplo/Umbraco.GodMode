@@ -30,7 +30,9 @@
             $scope.filterDataTypes = function (d) {
 
                 if ($scope.search.dataType) {
-                    if (d.Name.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1) {
+                  if (d.Name.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1 &&
+                    d.Id !== parseInt($scope.search.dataType) &&
+                    d.Udi.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1) {
                         return;
                     }
                 }

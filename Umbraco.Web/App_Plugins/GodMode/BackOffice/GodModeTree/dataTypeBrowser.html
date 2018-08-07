@@ -51,6 +51,7 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th><godmode-sortable sort-by="sortBy('Id')" column="Id" sort="sort">Id</godmode-sortable></th>
                         <th><godmode-sortable sort-by="sortBy('Name')" column="Name" sort="sort">Name</godmode-sortable></th>
                         <th><godmode-sortable sort-by="sortBy('Alias')" column="Alias" sort="sort">Editor Alias</godmode-sortable></th>
                         <th><godmode-sortable sort-by="sortBy('DbType')" column="DbType" sort="sort">Database Type</godmode-sortable></th>
@@ -59,6 +60,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="d in dataTypes | filter: filterDataTypes | orderBy: sort.column : sort.reverse">
+                        <td><div>{{ d.Id }}</div><small>{{ d.Udi }}</small></td>
                         <td><a href="{{config.editDataTypeUrl + d.Id}}" target="_blank" title="Edit"><i class="icon icon-edit"></i> {{ d.Name }}</a></td>
                         <td><a href="{{config.baseTreeUrl + 'docTypeBrowser/' + d.Alias}}" target="_blank" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</a></td>
                         <td>{{ d.DbType }}</td>
