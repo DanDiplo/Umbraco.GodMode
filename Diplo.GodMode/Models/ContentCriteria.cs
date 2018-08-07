@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace Diplo.GodMode.Models
+﻿namespace Diplo.GodMode.Models
 {
     /// <summary>
     /// Represents the search criteria for content
     /// </summary>
     public class ContentCriteria
     {
-        public int? Id { get; set; }
+        public string Id { get; set; }
 
         public string Name { get; set; }
 
