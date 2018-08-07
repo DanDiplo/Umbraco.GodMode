@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Umbraco.Core;
 using Umbraco.Core.Models;
 
 namespace Diplo.GodMode.Models
@@ -16,6 +16,7 @@ namespace Diplo.GodMode.Models
         public TemplateModel(ITemplate temp)
         {
             this.Id = temp.Id;
+            this.Udi = temp.GetUdi().Guid;
             this.Name = temp.Name;
             this.Alias = temp.Alias;
             this.FilePath = temp.VirtualPath;
