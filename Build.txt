@@ -1,0 +1,14 @@
+To Build:
+
+Rename Umbraco.Web to Umbraco.Web.Bak
+
+Rename Umbraco.Web.Build to Umbraco.Web
+
+Copy DLL and Package to the Umbraco.Web folder to replace existing files
+
+Edit the VS solution and remove the post-build events:
+
+xcopy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" "$(SolutionDir)Umbraco.Web\bin"
+xcopy /y "$(ProjectDir)$(OutDir)$(TargetName).pdb" "$(SolutionDir)Umbraco.Web\bin"
+
+Run build.bat in BuildPackage from command line.
