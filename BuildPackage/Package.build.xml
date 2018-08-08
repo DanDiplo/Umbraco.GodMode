@@ -16,7 +16,7 @@
 
   <!-- PROPERTIES -->
   <PropertyGroup >
-    <BasePackageVersion>1.5.0.0</BasePackageVersion>
+    <BasePackageVersion>1.5.1.0</BasePackageVersion>
     <VersionSuffix></VersionSuffix>
     <MinUmbracoVersion>7.6.0</MinUmbracoVersion>
   </PropertyGroup>

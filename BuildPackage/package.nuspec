@@ -29,8 +29,8 @@
       * Plus lots more
     </description>
     <releaseNotes>
-      Fix for broken path to edit templates and partials, which changed in Umbraco 7.6 and I never noticed!
-      Fix for breaking change in Umbraco 7.11.0 that removed the PackageRepositories API, which was referenced in Diagnostics.
+      Displays UDI GUIDs were relevant alongside IDs, which are also searchable (thanks Kows)
+      Better hierarchical ordering of nested templates in Template Browser (thanks Barry Bell)
     </releaseNotes>
     <summary>
       God Mode is a custom Umbraco 7 tree aimed at Developers to make it easy to locate, search and query your Umbraco 7 assets (doctypes, templates, property editors, media, content, members, controllers, models etc)
