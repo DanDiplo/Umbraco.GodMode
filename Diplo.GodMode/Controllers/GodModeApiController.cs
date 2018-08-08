@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Diplo.GodMode.Helpers;
+using Diplo.GodMode.Models;
+using Diplo.GodMode.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
-using Diplo.GodMode.Helpers;
-using Diplo.GodMode.Models;
-using Diplo.GodMode.Services;
 using Umbraco.Core;
 using Umbraco.Core.Models.PublishedContent;
 using Umbraco.Core.Persistence;
@@ -103,9 +103,9 @@ namespace Diplo.GodMode.Controllers
         /// <param name="page">The current page</param>
         /// <param name="pageSize">The items per page</param>
         /// <param name="criteria"></param>
-        public Page<ContentItem> GetContentPaged(long page = 1, long pageSize = 50, string name = null, string alias = null, int? creatorId = null, int? id = null, int? level = null, bool? trashed = null, int? updaterId = null, string orderBy = "N.id")
+        public Page<ContentItem> GetContentPaged(long page = 1, long pageSize = 50, string name = null, string alias = null, int? creatorId = null, string id = null, int? level = null, bool? trashed = null, int? updaterId = null, string orderBy = "N.id")
         {
-            ContentCriteria criteria = new ContentCriteria()
+            var criteria = new ContentCriteria
             {
                 Name = name,
                 Alias = alias,

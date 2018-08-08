@@ -45,7 +45,10 @@
                     <div class="accordion-heading">
                         <div class="row">
                             <div class="span10">
-                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_{{temp.Id}}" href="#collapse_{{temp.Id}}"><strong>{{ temp.Name }}</strong> <small>({{ temp.Alias }})</small></a>
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_{{temp.Id}}" href="#collapse_{{temp.Id}}">
+                                    <div><strong>{{ temp.Name }}</strong> <small>({{ temp.Alias }})</small></div>
+                                    <small> {{ temp.Udi }}</small>
+                                </a>
                             </div>
                             <div class="span2 text-right">
                                 <a class="accordion-toggle" href="{{config.editTemplateUrl + temp.Id}}" title="Edit" target="_blank"><span class="btn btn-default"><i class="icon icon-edit"></i> Edit</span></a>

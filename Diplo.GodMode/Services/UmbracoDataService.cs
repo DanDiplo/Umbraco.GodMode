@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Diplo.GodMode.Controllers;
+﻿using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Umbraco.Core;
-using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Services;
@@ -41,16 +40,17 @@ namespace Diplo.GodMode.Services
 
             var allContentTypes = cts.GetAllContentTypes() ?? Enumerable.Empty<IContentType>();
 
-            List<ContentTypeMap> mapping = new List<ContentTypeMap>();
+            var mapping = new List<ContentTypeMap>();
 
             foreach (var ct in allContentTypes.OrderBy(x => x.Name))
             {
-                ContentTypeMap map = new ContentTypeMap
+                var map = new ContentTypeMap
                 {
                     Alias = ct.Alias,
                     Icon = ct.Icon,
                     Name = ct.Name,
                     Id = ct.Id,
+                    Udi = ct.GetUdi().Guid,
                     Description = ct.Description,
                     Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
                     Select(x => new TemplateMap()
@@ -128,7 +128,7 @@ namespace Diplo.GodMode.Services
         {
             var dts = services.DataTypeService;
             return dts.GetAllDataTypeDefinitions().
-                Select(x => new DataTypeMap() { Id = x.Id, Name = x.Name }).
+                Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Name = x.Name }).
                 OrderBy(x => x.Name);
         }
 
@@ -139,7 +139,7 @@ namespace Diplo.GodMode.Services
         {
             var dts = services.DataTypeService;
             return dts.GetAllDataTypeDefinitions().
-                Select(x => new DataTypeMap() { Id = x.Id, Alias = x.PropertyEditorAlias }).
+                Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Alias = x.PropertyEditorAlias }).
                 DistinctBy(p => p.Alias).
                 OrderBy(p => p.Alias);
         }
@@ -159,9 +159,10 @@ namespace Diplo.GodMode.Services
             var usedPropertyTypes = contentTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)).Union(mediaTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)));
             var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeDefinitionId).Contains(x.Id)).Select(d => d.Id).ToList();
 
-            return dataTypes.Select(x => new DataTypeMap()
+            return dataTypes.Select(x => new DataTypeMap
             {
                 Id = x.Id,
+                Udi = x.GetUdi().Guid,
                 Name = x.Name,
                 Alias = x.PropertyEditorAlias,
                 DbType = x.DatabaseType.ToString(),
@@ -234,7 +235,7 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of content items</returns>
         public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            string sql = @"SELECT N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName
+            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName
             FROM cmsContent C
             INNER JOIN umbracoNode N ON N.Id = C.nodeId
             INNER JOIN cmsContentType CT ON C.contentType = CT.nodeId
@@ -243,7 +244,7 @@ namespace Diplo.GodMode.Services
             INNER JOIN umbracoUser AS Updater ON Updater.Id = D.documentUser
             WHERE D.Newest = 1 ";
 
-            Sql query = new Sql(sql);
+            var query = new Sql(sql);
 
             if (criteria != null)
             {
@@ -257,9 +258,10 @@ namespace Diplo.GodMode.Services
                     query = query.Append(" AND D.text LIKE @0", "%" + criteria.Name + "%");
                 }
 
-                if (criteria.Id.HasValue)
+                if (!String.IsNullOrEmpty(criteria.Id))
                 {
-                    query = query.Append(" AND N.id = @0", criteria.Id.Value);
+                    int.TryParse(criteria.Id, out var criteriaId);
+                    query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
                 }
 
                 if (criteria.Level.HasValue)

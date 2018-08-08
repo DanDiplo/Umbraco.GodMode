@@ -9,6 +9,8 @@ namespace Diplo.GodMode.Models
     {
         public int Id { get; set; }
 
+        public Guid Udi { get; set; }
+
         public string Name { get; set; }
 
         public string Alias { get; set; }
