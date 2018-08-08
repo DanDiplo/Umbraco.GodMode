@@ -188,7 +188,7 @@ namespace Diplo.GodMode.Services
                     MasterAlias = template.MasterTemplateAlias,
                     Partials = PartialHelper.GetPartialInfo(template.Content, template.Id, template.Alias),
                     Path = template.Path,
-                    Parents = templates.Where(t => template.Path.Split(',').Select(x => Convert.ToInt32(x)).Contains(t.Id)).Select(t => new TemplateModel(t)).Reverse()
+                    Parents = templates.Where(t => template.Path.Split(',').Select(x => Convert.ToInt32(x)).Contains(t.Id)).Select(t => new TemplateModel(t)).OrderBy(d => template.Path.Split(',').IndexOf(d.Id.ToString()))
                 };
 
                 templateModels.Add(model);
@@ -260,7 +260,8 @@ namespace Diplo.GodMode.Services
 
                 if (!String.IsNullOrEmpty(criteria.Id))
                 {
-                    int.TryParse(criteria.Id, out var criteriaId);
+                    int criteriaId;
+                    int.TryParse(criteria.Id, out criteriaId);
                     query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
                 }
 
