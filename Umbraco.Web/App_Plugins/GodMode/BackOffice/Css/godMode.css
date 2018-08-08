@@ -14,9 +14,14 @@
     color: #b3b3b3;
 }
 
-.god-mode .umb-panel-header-name small {
+.god-mode .umb-panel-header-name small, 
+.god-mode .accordion-text small {
     font-size: smaller;
     color: #ddd;
+}
+
+.god-mode .accordion-text {
+    padding-left:15px;
 }
 
 .god-mode .umb-panel-header-name .icon {
@@ -56,6 +61,11 @@
 
         .god-mode table th.tval {
             width: 75%;
+        }
+
+        .god-mode table td small {
+            font-size:70%;
+            color:#ddd;
         }
 
 .god-mode .umb-sub-views-nav a:hover {

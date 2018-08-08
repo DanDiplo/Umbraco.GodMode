@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.MediaBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.media = [];
@@ -30,14 +29,12 @@
                 $scope.isLoading = false;
             });
 
-
             $scope.sortBy = function (column) {
                 $scope.sort.column = column;
                 $scope.sort.reverse = !$scope.sort.reverse;
             }
 
             $scope.filterMedia = function (m) {
-
                 if ($scope.search.id) {
                     if (m.Id.toString() !== $scope.search.id) {
                         return;

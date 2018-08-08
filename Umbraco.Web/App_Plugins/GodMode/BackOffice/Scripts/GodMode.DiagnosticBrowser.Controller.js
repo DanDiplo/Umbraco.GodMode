@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.DiagnosticBrowser.Controller",
         function ($scope, $routeParams, $anchorScroll, $location, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.search = {};
@@ -24,7 +23,6 @@
             });
 
             $scope.selectGroup = function (group) {
-
                 var selectedGroup = $scope.diagnostics.filter(function (g) {
                     return g.Id === group.Id;
                 });
@@ -33,7 +31,6 @@
             }
 
             $scope.filterValues = function (v) {
-
                 if ($scope.search.name && v.Key.toLowerCase().indexOf($scope.search.name.toLowerCase()) === -1) {
                     return;
                 }
@@ -44,6 +41,5 @@
 
                 return v;
             };
-
         });
 })();

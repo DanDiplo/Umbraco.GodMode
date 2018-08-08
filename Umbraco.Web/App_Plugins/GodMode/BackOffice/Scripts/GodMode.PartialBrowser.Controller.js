@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.PartialBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.search = {};
@@ -30,7 +29,6 @@
             }
 
             $scope.filterPartials = function (p) {
-
                 if ($scope.search.partial) {
                     if (p.Name.toLowerCase().indexOf($scope.search.partial.toLowerCase()) === -1) {
                         return;

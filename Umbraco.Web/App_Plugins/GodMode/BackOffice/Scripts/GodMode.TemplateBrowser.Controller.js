@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.TemplateBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.search = {};
@@ -15,7 +14,6 @@
             });
 
             $scope.filterTemplates = function (temp) {
-
                 if ($scope.search.partial) {
                     if (!temp.Partials.some(function (elem) {
                         return elem.Name === $scope.search.partial.Name;
@@ -29,9 +27,9 @@
                 }
 
                 if ($scope.search.template) {
-                  if (temp.Name.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 &&
-                    temp.Alias.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 &&
-                    temp.Udi.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1) {
+                    if (temp.Name.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 &&
+                        temp.Alias.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 &&
+                        temp.Udi.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1) {
                         return;
                     }
                 }

@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.MemberBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.criteria = {
@@ -17,7 +16,6 @@
             $scope.sort = {};
 
             $scope.fetchMembers = function (orderBy) {
-
                 $scope.isLoading = true;
                 var groupId = $scope.criteria.group != null ? $scope.criteria.group.Id : null;
 

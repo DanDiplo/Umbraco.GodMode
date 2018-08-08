@@ -105,8 +105,8 @@
                             <div class="span10">
                                 <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_{{ct.Id}}" href="#collapse_{{ct.Id}}">
                                     <div><strong><i class="{{ ct.Icon }}"></i>&nbsp;{{ ct.Name }}</strong> <small>({{ ct.Alias }})</small></div>
-                                    <small> {{ ct.Udi }}</small>
                                 </a>
+                                <div class="accordion-text"><small>{{ ct.Udi }}</small></div>
                             </div>
                             <div class="span2 text-right">
                                 <a class="accordion-toggle" href="{{config.editDocTypeUrl + ct.Id}}" title="Edit {{ ct.Name }} doctype" target="_blank"><span class="btn btn-default"><i class="icon icon-edit"></i> Edit</span></a>
