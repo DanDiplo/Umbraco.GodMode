@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.DocTypeBrowser.Controller",
         function ($scope, $routeParams, $route, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.search = {};
@@ -45,11 +44,10 @@
             });
 
             $scope.filterContentTypes = function (ct) {
-
                 if ($scope.search.doctype) {
-                  if (ct.Name.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 &&
-                    ct.Alias.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 &&
-                    ct.Udi.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1) {
+                    if (ct.Name.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 &&
+                        ct.Alias.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 &&
+                        ct.Udi.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1) {
                         return;
                     }
                 }
@@ -107,6 +105,5 @@
 
                 return ct;
             }
-
         });
 })();

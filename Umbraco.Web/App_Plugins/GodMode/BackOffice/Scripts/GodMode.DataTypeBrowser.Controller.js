@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.DataTypeBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.search = {};
@@ -28,11 +27,10 @@
             });
 
             $scope.filterDataTypes = function (d) {
-
                 if ($scope.search.dataType) {
-                  if (d.Name.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1 &&
-                    d.Id !== parseInt($scope.search.dataType) &&
-                    d.Udi.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1) {
+                    if (d.Name.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1 &&
+                        d.Id !== parseInt($scope.search.dataType) &&
+                        d.Udi.toLowerCase().indexOf($scope.search.dataType.toLowerCase()) === -1) {
                         return;
                     }
                 }

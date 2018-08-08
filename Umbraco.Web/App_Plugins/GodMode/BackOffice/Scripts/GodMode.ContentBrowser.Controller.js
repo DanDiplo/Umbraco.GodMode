@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.criteria = {};

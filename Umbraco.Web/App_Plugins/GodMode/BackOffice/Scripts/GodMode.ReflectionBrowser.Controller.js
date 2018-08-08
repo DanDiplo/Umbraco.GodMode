@@ -2,7 +2,6 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.ReflectionBrowser.Controller",
         function ($scope, $routeParams, navigationService, godModeResources, godModeConfig) {
-
             $scope.isLoading = true;
             $scope.config = godModeConfig.config;
             $scope.search = {};
@@ -60,7 +59,6 @@
             }
 
             $scope.filterControllers = function (c) {
-
                 if ($scope.search.controller && c.Name.toLowerCase().indexOf($scope.search.controller.toLowerCase()) === -1) {
                     return;
                 }
@@ -74,7 +72,6 @@
                 }
 
                 if ($scope.search.baseType && c.BaseType !== $scope.search.baseType.BaseType) {
-
                     return;
                 }
 
