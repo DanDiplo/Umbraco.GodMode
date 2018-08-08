@@ -29,7 +29,9 @@
                 }
 
                 if ($scope.search.template) {
-                    if (temp.Name.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 && temp.Alias.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1) {
+                  if (temp.Name.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 &&
+                    temp.Alias.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1 &&
+                    temp.Udi.toLowerCase().indexOf($scope.search.template.toLowerCase()) === -1) {
                         return;
                     }
                 }

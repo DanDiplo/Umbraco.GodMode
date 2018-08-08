@@ -13,7 +13,7 @@
                         <div class="span2">
                             <label class="control-label" for="search-id">Node Id:</label>
                             <br />
-                            <input type="number" id="search-id" ng-model="criteria.Id" placeholder="Id" class="input-mini" ng-change="filterChange()">
+                            <input type="text" id="search-id" ng-model="criteria.Id" placeholder="Id" class="input-medium" ng-change="filterChange()">
                         </div>
 
                         <div class="span3">
@@ -50,13 +50,13 @@
 
             <table class="table">
                 <colgroup>
-                    <col style="width:5%">
                     <col style="width:15%">
                     <col style="width:15%">
                     <col style="width:15%">
                     <col style="width:15%">
+                    <col style="width:10%">
                     <col style="width:15%">
-                    <col style="width:15%">
+                    <col style="width:10%">
                     <col style="width:5%">
                 </colgroup>
                 <thead>
@@ -73,7 +73,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="c in page.Items">
-                        <td><a href="#/content/content/edit/{{c.Id}}" target="_blank" title="Edit">{{ c.Id }}</a></td>
+                        <td><div><a href="#/content/content/edit/{{c.Id}}" target="_blank" title="Edit">{{ c.Id }}</a></div><small>{{ c.Udi }}</small></td>
                         <td>{{ c.Name }}</td>
                         <td><span class="{{c.Icon}}"></span> {{ c.Alias }}</td>
                         <td>{{ c.CreateDate | date:'short' }}</td>

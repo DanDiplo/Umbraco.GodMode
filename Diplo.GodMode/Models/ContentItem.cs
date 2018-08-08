@@ -6,6 +6,8 @@ namespace Diplo.GodMode.Models
     {
         public int Id { get; set; }
 
+        public Guid Udi { get; set; }
+
         public int ParentId { get; set; }
 
         public int Level { get; set; }

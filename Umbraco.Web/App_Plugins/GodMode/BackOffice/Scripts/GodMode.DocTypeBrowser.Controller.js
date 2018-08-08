@@ -47,7 +47,9 @@
             $scope.filterContentTypes = function (ct) {
 
                 if ($scope.search.doctype) {
-                    if (ct.Name.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 && ct.Alias.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1) {
+                  if (ct.Name.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 &&
+                    ct.Alias.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1 &&
+                    ct.Udi.toLowerCase().indexOf($scope.search.doctype.toLowerCase()) === -1) {
                         return;
                     }
                 }
