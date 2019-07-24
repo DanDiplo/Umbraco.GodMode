@@ -267,7 +267,7 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
-            group = new DiagnosticGroup(id++, "Umrbaco Constants");
+            group = new DiagnosticGroup(id++, "Umbraco Constants");
             sections = new List<DiagnosticSection>
             {
                 DiagnosticSection.AddDiagnosticSectionFromConstant("Applications", typeof(Constants.Applications)),
