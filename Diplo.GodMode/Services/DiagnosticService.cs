@@ -25,10 +25,8 @@ namespace Diplo.GodMode.Services
     /// </summary>
     public class DiagnosticService
     {
-        private UmbracoHelper umbHelper;
-
+        private readonly UmbracoHelper umbHelper;
         private UmbracoContext umbContext;
-
         private HttpContextBase httpContext;
 
         private static readonly string[] ServerVarsToSkip = new string[] { "ALL_HTTP", "ALL_RAW", "HTTP_COOKIE", "HTTP_X_XSRF_TOKEN" };
