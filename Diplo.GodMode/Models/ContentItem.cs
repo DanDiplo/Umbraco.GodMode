@@ -31,5 +31,7 @@ namespace Diplo.GodMode.Models
         public int UpdaterId { get; set; }
 
         public string UpdaterName { get; set; }
+
+        public int LanguageCount { get; set; }
     }
 }

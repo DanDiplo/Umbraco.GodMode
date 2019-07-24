@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace Diplo.GodMode.Helpers
     /// </summary>
     public static class ReflectionHelper
     {
-        public static readonly Func<Assembly, bool> IsUmbracoAssemblyPredicate = a => a.ManifestModule.Name.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase);
+        public static readonly Func<Assembly, bool> IsUmbracoAssemblyPredicate = a => a.ManifestModule.Name.StartsWith("umbraco.", StringComparison.OrdinalIgnoreCase);
 
         public static readonly Func<Type, Type, bool> IsAssignableClassFromPredicate = (a, b) => a != null && b != null && b.IsClass && !b.IsAbstract && a.IsAssignableFrom(b);
 
@@ -63,7 +64,24 @@ namespace Diplo.GodMode.Helpers
             return assembly.GetLoadableTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic).Select(t => new TypeMap(t));
         }
 
-        internal static IEnumerable<Diagnostic> PopulateDiagnosticsFrom(object obj, bool onlyUmbraco = true)
+        public static List<FieldInfo> GetAllPublicConstants(this Type type)
+        {
+            return type
+                .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                .Where(fi => fi.IsLiteral && !fi.IsInitOnly).ToList();
+        }
+
+        public static IEnumerable<Diagnostic> PopulateDiagnosticsFromConstants(Type type)
+        {
+            if (type == null)
+            {
+                return Enumerable.Empty<Diagnostic>();
+            }
+
+            return type.GetAllPublicConstants().Select(x => new Diagnostic(x.Name, x.GetRawConstantValue().ToString()));
+        }
+
+        public static IEnumerable<Diagnostic> PopulateDiagnosticsFrom(object obj, bool onlyUmbraco = true)
         {
             if (obj == null)
             {
@@ -72,16 +90,47 @@ namespace Diplo.GodMode.Helpers
 
             var props = obj.GetType().GetAllProperties();
 
-            if (onlyUmbraco)
-                props = props.Where(x => x.Module.Name.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (props == null)
+            {
+                return Enumerable.Empty<Diagnostic>();
+            }
 
-            List<Diagnostic> diagnostics = new List<Diagnostic>(props.Count());
+            if (onlyUmbraco)
+            {
+                props = props.Where(x => x.Module.Name.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase)).ToArray();
+            }
+
+            var diagnostics = new List<Diagnostic>(props.Count());
 
             foreach (var prop in props)
             {
                 try
                 {
-                    diagnostics.Add(new Diagnostic(GetPropertyDisplayName(prop), prop.GetValue(obj)));
+                    var value = prop.GetValue(obj);
+
+                    if (value.GetType().IsPublic)
+                    {
+                        if (prop.PropertyType.IsArray || (prop.PropertyType != typeof(string) && prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable))))
+                        {
+                            var items = (IEnumerable)value;
+
+                            if (items != null)
+                            {
+                                string sValue = String.Join(", ", items);
+
+                                if (sValue == value.ToString())
+                                {
+                                    sValue = String.Empty;
+                                }
+
+                                diagnostics.Add(new Diagnostic(GetPropertyDisplayName(prop), sValue));
+                            }
+                        }
+                        else
+                        {
+                            diagnostics.Add(new Diagnostic(GetPropertyDisplayName(prop), value));
+                        }
+                    }
                 }
                 catch { };
             }
@@ -108,7 +157,7 @@ namespace Diplo.GodMode.Helpers
 
         private static string GetPropertyDisplayName(PropertyInfo prop)
         {
-            return prop.Name.Split('.').Last().SplitPascalCasing() + (prop.PropertyType == typeof(bool) ? "?" : String.Empty);
+            return prop.Name.Split('.').Last().SplitPascalCasing() + (prop.PropertyType == typeof(bool) ? "?" : string.Empty);
         }
     }
 }

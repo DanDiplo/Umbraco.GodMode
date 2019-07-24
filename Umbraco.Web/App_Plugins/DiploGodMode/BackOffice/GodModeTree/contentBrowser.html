@@ -1,0 +1,122 @@
+﻿<div ng-controller="GodMode.ContentBrowser.Controller as vm" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Content Browser" title="Because content is king"></godmode-header>
+
+        <umb-editor-container>
+
+            <umb-box>
+                <umb-box-content>
+                    <div class="row">
+
+                        <div class="span2">
+                            <label class="control-label" for="search-id" title="The node Id or UDI">Node Id:</label>
+                            <br />
+                            <input type="text" id="search-id" ng-model="vm.criteria.Id" placeholder="Id or UDI" class="input-medium" ng-change="vm.filterChange()">
+                        </div>
+
+                        <div class="span2">
+                            <label class="control-label" for="search-name" title="The primary node name">Name:</label>
+                            <br />
+                            <input type="search" id="search-name" ng-model="vm.criteria.Name" placeholder="Search node names" class="input-medium" ng-change="vm.filterChange()">
+                        </div>
+
+                        <div class="span2">
+                            <label class="control-label" for="search-alias" title="The document type alias">Content Alias:</label>
+                            <br />
+                            <select id="search-alias" ng-model="vm.criteria.Alias" ng-options="item for item in vm.contentTypeAliases" class="input-medium" ng-change="vm.filterChange()">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                        <div class="span2">
+                            <label class="control-label" for="search-level" title="The level in the tree">Tree Level:</label>
+                            <br />
+                            <input type="number" min="1" id="search-level" ng-model="vm.criteria.Level" placeholder="Level" class="input-mini" ng-change="vm.filterChange()">
+                        </div>
+
+                        <div class="span2">
+                            <label class="control-label" for="search-lang" title="Searches for specific language variants">Language:</label>
+                            <br />
+                            <select id="search-lang" ng-model="vm.criteria.Language" ng-options="item.Name for item in vm.languages" class="input-medium" ng-change="vm.filterChange()">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                        <div class="span2">
+                            <label class="control-label" for="search-recycled" title="Whether the node is in the bin">Recycled?</label>
+                            <br />
+                            <select id="search-recycled" ng-model="vm.criteria.Trashed" ng-options="opt.label for opt in vm.triStateOptions" class="input-small" ng-change="vm.filterChange()"></select>
+                        </div>
+
+                    </div>
+                </umb-box-content>
+            </umb-box>
+
+            <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
+
+            <table class="table table-hover">
+                <colgroup>
+                    <col style="width:16%">
+                    <col style="width:14%">
+                    <col style="width:14%">
+                    <col style="width:10%">
+                    <col style="width:14%">
+                    <col style="width:10%">
+                    <col style="width:5%">
+                    <col style="width:5%">
+                    <col style="width:12%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th><godmode-sortable sort-by="vm.sortBy('N.Text')" column="N.Text" sort="vm.sort">Name</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('CT.Alias')" column="CT.Alias" sort="vm.sort">Alias</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('N.createDate')" column="N.createDate" sort="vm.sort">Create Date</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('Creator.userName')" column="Creator.userName" sort="vm.sort">Creator</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('V.versionDate')" column="V.versionDate" sort="vm.sort">Update Date</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('Updater.userName')" column="Updater.userName" sort="vm.sort">Updater</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('N.Trashed')" column="N.Trashed" sort="vm.sort">Recycled?</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('LanguageCount')" column="LanguageCount" sort="vm.sort">Languages?</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('N.id')" column="N.id" sort="vm.sort">Id</godmode-sortable></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="c in vm.page.Items">
+                        <td><a href="{{vm.config.editContentUrl + c.Id}}" target="_blank" title="Edit"><strong>{{ c.Name }}</strong></a></td>
+                        <td><span class="{{c.Icon}}"></span>&nbsp;{{ c.Alias }}</td>
+                        <td>{{ c.CreateDate | date:'short' : 'UTC' }}</td>
+                        <td>{{ c.CreatorName }}</td>
+                        <td>{{ c.UpdateDate | date:'short' : 'UTC' }}</td>
+                        <td>{{ c.UpdaterName }}</td>
+                        <td><godmode-True-False value="c.Trashed"></godmode-True-False></td>
+                        <td>{{ c.LanguageCount }}</td>
+                        <td><div>{{ c.Id }}</div><code>{{ c.Udi }}</code></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="8">
+                            <div class="pagination pagination-centered" ng-show="vm.page.TotalPages > 1">
+                                <umb-pagination page-number="vm.page.CurrentPage"
+                                                total-pages="vm.page.TotalPages"
+                                                on-next="vm.nextPage"
+                                                on-prev="vm.prevPage"
+                                                on-go-to-page="vm.setPage">
+                                </umb-pagination>
+                            </div>
+                        </th>
+                    </tr>
+                    <tr ng-hide="vm.isLoading || vm.page.Items.length > 0">
+                        <td colspan="8">
+                            <p class="text-center"><strong>Sorry, no content was found for your selected criteria.</strong></p>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

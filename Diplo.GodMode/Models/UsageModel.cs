@@ -34,20 +34,20 @@ namespace Diplo.GodMode.Models
         {
             get
             {
-                if (this.GuidType == Constants.ObjectTypes.DocumentTypeGuid)
+                if (this.GuidType == Constants.ObjectTypes.DocumentType)
                 {
                     return "Content";
                 }
-                else if (this.GuidType == Constants.ObjectTypes.MediaTypeGuid)
+                else if (this.GuidType == Constants.ObjectTypes.MediaType)
                 {
                     return "Media";
                 }
-                else if (this.GuidType == Constants.ObjectTypes.MemberTypeGuid)
+                else if (this.GuidType == Constants.ObjectTypes.MemberType)
                 {
                     return "Members";
                 }
 
-                return String.Empty;
+                return "";
             }
         }
     }

@@ -14,5 +14,7 @@ namespace Diplo.GodMode.Models
         public string Name { get; set; }
 
         public string Alias { get; set; }
+
+        public bool IsOpen { get; set; }
     }
 }

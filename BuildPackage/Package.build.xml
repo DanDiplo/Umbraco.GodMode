@@ -16,9 +16,9 @@
 
   <!-- PROPERTIES -->
   <PropertyGroup >
-    <BasePackageVersion>1.5.1.0</BasePackageVersion>
+    <BasePackageVersion>2.0.0.0</BasePackageVersion>
     <VersionSuffix></VersionSuffix>
-    <MinUmbracoVersion>7.6.0</MinUmbracoVersion>
+    <MinUmbracoVersion>8.0.0</MinUmbracoVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -32,14 +32,14 @@
 
   <!-- TARGETS -->
 
-  <Target Name="GenProductVersion">
+  <Target Name="GetProductVersion">
     <GetProductVersion BuildVersion="$(BasePackageVersion)" BuildSuffix="$(VersionSuffix)">
       <Output TaskParameter="ProductVersion" PropertyName="ProductVersion"/>
     </GetProductVersion>
   </Target>
 
   <!-- CLEAN -->
-  <Target Name="Clean" DependsOnTargets="GenProductVersion">
+  <Target Name="Clean" DependsOnTargets="GetProductVersion">
     <RemoveDir Directories="$(BuildDir)" Condition="Exists('$(BuildDir)')" />
     <RemoveDir Directories="$(PackageDir)" Condition="Exists('$(PackageDir)')" />
     <MakeDir Directories="$(BuildDir)" />
@@ -74,8 +74,7 @@
     <Copy SourceFiles="@(NuSpecFile)" DestinationFolder="$(BuildNuGetDir)" />
     <Copy SourceFiles="@(AppPluginFiles)"
    DestinationFiles="@(AppPluginFiles->'$(BuildDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(AppPluginFiles)"
-   DestinationFiles="@(AppPluginFiles->'$(BuildNuGetDir)\Content\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(AppPluginFiles)" DestinationFiles="@(AppPluginFiles->'$(BuildNuGetDir)\Content\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
   <!-- MANIFEST -->
@@ -83,11 +82,13 @@
     <ItemGroup>
       <ManifestFiles Include="$(BuildDir)\**\*" Exclude="$(BuildDir)\Package.xml" />
     </ItemGroup>
-    <ManifestUpdate ManifestFile="$(BuildDir)\package.xml"
+
+    <ManifestUpdate ManifestFile="$(BuildDir)\Package.xml"
 			WorkingDirectory="$(BuildDir)"
 			MinimumRequiredUmbracoVersion="$(MinUmbracoVersion)"
 			PackageVersion="$(ProductVersion)"
 			Files="@(ManifestFiles)" />
+
   </Target>
 
   <!-- MANIFEST FOR NUGET PACKAGE -->

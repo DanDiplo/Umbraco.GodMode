@@ -1,14 +1,18 @@
-﻿using Diplo.GodMode.Controllers;
-using Diplo.GodMode.Helpers;
-using Diplo.GodMode.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Diplo.GodMode.Controllers;
+using Diplo.GodMode.Helpers;
+using Diplo.GodMode.Models;
+using Diplo.GodMode.Services.Interfaces;
+using NPoco;
 using Umbraco.Core;
+using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence;
+using Umbraco.Core.Persistence.Querying;
+using Umbraco.Core.Scoping;
 using Umbraco.Core.Services;
-using Umbraco.Web;
 
 namespace Diplo.GodMode.Services
 {
@@ -16,19 +20,27 @@ namespace Diplo.GodMode.Services
     /// Used to get data out of Umbraco
     /// </summary>
     /// <remarks>Really needs breaking down into smaller classes!</remarks>
-    public class UmbracoDataService
+    public class UmbracoDataService : IUmbracoDataService
     {
-        private UmbracoHelper umbHelper;
-        private UmbracoContext umbContext;
-        private ServiceContext services;
-        private UmbracoDatabase db;
+        private readonly IContentService contentService;
+        private readonly IContentTypeService contentTypeService;
+        private readonly IDataTypeService dataTypeService;
+        private readonly IMediaTypeService mediaTypeService;
+        private readonly IFileService fileService;
+        private readonly IMediaService mediaService;
+        private readonly IScopeProvider scopeProvider;
+        private readonly ILogger logger;
 
-        public UmbracoDataService(UmbracoHelper umbHelper)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ILogger logger)
         {
-            this.umbHelper = umbHelper;
-            this.umbContext = umbHelper.UmbracoContext;
-            this.services = umbContext.Application.Services;
-            this.db = umbContext.Application.DatabaseContext.Database;
+            this.contentService = contentService;
+            this.contentTypeService = contentTypeService;
+            this.dataTypeService = dataTypeService;
+            this.mediaTypeService = mediaTypeService;
+            this.fileService = fileService;
+            this.mediaService = mediaService;
+            this.scopeProvider = scopeProvider;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -36,9 +48,7 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<ContentTypeMap> GetContentTypeMap()
         {
-            var cts = services.ContentTypeService;
-
-            var allContentTypes = cts.GetAllContentTypes() ?? Enumerable.Empty<IContentType>();
+            var allContentTypes = this.contentTypeService.GetAll() ?? Enumerable.Empty<IContentType>();
 
             var mapping = new List<ContentTypeMap>();
 
@@ -87,23 +97,14 @@ namespace Diplo.GodMode.Services
             return mapping;
         }
 
-        /// <summary>
-        /// Gets all content type (doc type) aliases for content
-        /// </summary>
-        public IEnumerable<string> GetContentTypeAliases()
-        {
-            string sql = @"SELECT CT.alias FROM cmsContentType CT INNER JOIN umbracoNode N ON CT.nodeId = N.id WHERE N.nodeObjectType = @0 ORDER BY CT.alias";
-            Sql query = new Sql(sql, Constants.ObjectTypes.DocumentTypeGuid);
-            return db.Fetch<string>(query);
-        }
+
 
         /// <summary>
         /// Gets all property groups
         /// </summary>
         public IEnumerable<string> GetPropertyGroups()
         {
-            var cts = services.ContentTypeService;
-            return cts.GetAllContentTypes().
+            return this.contentTypeService.GetAll().
                 SelectMany(x => x.PropertyGroups.Select(p => p.Name)).
                 Distinct().OrderBy(p => p);
         }
@@ -113,8 +114,7 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<ContentTypeData> GetCompositions()
         {
-            var cts = services.ContentTypeService;
-            return cts.GetAllContentTypes().
+            return this.contentTypeService.GetAll().
                 SelectMany(x => x.ContentTypeComposition).
                 DistinctBy(x => x.Id).
                 Select(c => new ContentTypeData() { Id = c.Id, Alias = c.Alias, Name = c.Name }).
@@ -126,8 +126,7 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<DataTypeMap> GetDataTypes()
         {
-            var dts = services.DataTypeService;
-            return dts.GetAllDataTypeDefinitions().
+            return this.dataTypeService.GetAll().
                 Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Name = x.Name }).
                 OrderBy(x => x.Name);
         }
@@ -137,9 +136,8 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<DataTypeMap> GetPropertyEditors()
         {
-            var dts = services.DataTypeService;
-            return dts.GetAllDataTypeDefinitions().
-                Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Alias = x.PropertyEditorAlias }).
+            return this.dataTypeService.GetAll().
+                Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Alias = x.EditorAlias }).
                 DistinctBy(p => p.Alias).
                 OrderBy(p => p.Alias);
         }
@@ -149,22 +147,20 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<DataTypeMap> GetDataTypesStatus()
         {
-            var cts = services.ContentTypeService;
-            var dts = services.DataTypeService;
 
-            var dataTypes = dts.GetAllDataTypeDefinitions().ToList();
-            var contentTypes = cts.GetAllContentTypes();
-            var mediaTypes = cts.GetAllMediaTypes();
+            var dataTypes = this.dataTypeService.GetAll().ToList();
+            var contentTypes = this.contentTypeService.GetAll();
+            var mediaTypes = this.mediaTypeService.GetAll();
 
             var usedPropertyTypes = contentTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)).Union(mediaTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)));
-            var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeDefinitionId).Contains(x.Id)).Select(d => d.Id).ToList();
+            var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeId).Contains(x.Id)).Select(d => d.Id).ToList();
 
             return dataTypes.Select(x => new DataTypeMap
             {
                 Id = x.Id,
                 Udi = x.GetUdi().Guid,
                 Name = x.Name,
-                Alias = x.PropertyEditorAlias,
+                Alias = x.EditorAlias,
                 DbType = x.DatabaseType.ToString(),
                 IsUsed = usedIds.Contains(x.Id)
             }).
@@ -176,18 +172,19 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<TemplateModel> GetTemplates()
         {
-            var fs = services.FileService;
             var templateModels = new List<TemplateModel>();
-            var templates = fs.GetTemplates();
+            var templates = this.fileService.GetTemplates();
 
             foreach (var template in templates)
             {
-                TemplateModel model = new TemplateModel(template)
+                var model = new TemplateModel(template)
                 {
+
                     IsMaster = template.IsMasterTemplate,
                     MasterAlias = template.MasterTemplateAlias,
                     Partials = PartialHelper.GetPartialInfo(template.Content, template.Id, template.Alias),
                     Path = template.Path,
+                    VirtualPath = template.VirtualPath,
                     Parents = templates.Where(t => template.Path.Split(',').Select(x => Convert.ToInt32(x)).Contains(t.Id)).Select(t => new TemplateModel(t)).OrderBy(d => template.Path.Split(',').IndexOf(d.Id.ToString()))
                 };
 
@@ -198,258 +195,66 @@ namespace Diplo.GodMode.Services
         }
 
         /// <summary>
-        /// Gets all media (this can potentially return a lot - add pagination??)
+        /// Gets all media
         /// </summary>
-        public IEnumerable<MediaMap> GetMedia()
+        public Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC")
         {
-            var ms = services.MediaService;
-            List<MediaMap> mediaMap = new List<MediaMap>();
-            var rootMedia = ms.GetRootMedia();
             string tempExt;
 
-            foreach (var m in rootMedia)
+            IQuery<IMedia> criteria = new Query<IMedia>(scopeProvider.SqlContext);
+
+            if (!string.IsNullOrEmpty(name))
             {
-                mediaMap.AddRange(ms.GetDescendants(m).
-                    Select(x => new MediaMap()
-                    {
-                        Id = x.Id,
-                        Name = x.Name,
-                        Alias = x.ContentType.Name,
-                        Ext = tempExt = FileTypeHelper.GetExtensionFromMedia(x),
-                        Type = FileTypeHelper.GetFileTypeName(tempExt),
-                        Size = FileTypeHelper.GetFileSize(x)
-                    }
-                ));
+                criteria = criteria.Where(m => m.Name.Contains(name));
             }
 
-            return mediaMap;
-        }
-
-        /// <summary>
-        /// Gets the basic page content for the site
-        /// </summary>
-        /// <param name="page">The pagination page</param>
-        /// <param name="itemsPerPage">The pagination items per page</param>
-        /// <param name="criteria">The filter criteria</param>
-        /// <param name="orderBy">The order by clause</param>
-        /// <returns>A list of content items</returns>
-        public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
-        {
-            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, D.Text as Name, N.createDate, D.updateDate, Creator.Id AS CreatorId, Creator.userName as CreatorName, Updater.Id as UpdaterId, Updater.userName as UpdaterName
-            FROM cmsContent C
-            INNER JOIN umbracoNode N ON N.Id = C.nodeId
-            INNER JOIN cmsContentType CT ON C.contentType = CT.nodeId
-            INNER JOIN cmsDocument D ON D.nodeId = C.nodeId
-            INNER JOIN umbracoUser AS Creator ON Creator.Id = N.nodeUser
-            INNER JOIN umbracoUser AS Updater ON Updater.Id = D.documentUser
-            WHERE D.Newest = 1 ";
-
-            var query = new Sql(sql);
-
-            if (criteria != null)
+            if (id.HasValue)
             {
-                if (!String.IsNullOrEmpty(criteria.Alias))
-                {
-                    query = query.Append(" AND CT.alias = @0", criteria.Alias);
-                }
-
-                if (!String.IsNullOrEmpty(criteria.Name))
-                {
-                    query = query.Append(" AND D.text LIKE @0", "%" + criteria.Name + "%");
-                }
-
-                if (!String.IsNullOrEmpty(criteria.Id))
-                {
-                    int criteriaId;
-                    int.TryParse(criteria.Id, out criteriaId);
-                    query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
-                }
-
-                if (criteria.Level.HasValue)
-                {
-                    query = query.Append(" AND N.Level = @0", criteria.Level.Value);
-                }
-
-                if (criteria.Trashed.HasValue)
-                {
-                    query = query.Append(" AND N.Trashed = @0", criteria.Trashed.Value);
-                }
-
-                if (criteria.CreatorId.HasValue)
-                {
-                    query = query.Append(" AND Creator.Id = @0", criteria.CreatorId.Value);
-                }
-
-                if (criteria.UpdaterId.HasValue)
-                {
-                    query = query.Append(" AND Updater.Id = @0", criteria.UpdaterId.Value);
-                }
+                criteria = criteria.Where(m => m.Id == id.Value);
             }
 
-            if (!String.IsNullOrEmpty(orderBy))
+            if (mediaTypeId.HasValue)
             {
-                query.OrderBy(orderBy);
+                criteria = criteria.Where(m => m.ContentTypeId == mediaTypeId);
             }
 
-            var paged = db.Page<ContentItem>(page, itemsPerPage, query);
+            var order = new Ordering(orderBy, orderByDir == "ASC" ? Umbraco.Core.Persistence.DatabaseModelDefinitions.Direction.Ascending : Umbraco.Core.Persistence.DatabaseModelDefinitions.Direction.Descending);
+
+            var media = this.mediaService.GetPagedDescendants(-1, page - 1, pageSize, out long totalRecords, filter: criteria, ordering: order).
+                Select(x => new MediaMap()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Alias = x.ContentType.Name,
+                    Ext = tempExt = FileTypeHelper.GetExtensionFromMedia(x),
+                    Type = FileTypeHelper.GetFileTypeName(tempExt),
+                    Size = FileTypeHelper.GetFileSize(x),
+                    Udi = x.Key,
+                    CreateDate = x.CreateDate,
+                }
+            ).ToList();
+
+            var paged = new Page<MediaMap>()
+            {
+                CurrentPage = page,
+                Items = media,
+                ItemsPerPage = pageSize,
+                TotalItems = totalRecords,
+                TotalPages = totalRecords / pageSize
+            };
+
+
             return paged;
         }
 
-        /// <summary>
-        /// Gets a list of URLs, each corresponding to a page with a unique template
-        /// </summary>
-        /// <remarks>
-        /// This is used so we can ping each URL to "warm-up" the compilation of the view it uses
-        /// </remarks>
-        /// <returns>A list of URLs</returns>
-        public IEnumerable<string> GetTemplateUrlsToPing()
+        public IEnumerable<ItemBase> GetMediaTypes()
         {
-            string sql = @";WITH UniqueTemplateNode AS
-            (
-               SELECT D.nodeId, D.templateId, N.[text] as templateName,
-	            ROW_NUMBER() OVER (PARTITION BY TemplateId ORDER BY N.[text]) AS rn
-               FROM cmsDocument D
-               INNER JOIN umbracoNode N ON D.templateId = N.id
-               WHERE templateId IS NOT NULL AND published = 1
-            )
-            SELECT nodeId FROM UniqueTemplateNode WHERE rn = 1
-            ";
-
-            Sql query = new Sql(sql);
-
-            var ids = db.Fetch<int>(query);
-
-            foreach (var id in ids)
+            return this.mediaTypeService.GetAll().Select(x => new ItemBase()
             {
-                IPublishedContent node = null;
-
-                try
-                {
-                    node = umbHelper.TypedContent(id);
-                }
-                catch
-                {
-                    // we ignore it if we can't get an instance
-                }
-
-                if (node != null)
-                {
-                    string url = null;
-
-                    try
-                    {
-                        url = node.UrlAbsolute();
-                    }
-                    catch
-                    {
-                        // we ignore it if the node doesn't have an absolute URL
-                    }
-
-                    if (!String.IsNullOrEmpty(url))
-                        yield return url;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets what content types are used and how many instances of each there are
-        /// </summary>
-        /// <param name="id">Optional ID of the content type to filter by</param>
-        /// <returns>A list of data</returns>
-        public List<UsageModel> GetContentUsageData(int? id = null, string orderBy = "CT.alias")
-        {
-            string sql = @"SELECT COUNT(N.id) as NodeCount, CT.description as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
-            FROM cmsContentType CT
-            LEFT JOIN cmsContent C ON C.contentType = CT.nodeId
-            LEFT JOIN umbracoNode N ON CT.nodeId = N.id ";
-
-            Sql query = new Sql(sql);
-
-            if (id != null)
-            {
-                query = query.Append(" AND CT.pk = @0", id);
-            }
-
-            query.Append(" GROUP BY CT.alias, CT.icon, CT.description, CT.pk, N.nodeObjectType ");
-
-            if (!String.IsNullOrEmpty(orderBy))
-            {
-                query.OrderBy(orderBy);
-            }
-
-            return db.Fetch<UsageModel>(query);
-        }
-
-        /// <summary>
-        /// Gets all Umbraco members, paginated, with optional filters
-        /// </summary>
-        /// <param name="page">The current page</param>
-        /// <param name="itemsPerPage">How many results per page</param>
-        /// <param name="groupId">Optional member group Id</param>
-        /// <param name="search">Optional search term</param>
-        /// <param name="orderBy">Column to order results by</param>
-        /// <returns>A collection of members</returns>
-        public Page<MemberModel> GetMembers(long page, long itemsPerPage, int? groupId = null, string search = null, string orderBy = "MN.text")
-        {
-            string sql = @"SELECT M.nodeId as Id, M.LoginName as UserName, MN.text as Name, M.Email, MN.createDate
-            FROM cmsMember M 
-            INNER JOIN umbracoNode MN ON M.nodeId = MN.id ";
-
-            Sql memberQuery = new Sql(sql);
-
-            if (groupId.HasValue)
-            {
-                memberQuery.Append(" LEFT JOIN cmsMember2MemberGroup MG ON MG.Member = M.nodeId WHERE MG.MemberGroup = @0 ", groupId.Value);
-            }
-
-            if (!String.IsNullOrEmpty(search))
-            {
-                sql = String.Format(" {0} (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0)", groupId.HasValue ? "AND" : "WHERE");
-                memberQuery.Append(sql, "%" + search + "%");
-            }
-
-            memberQuery.OrderBy(orderBy);
-
-            return db.Page<MemberModel>(page, itemsPerPage, memberQuery);
-        }
-
-        /// <summary>
-        /// Gets all Umbraco member groups
-        /// </summary>
-        /// <returns>A list of groups</returns>
-        public IEnumerable<MemberGroupModel> GetMemberGroups()
-        {
-            Sql query = new Sql(String.Format("SELECT id as Id, text as Name FROM umbracoNode GN WHERE nodeObjectType = '{0}'", Umbraco.Core.Constants.ObjectTypes.MemberGroup)).OrderBy("text");
-
-            return db.Fetch<MemberGroupModel>(query);
-        }
-
-        internal IEnumerable<ServerModel> GetRegistredServers()
-        {
-            var ctx = ApplicationContext.Current.DatabaseContext;
-            var helper = new DatabaseSchemaHelper(ctx.Database, ApplicationContext.Current.ProfilingLogger.Logger, ctx.SqlSyntax);
-
-            if (helper.TableExist("umbracoServer"))
-            {
-                const string sql = @"SELECT Id, Address, ComputerName, RegisteredDate, LastNotifiedDate, IsActive, IsMaster FROM umbracoServer";
-                return db.Fetch<ServerModel>(sql);
-            }
-
-            return null;
-        }
-
-        internal IEnumerable<MigrationModel> GetMigrations()
-        {
-            var ctx = ApplicationContext.Current.DatabaseContext;
-            var helper = new DatabaseSchemaHelper(ctx.Database, ApplicationContext.Current.ProfilingLogger.Logger, ctx.SqlSyntax);
-
-            if (helper.TableExist("umbracoMigration"))
-            {
-                const string sql = @"select Id, Name, CreateDate, Version from umbracoMigration";
-                return db.Fetch<MigrationModel>(sql);
-            }
-
-            return null;
+                Id = x.Id,
+                Name = x.Name,
+                Alias = x.Alias
+            });
         }
     }
 }

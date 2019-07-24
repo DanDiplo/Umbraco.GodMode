@@ -1,0 +1,62 @@
+﻿<div ng-controller="GodMode.UtilityBrowser.Controller as vm" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Utilities" title="Do some stuff and feel enpowered!"></godmode-header>
+
+        <umb-editor-container>
+
+            <umb-box>
+                <umb-box-header title="Caches" description="Clear out the internal Umbraco caches"></umb-box-header>
+                <umb-box-content>
+                    <div class="row">
+
+                        <div class="span4">
+                            <button class="btn btn-warning" title="Clears the Umbraco request cache" ng-click="vm.clearCache('Request')"><i class="icon-delete-key"></i> Clear Request Cache</button>
+                        </div>
+
+                        <div class="span4">
+                            <button class="btn btn-warning" title="Clears the Umbraco runtime cache" ng-click="vm.clearCache('Runtime')"><i class="icon-delete-key"></i> Clear Runtime Cache</button>
+                        </div>
+
+                        <div class="span4">
+                            <button class="btn btn-warning" title="Clears the Umbraco isolated cache" ng-click="vm.clearCache('Isolated')"><i class="icon-delete-key"></i> Clear Isolated Cache</button>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="span4">
+                            <button class="btn btn-warning" title="Clears the Umbraco partial view cache" ng-click="vm.clearCache('Partial')"><i class="icon-delete-key"></i> Clear Partial Cache</button>
+                        </div>
+
+                        <div class="span4">
+                            <button class="btn btn-danger" title="Clears ALL Umbraco caches" ng-click="vm.clearCache('all')"><i class="icon-delete-key"></i> Clear All Caches</button>
+                        </div>
+                    </div>
+                </umb-box-content>
+            </umb-box>
+
+            <umb-box>
+                <umb-box-header title="Application" description="Here be dragons"></umb-box-header>
+                <umb-box-content>
+                    <div class="row">
+
+                        <div class="span4">
+                            <button class="btn btn-danger" title="Restarts the IIS application pool (which will take the site offline momentarily)" ng-click="vm.restartAppPool()"><i class="icon-scull"></i> Restart Application Pool</button>
+                        </div>
+
+                        <div class="span4">
+                            <button class="btn btn-primary" title="Hits a single URL for every template in the site to 'warm-up' compilation of views" ng-click="vm.warmUpTemplates()"><i class="icon-server"></i> Warm-Up Templates</button>
+
+                            <p ng-show="vm.warmup.current < vm.warmup.count">
+                                <umb-load-indicator ng-show="vm.warmup.current < vm.warmup.count"></umb-load-indicator>
+                                <br />
+                                Warming up template {{ vm.warmup.current }} of {{ vm.warmup.count }} - pinging URL: <a href="{{vm.warmup.url}}" target="_blank">{{vm.warmup.url}}</a>
+                            </p>
+                        </div>
+                    </div>
+                </umb-box-content>
+            </umb-box>
+        </umb-editor-container>
+    </umb-editor-view>
+</div>

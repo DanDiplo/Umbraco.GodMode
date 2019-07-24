@@ -39,7 +39,7 @@ namespace Diplo.GodMode.Models
 
         public override string ToString()
         {
-            return String.Format("{0}: {1}\n");
+            return String.Format("{0}: {1}\n", this.Key, this.Value);
         }
     }
 }

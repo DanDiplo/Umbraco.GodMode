@@ -3,15 +3,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Diplo.GodMode</id>
-    <version>1.5.0</version>
-    <title>God Mode for Umbraco 7.6 or higher</title>
+    <version>2.0.0</version>
+    <title>God Mode (Developer tools for Umbraco 8)</title>
     <authors>Dan Booth</authors>
     <owners>Dan Booth</owners>
-    <projectUrl>http://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/</projectUrl>
+    <projectUrl>https://github.com/DanDiplo/Umbraco.GodMode/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
-      Diplo God Mode makes Umbraco 7 developers invincible! This custom tree in the Developer section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
+      Diplo God Mode makes Umbraco developers invincible! This custom tree in the Settings section of Umbraco 8 allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
+      
       For instance, you can:
+      
       * Easily see which document types inherit from any of your compositions
       * See which document types use which property editor or data type instance
       * See which partials are used by all your templates
@@ -29,19 +31,19 @@
       * Plus lots more
     </description>
     <releaseNotes>
-      Displays UDI GUIDs were relevant alongside IDs, which are also searchable (thanks Kows)
-      Better hierarchical ordering of nested templates in Template Browser (thanks Barry Bell)
+      This is the initial release for Umbraco 8. Please use the latest 1.x version for Umbraco 7 sites.
     </releaseNotes>
     <summary>
-      God Mode is a custom Umbraco 7 tree aimed at Developers to make it easy to locate, search and query your Umbraco 7 assets (doctypes, templates, property editors, media, content, members, controllers, models etc)
+      God Mode is a custom Umbraco 8 tree aimed at developers to make it easy to locate, search and query your Umbraco 8 assets (doctypes, templates, property editors, media, content, members, controllers, models etc)
     </summary>
     <copyright>Dan Booth</copyright>
-    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <license type="expression">MIT</license>
+    <repository type="git" url="https://github.com/DanDiplo/Umbraco.GodMode/" />
     <language>en-GB</language>
-    <tags>umbraco umbraco7 developer backoffice</tags>
-    <iconUrl>https://our.umbraco.org/media/wiki/154700/636011047916132148_godmodepng.png</iconUrl>
+    <tags>umbraco umbraco8 developer backoffice audit log</tags>
+    <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
     <dependencies>
-      <dependency id="UmbracoCms.Core" version="7.6.0" />
+      <dependency id="UmbracoCms.Core" version="8.1.0" />
     </dependencies>
   </metadata>
 </package>

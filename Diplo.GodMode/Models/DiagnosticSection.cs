@@ -57,6 +57,18 @@ namespace Diplo.GodMode.Models
             }
         }
 
+        public static DiagnosticSection AddDiagnosticSectionFrom(string heading, object obj, bool onlyUmbraco = true)
+        {
+            var section = new DiagnosticSection(heading);
+
+            if (obj != null)
+            {
+                section.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(obj, onlyUmbraco));
+            }
+
+            return section;
+        }
+
         public void AddDiagnosticsFrom(object obj, bool onlyUmbraco = true)
         {
             if (obj != null)
@@ -74,6 +86,38 @@ namespace Diplo.GodMode.Models
                     this.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
                 }
             }
+        }
+
+        public void AddDiagnosticsFromConstant(Type type)
+        {
+            if (type != null)
+            {
+                this.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFromConstants(type));
+            }
+        }
+
+        public static DiagnosticSection AddDiagnosticSectionFrom(string heading, Type type)
+        {
+            var section = new DiagnosticSection(heading);
+
+            if (type != null)
+            {
+                foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
+                {
+                    section.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
+                }
+            }
+
+            return section;
+        }
+
+        public static DiagnosticSection AddDiagnosticSectionFromConstant(string heading, Type type)
+        {
+            var section = new DiagnosticSection(heading);
+
+            section.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFromConstants(type));
+
+            return section;
         }
     }
 }
