@@ -7,6 +7,10 @@
     border: none;
 }
 
+.god-mode input[type=search]::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+}
+
 .god-mode .box-opener {
     cursor: pointer;
 }
