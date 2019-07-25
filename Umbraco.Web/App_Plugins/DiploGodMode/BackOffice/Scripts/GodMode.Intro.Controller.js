@@ -6,8 +6,6 @@
             var vm = this;
             vm.config = godModeConfig.config;
 
-            console.log($routeParams);
-
             navigationService.syncTree({ tree: $routeParams.tree, path: [], forceReload: false });
 
             vm.pages = [
