@@ -1,7 +1,7 @@
 # Umbraco.GodMode
-**Diplo God Mode makes Umbraco 7 developers invincible!**
+**Diplo God Mode makes Umbraco 8 developers invincible!**
 
-This custom tree in the Developer section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
+This custom tree in the **Settings** section of **Umbraco 8** allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models. IT also provides diagnostics about your Umbraco set-up and the server it is running on.
 
 For instance, you can:
 
@@ -16,8 +16,16 @@ For instance, you can:
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from PublishedContentModel)
 * Clear internal Umbraco caches and even restart App Pool
-* Warm up compilation of all templates ("views") in one click
+* View diagnostics and configuration settings about your site and server
+* Warm up compilation of all templates ("views") in one bound... erm, click.
 * Plus lots more!
+
+## Screenshots
+
+![Doc Type Browser](https://www.diplo.co.uk/media/1189/doctypebrowser.png)
+
+![Doc Type Browser](https://www.diplo.co.uk/media/1190/doctypedetail.png)
+
 
 ### Demo
 
@@ -25,14 +33,12 @@ For instance, you can:
 
 **Blog Post:** http://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/
 
-### Install
+## Install
 
-*Important: This is for Umbraco 7.6 and above only. It works with .6, 7.7, 7.11 etc. *
+*Important: This is for Umbraco 8.1 and above. Use the 1.x version in the v7 branch for Umbraco 7.
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
 `PM> Install-Package Diplo.GodMode`
-
-### Package
 
 **Our Umbraco:** https://our.umbraco.org/projects/developer-tools/diplo-god-mode/
