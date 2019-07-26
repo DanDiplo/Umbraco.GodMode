@@ -5,6 +5,7 @@ namespace Diplo.GodMode.Helpers
 {
     /// <summary>
     /// Helper for determing file type information
+    /// There's something in Net that now does this, but it works, so...
     /// </summary>
     internal static class FileTypeHelper
     {

@@ -294,11 +294,6 @@ namespace Diplo.GodMode.Controllers
             return ClearCacheFor(cache);
         }
 
-        public Umbraco.Web.Models.Trees.TreeNodeCollection GetTreeNodes()
-        {
-            return null;
-        }
-
         /// <summary>
         /// Restarts the ASP.NET application pool
         /// </summary>
@@ -362,7 +357,7 @@ namespace Diplo.GodMode.Controllers
             }
             catch (Exception ex)
             {
-                return new ServerResponse("Error deleting cache: " + ex.Message, ServerResponseType.Error);
+                return new ServerResponse("Error clearing cache: " + ex.Message, ServerResponseType.Error);
             }
         }
     }

@@ -55,7 +55,7 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
-        /// Enables the root node to load the audit trail edit view
+        /// Enables the root node to have it's own view
         /// </summary>
         protected override TreeNode CreateRootNode(FormDataCollection queryStrings)
         {
@@ -89,6 +89,7 @@ namespace Diplo.GodMode.Controllers
         private TreeNodeCollection PopulateTreeNodes(string parentId, FormDataCollection qs)
         {
             // path is PluginController name + area name + template name eg. /App_Plugins/DiploGodMode/GodModeTree/
+            // The first part of the name eg. docTypeBrowser is the Id - this is used by Angular navigationService to identify the node
 
             var tree = new TreeNodeCollection
             {

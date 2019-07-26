@@ -10,6 +10,7 @@ namespace Diplo.GodMode.Helpers
 {
     /// <summary>
     /// Helper for dealing with that nasty reflection stuff
+    /// This is a bit crazy!
     /// </summary>
     public static class ReflectionHelper
     {

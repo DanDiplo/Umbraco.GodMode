@@ -10,6 +10,9 @@ namespace Diplo.GodMode.Controllers
     /// </summary>
     internal static class PartialHelper
     {
+        /// <summary>
+        /// Reguar expression to find partials in the template text. Adds a group for cached partials.
+        /// </summary>
         private static readonly Regex HtmlPartialRegex = new Regex(@"@Html.(Cached)?Partial\(\""(.+?)\"".*\)", RegexOptions.Compiled);
 
         /// <summary>
