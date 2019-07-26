@@ -1,44 +1,48 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <umbPackage>
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>1.5.0</version>
+      <version>2.0.0</version>
+      <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
-      <url>https://our.umbraco.org/projects/developer-tools/diplo-god-mode/</url>
-      <requirements>
-        <major>7</major>
-        <minor>6</minor>
+      <url>https://github.com/DanDiplo/Umbraco.GodMode/</url>
+      <requirements type="Strict">
+        <major>8</major>
+        <minor>0</minor>
         <patch>0</patch>
       </requirements>
     </package>
     <author>
       <name>Dan Booth</name>
-      <website>http://www.diplo.co.uk/</website>
+      <website>https://www.diplo.co.uk</website>
     </author>
+    <contributors>
+    </contributors>
     <readme>
       <![CDATA[
-          Diplo God Mode makes Umbraco 7 developers invincible! This custom tree in the Developer section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
-          For instance, you can:
-          * Easily see which document types inherit from any of your compositions
-          * See which document types use which property editor or data type instance
-          * See which partials are used by all your templates
-          * Find out which data types are being used (or not)
-          * Browse all media in the Media Library and sort it by file type, size or media type
-          * Browse all your content in an easy-to-filter flat table
-          * View all Umbraco members and filter them by assigned group
-          * See content usage statistics by Content Type
-          * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
-          * View all generated models (that inherit from PublishedContentModel)
-          * Browse all Umbraco and server settings (including registered servers and migration history)
-          * Look at all interfaces in assemblies
-          * Clear the various Umbraco caches and even restart the app pool
-          * Warm up the compilation of all views in a single bound... erm, click
-          * Plus lots more
-        ]]>
+            Diplo God Mode makes Umbraco developers invincible! This custom tree in the Settings section of Umbraco 8 allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
+      
+      For instance, you can:
+      
+      * Easily see which document types inherit from any of your compositions
+      * See which document types use which property editor or data type instance
+      * See which partials are used by all your templates
+      * Find out which data types are being used (or not)
+      * Browse all media in the Media Library and sort it by file type, size or media type
+      * Browse all your content in an easy-to-filter flat table
+      * View all Umbraco members and filter them by assigned group
+      * See content usage statistics by Content Type
+      * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
+      * View all generated models (that inherit from PublishedContentModel)
+      * Browse all Umbraco and server settings (including registered servers and migration history)
+      * Look at all interfaces in assemblies
+      * Clear the various Umbraco caches and even restart the app pool
+      * Warm up the compilation of all views in a single bound... erm, click
+      * Plus lots more
+]]>
     </readme>
   </info>
-
   <DocumentTypes />
   <Templates />
   <Stylesheets />
@@ -46,11 +50,7 @@
   <DictionaryItems />
   <Languages />
   <DataTypes />
-
-  <Actions/>
-
+  <Actions />
   <control />
-
   <files />
-
 </umbPackage>

@@ -1,33 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Umbraco.Web", "Umbraco.Web\", "{B2255146-07BD-43EF-A090-DEE67A85AF59}"
-	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.2"
-		Debug.AspNetCompiler.VirtualPath = "/localhost_56998"
-		Debug.AspNetCompiler.PhysicalPath = "Umbraco.Web\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_56998\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/localhost_56998"
-		Release.AspNetCompiler.PhysicalPath = "Umbraco.Web\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_56998\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "56998"
-		SlnRelativePath = "Umbraco.Web\"
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diplo.GodMode", "Diplo.GodMode\Diplo.GodMode.csproj", "{456F9D93-BAB6-49DF-AD77-EC943CD5826D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diplo.GodMode", "Diplo.GodMode\Diplo.GodMode.csproj", "{3F85AABA-6A9D-4FE7-9DBC-158A2F79CF90}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildPackage", "BuildPackage", "{13001EFA-3B68-4748-84AA-34C40FC2DAF3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildPackage", "BuildPackage", "{7991ECC7-5734-40A9-9287-1023FEB23F1C}"
 	ProjectSection(SolutionItems) = preProject
+		BuildPackage\Build.bat = BuildPackage\Build.bat
 		BuildPackage\Package.build.xml = BuildPackage\Package.build.xml
 		BuildPackage\package.nuspec = BuildPackage\package.nuspec
 		BuildPackage\Package.xml = BuildPackage\Package.xml
@@ -39,19 +19,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B2255146-07BD-43EF-A090-DEE67A85AF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2255146-07BD-43EF-A090-DEE67A85AF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B2255146-07BD-43EF-A090-DEE67A85AF59}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2255146-07BD-43EF-A090-DEE67A85AF59}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{3F85AABA-6A9D-4FE7-9DBC-158A2F79CF90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F85AABA-6A9D-4FE7-9DBC-158A2F79CF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F85AABA-6A9D-4FE7-9DBC-158A2F79CF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F85AABA-6A9D-4FE7-9DBC-158A2F79CF90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F574C3FB-001F-46C3-A407-C2666B65F8AB}
+		SolutionGuid = {C4BFE04E-47C3-4CE4-ABF4-680AFB7A372E}
 	EndGlobalSection
 EndGlobal

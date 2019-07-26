@@ -12,5 +12,7 @@ namespace Diplo.GodMode.Models
         public string Type { get; set; }
 
         public int Size { get; set; }
+
+        public DateTime CreateDate { get; set; }
     }
 }

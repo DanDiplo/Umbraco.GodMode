@@ -17,6 +17,8 @@
 
         public bool? Trashed { get; set; }
 
+        public int? LanguageId { get; set; }
+
         public string Alias { get; set; }
     }
 }

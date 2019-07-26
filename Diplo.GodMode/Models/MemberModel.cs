@@ -31,5 +31,10 @@ namespace Diplo.GodMode.Models
         /// Date member created
         /// </summary>
         public DateTime CreateDate { get; set; }
+
+        /// <summary>
+        /// Member UDI
+        /// </summary>
+        public Guid Udi { get; set; }
     }
 }

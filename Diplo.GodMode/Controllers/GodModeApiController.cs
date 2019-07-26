@@ -1,12 +1,15 @@
-﻿using Diplo.GodMode.Helpers;
-using Diplo.GodMode.Models;
-using Diplo.GodMode.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
+using Diplo.GodMode.Helpers;
+using Diplo.GodMode.Models;
+using Diplo.GodMode.Services.Interfaces;
+using NPoco;
 using Umbraco.Core;
+using Umbraco.Core.Cache;
+using Umbraco.Core.Composing;
 using Umbraco.Core.Models.PublishedContent;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.PropertyEditors;
@@ -21,14 +24,20 @@ namespace Diplo.GodMode.Controllers
     /// <summary>
     /// API Controller for returning JSON to the GodMode views in /App_Plugins/
     /// </summary>
-    [UmbracoApplicationAuthorize(Constants.Applications.Developer)]
+    [UmbracoApplicationAuthorize(Constants.Applications.Settings)]
     public class GodModeApiController : UmbracoAuthorizedJsonController
     {
-        private UmbracoDataService dataService;
+        private readonly IUmbracoDataService dataService;
+        private readonly IUmbracoDatabaseService dataBaseService;
+        private readonly IDiagnosticService diagnosticService;
+        private readonly AppCaches caches;
 
-        public GodModeApiController()
+        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, AppCaches caches)
         {
-            dataService = new UmbracoDataService(Umbraco);
+            this.dataService = dataService;
+            this.dataBaseService = dataBaseService;
+            this.diagnosticService = diagnosticService;
+            this.caches = caches;
         }
 
         /// <summary>
@@ -90,11 +99,21 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
-        /// Gets all media (this can potentially return a lot - add pagination??)
+        /// Gets all media paged
         /// </summary>
-        public IEnumerable<MediaMap> GetMedia()
+        public Page<MediaMap> GetMedia(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC")
         {
-            return dataService.GetMedia();
+            return dataService.GetMediaPaged(page, pageSize, name, id, mediaTypeId, orderBy, orderByDir);
+        }
+
+        public IEnumerable<ItemBase> GetMediaTypes()
+        {
+            return dataService.GetMediaTypes();
+        }
+
+        public IEnumerable<Lang> GetLanguages()
+        {
+            return dataBaseService.GetLanguages();
         }
 
         /// <summary>
@@ -103,7 +122,7 @@ namespace Diplo.GodMode.Controllers
         /// <param name="page">The current page</param>
         /// <param name="pageSize">The items per page</param>
         /// <param name="criteria"></param>
-        public Page<ContentItem> GetContentPaged(long page = 1, long pageSize = 50, string name = null, string alias = null, int? creatorId = null, string id = null, int? level = null, bool? trashed = null, int? updaterId = null, string orderBy = "N.id")
+        public Page<ContentItem> GetContentPaged(long page = 1, long pageSize = 50, string name = null, string alias = null, int? creatorId = null, string id = null, int? level = null, bool? trashed = null, int? updaterId = null, int? languageId = null, string orderBy = "N.id")
         {
             var criteria = new ContentCriteria
             {
@@ -113,10 +132,11 @@ namespace Diplo.GodMode.Controllers
                 Id = id,
                 Level = level,
                 Trashed = trashed,
-                UpdaterId = updaterId
+                UpdaterId = updaterId,
+                LanguageId = languageId
             };
 
-            return dataService.GetContent(page, pageSize, criteria, orderBy);
+            return dataBaseService.GetContent(page, pageSize, criteria, orderBy);
         }
 
         /// <summary>
@@ -124,7 +144,7 @@ namespace Diplo.GodMode.Controllers
         /// </summary>
         public IEnumerable<string> GetContentTypeAliases()
         {
-            return dataService.GetContentTypeAliases();
+            return dataBaseService.GetContentTypeAliases();
         }
 
         /// <summary>
@@ -132,7 +152,8 @@ namespace Diplo.GodMode.Controllers
         /// </summary>
         public IEnumerable<TypeMap> GetSurfaceControllers()
         {
-            return ReflectionHelper.GetTypeMapFrom(typeof(SurfaceController));
+            var data = ReflectionHelper.GetTypeMapFrom(typeof(SurfaceController));
+            return data;
         }
 
         /// <summary>
@@ -168,6 +189,14 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
+        /// Gets all Composers
+        /// </summary>
+        public IEnumerable<TypeMap> GetComposers()
+        {
+            return ReflectionHelper.GetTypeMapFrom(typeof(IComposer));
+        }
+
+        /// <summary>
         /// Gets a type mapping of types assignable from a type passed as a string
         /// </summary>
         public IEnumerable<TypeMap> GetTypesAssignableFrom(string baseType)
@@ -180,8 +209,7 @@ namespace Diplo.GodMode.Controllers
         /// </summary>
         public IEnumerable<DiagnosticGroup> GetEnvironmentDiagnostics()
         {
-            DiagnosticService service = new DiagnosticService(Umbraco);
-            return service.GetDiagnosticGroups();
+            return diagnosticService.GetDiagnosticGroups();
         }
 
         /// <summary>
@@ -242,7 +270,7 @@ namespace Diplo.GodMode.Controllers
         /// <returns>A list of URLs</returns>
         public IEnumerable<string> GetTemplateUrlsToPing()
         {
-            return dataService.GetTemplateUrlsToPing();
+            return dataBaseService.GetTemplateUrlsToPing();
         }
 
         /// <summary>
@@ -253,7 +281,7 @@ namespace Diplo.GodMode.Controllers
         /// <returns>A list of content usage</returns>
         public IEnumerable<UsageModel> GetContentUsageData(int? id = null, string orderBy = null)
         {
-            return dataService.GetContentUsageData(id, orderBy);
+            return dataBaseService.GetContentUsageData(id, orderBy);
         }
 
         /// <summary>
@@ -263,25 +291,56 @@ namespace Diplo.GodMode.Controllers
         [HttpPost]
         public ServerResponse ClearUmbracoCache(string cache)
         {
-            var caches = UmbracoContext.Application.ApplicationCache;
+            return ClearCacheFor(cache);
+        }
 
+        public Umbraco.Web.Models.Trees.TreeNodeCollection GetTreeNodes()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Restarts the ASP.NET application pool
+        /// </summary>
+        [HttpPost]
+        public ServerResponse RestartAppPool()
+        {
+            try
+            {
+                UmbracoApplication.Restart();
+                return new ServerResponse("Restarting the application pool - hold tight...", ServerResponseType.Success);
+            }
+            catch (Exception ex)
+            {
+                return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
+            }
+        }
+
+        public Page<MemberModel> GetMembersPaged(long page = 1, long pageSize = 50, int? groupId = null, string search = null, string orderBy = "MN.text")
+        {
+            return this.dataBaseService.GetMembers(page, pageSize, groupId, search, orderBy);
+        }
+
+        public IEnumerable<MemberGroupModel> GetMemberGroups()
+        {
+            return this.dataBaseService.GetMemberGroups();
+        }
+
+        private ServerResponse ClearCacheFor(string cache)
+        {
             try
             {
                 if (cache == "Request" || cache == "all")
                 {
-                    caches.RequestCache.ClearAllCache();
+                    caches.RequestCache.Clear();
                 }
                 else if (cache == "Runtime" || cache == "all")
                 {
-                    caches.RuntimeCache.ClearAllCache();
-                }
-                else if (cache == "Static" || cache == "all")
-                {
-                    caches.StaticCache.ClearAllCache();
+                    caches.RuntimeCache.Clear();
                 }
                 else if (cache == "Isolated" || cache == "all")
                 {
-                    caches.IsolatedRuntimeCache.ClearAllCaches();
+                    caches.IsolatedCaches.ClearAllCaches();
                 }
                 else if (cache == "Partial" || cache == "all")
                 {
@@ -293,41 +352,18 @@ namespace Diplo.GodMode.Controllers
                 }
 
                 if (cache == "all")
+                {
                     return new ServerResponse("All Caches were successfully cleared", ServerResponseType.Success);
+                }
                 else
+                {
                     return new ServerResponse("The " + cache + " Cache was successfully cleared", ServerResponseType.Success);
+                }
             }
             catch (Exception ex)
             {
                 return new ServerResponse("Error deleting cache: " + ex.Message, ServerResponseType.Error);
             }
-        }
-
-        /// <summary>
-        /// Restarts the ASP.NET application pool
-        /// </summary>
-        [HttpPost]
-        public ServerResponse RestartAppPool()
-        {
-            try
-            {
-                UmbracoContext.Application.RestartApplicationPool(UmbracoContext.Current.HttpContext);
-                return new ServerResponse("Restarting the application pool - hold tight...", ServerResponseType.Success);
-            }
-            catch (Exception ex)
-            {
-                return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
-            }
-        }
-
-        public Page<MemberModel> GetMembersPaged(long page = 1, long pageSize = 50, int? groupId = null, string search = null, string orderBy = "MN.text")
-        {
-            return this.dataService.GetMembers(page, pageSize, groupId, search, orderBy);
-        }
-
-        public IEnumerable<MemberGroupModel> GetMemberGroups()
-        {
-            return this.dataService.GetMemberGroups();
         }
     }
 }

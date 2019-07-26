@@ -21,7 +21,7 @@ namespace Diplo.GodMode.Models
             this.Alias = ct.Alias;
             this.Description = ct.Description;
             this.EditorAlias = ct.PropertyEditorAlias;
-            this.EditorId = ct.DataTypeDefinitionId;
+            this.EditorId = ct.DataTypeId;
             this.Id = ct.Id;
             this.Name = ct.Name;
             this.Description = ct.Description;

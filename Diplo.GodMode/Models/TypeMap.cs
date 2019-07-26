@@ -17,7 +17,7 @@ namespace Diplo.GodMode.Models
             this.Namespace = t.Namespace;
             this.BaseType = t.BaseType != null ? t.BaseType.Name : String.Empty;
             this.LoadableName = t.GetFullNameWithAssembly();
-            this.IsUmbraco = this.Module.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase) || this.Module == "businesslogic.dll" || this.Module == "interfaces.dll";
+            this.IsUmbraco = this.Module.StartsWith("Umbraco.");
         }
 
         public TypeMap(Assembly a)

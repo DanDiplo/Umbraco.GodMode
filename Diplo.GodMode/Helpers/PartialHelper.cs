@@ -22,18 +22,21 @@ namespace Diplo.GodMode.Controllers
         internal static IEnumerable<PartialMap> GetPartialInfo(string content, int id, string alias)
         {
             MatchCollection matches = HtmlPartialRegex.Matches(content);
-            List<PartialMap> partials = new List<PartialMap>();
+            var partials = new List<PartialMap>();
 
             foreach (Match match in matches)
             {
                 if (match.Success)
                 {
-                    PartialMap partial = new PartialMap();
-                    partial.TemplateId = id;
-                    partial.TemplateAlias = alias;
-                    partial.Name = match.Groups[2].Value;
-                    partial.IsCached = match.Groups[1].Value == "Cached";
-                    partial.Path = partial.Name.Replace("/", "%252F") + ".cshtml";
+                    var partial = new PartialMap
+                    {
+                        TemplateId = id,
+                        TemplateAlias = alias,
+                        Name = match.Groups[2].Value,
+                        IsCached = match.Groups[1].Value == "Cached"
+                    };
+
+                    partial.Path = partial.Name.Replace("/", "%252F").Replace("~%252FViews%252FPartials%252F", string.Empty);
                     partials.Add(partial);
                 }
             }

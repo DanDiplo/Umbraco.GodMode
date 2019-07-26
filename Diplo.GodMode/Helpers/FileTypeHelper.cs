@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Umbraco.Core.Models;
 
 namespace Diplo.GodMode.Helpers
@@ -16,13 +15,16 @@ namespace Diplo.GodMode.Helpers
         /// <returns>The mapped friendly name or 'Unknown'</returns>
         internal static string GetFileTypeName(string extension)
         {
-            if (String.IsNullOrEmpty(extension))
-                return "Folder";
+            if (string.IsNullOrEmpty(extension))
+            {
+                return "Not Set";
+            }
 
-            string name;
 
-            if (fileTypes.TryGetValue(extension, out name))
+            if (fileTypes.TryGetValue(extension, out string name))
+            {
                 return name;
+            }
 
             return "Unknown";
         }
@@ -35,7 +37,9 @@ namespace Diplo.GodMode.Helpers
         internal static int GetFileSize(IMedia m)
         {
             if (m.HasProperty("umbracoBytes"))
+            {
                 return m.GetValue<int>("umbracoBytes");
+            }
 
             return 0;
         }
@@ -48,12 +52,14 @@ namespace Diplo.GodMode.Helpers
         internal static string GetExtensionFromMedia(IMedia m)
         {
             if (m.HasProperty("umbracoExtension"))
+            {
                 return m.GetValue<string>("umbracoExtension");
+            }
 
             return null;
         }
 
-        private static Dictionary<string, string> fileTypes = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> fileTypes = new Dictionary<string, string>()
         {
             { "pdf", "PDF Document" },
             { "doc", "Word Document" },

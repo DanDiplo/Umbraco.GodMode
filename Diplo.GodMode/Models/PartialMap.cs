@@ -1,4 +1,5 @@
 ﻿using System;
+using Umbraco.Core;
 
 namespace Diplo.GodMode.Models
 {

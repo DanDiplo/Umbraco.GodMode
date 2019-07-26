@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Umbraco.Core;
 using Umbraco.Core.Models;
 
@@ -20,7 +21,12 @@ namespace Diplo.GodMode.Models
             this.Name = temp.Name;
             this.Alias = temp.Alias;
             this.FilePath = temp.VirtualPath;
+            this.CreateDate = temp.CreateDate;
         }
+
+        public string VirtualPath { get; set; }
+
+        public DateTime CreateDate { get; set; }
 
         public bool IsMaster { get; set; }
 
