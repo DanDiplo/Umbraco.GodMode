@@ -1,7 +1,7 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Configuration.Provider;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -10,286 +10,156 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
-using Examine.LuceneEngine.Providers;
+using Diplo.GodMode.Services.Interfaces;
 using Umbraco.Core;
 using Umbraco.Core.Configuration;
-using Umbraco.Web;
-using Umbraco.Web.Routing;
+using Umbraco.Core.Configuration.Grid;
+using Umbraco.Core.Configuration.HealthChecks;
+using Umbraco.Core.Configuration.UmbracoSettings;
+using Umbraco.Core.IO;
 
 namespace Diplo.GodMode.Services
 {
     /// <summary>
     /// Class for retieving diagnostic and setting information
     /// </summary>
-    public class DiagnosticService
+    public class DiagnosticService : IDiagnosticService
     {
-        private readonly UmbracoHelper umbHelper;
-        private UmbracoContext umbContext;
-        private HttpContextBase httpContext;
+        private readonly IUmbracoDatabaseService databaseService;
+        private readonly HttpContextBase httpContext;
+        private readonly IMediaFileSystem mediaFileSystem;
+        private readonly IRuntimeState runtimeState;
 
         private static readonly string[] ServerVarsToSkip = new string[] { "ALL_HTTP", "ALL_RAW", "HTTP_COOKIE", "HTTP_X_XSRF_TOKEN" };
 
-        public DiagnosticService(UmbracoHelper umbHelper)
+        public DiagnosticService(IUmbracoDatabaseService databaseService, IMediaFileSystem mediaFileSystem, IRuntimeState runtimeState, HttpContextBase httpContext = null)
         {
-            this.umbHelper = umbHelper;
-            this.umbContext = umbHelper.UmbracoContext;
-            this.httpContext = this.umbContext.HttpContext;
+            this.databaseService = databaseService ?? throw new ArgumentNullException("The database service that was passed to the Diagnostic Service was null");
+            this.httpContext = httpContext;
+            this.mediaFileSystem = mediaFileSystem;
+            this.runtimeState = runtimeState;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
         {
-            List<DiagnosticGroup> groups = new List<DiagnosticGroup>();
+            var groups = new List<DiagnosticGroup>();
             int id = 0;
 
-            var sections = new List<DiagnosticSection>();
             var group = new DiagnosticGroup(id++, "Umbraco Configuration");
+            var sections = new List<DiagnosticSection>();
 
             var section = new DiagnosticSection("Umbraco Version");
-            section.Diagnostics.Add(new Diagnostic("Current Version", UmbracoVersion.Current));
-            section.Diagnostics.Add(new Diagnostic("Assembly Version", UmbracoVersion.AssemblyVersion));
-            section.Diagnostics.Add(new Diagnostic("Current Comment", UmbracoVersion.CurrentComment));
-            section.Diagnostics.Add(new Diagnostic("Semantic Version", UmbracoVersion.GetSemanticVersion().ToSemanticString()));
+            section.Diagnostics.Add(new Diagnostic("Version", runtimeState.Version));
+            section.Diagnostics.Add(new Diagnostic("Semantic Version", runtimeState.SemanticVersion.ToSemanticString()));
+            section.Diagnostics.Add(new Diagnostic("Application URL", runtimeState.ApplicationUrl.ToString()));
+            section.Diagnostics.Add(new Diagnostic("Application Virtual Path", runtimeState.ApplicationVirtualPath));
+            section.Diagnostics.Add(new Diagnostic("Debug?", runtimeState.Debug));
+            section.Diagnostics.Add(new Diagnostic("Is Main Dom?", runtimeState.IsMainDom));
+            section.Diagnostics.Add(new Diagnostic("Runtime Level", runtimeState.Level));
+            section.Diagnostics.Add(new Diagnostic("Runtime Reason", runtimeState.Reason));
+            section.Diagnostics.Add(new Diagnostic("Server Role", runtimeState.ServerRole));
+            section.Diagnostics.Add(new Diagnostic("Current Migration State", runtimeState.CurrentMigrationState));
+            section.Diagnostics.Add(new Diagnostic("Final Migration State", runtimeState.FinalMigrationState));
+
             sections.Add(section);
 
             section = new DiagnosticSection("Umbraco Settings");
-            section.Diagnostics.Add(new Diagnostic("Debug Mode?", umbraco.GlobalSettings.DebugMode));
-            section.Diagnostics.Add(new Diagnostic("Trust Level", umbraco.GlobalSettings.ApplicationTrustLevel));
-            section.Diagnostics.Add(new Diagnostic("XML Content File", umbraco.GlobalSettings.ContentXML));
-            section.Diagnostics.Add(new Diagnostic("Storage Directory", umbraco.GlobalSettings.StorageDirectory));
-            section.Diagnostics.Add(new Diagnostic("Default UI Language", umbraco.GlobalSettings.DefaultUILanguage));
-            section.Diagnostics.Add(new Diagnostic("Profile URL", umbraco.GlobalSettings.ProfileUrl));
-            section.Diagnostics.Add(new Diagnostic("Update Check Period", umbraco.GlobalSettings.VersionCheckPeriod));
-            section.Diagnostics.Add(new Diagnostic("Path to Root", umbraco.GlobalSettings.FullpathToRoot));
+            section.Diagnostics.Add(new Diagnostic("Debug Mode?", GlobalSettings.DebugMode));
             section.AddDiagnostics(ConfigurationManager.AppSettings, false, key => key.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase));
             sections.Add(section);
 
-            section = new DiagnosticSection("Content Settings");
-            var cs = UmbracoConfig.For.UmbracoSettings().Content;
-            section.Diagnostics.Add(new Diagnostic("Clone XML Content?", cs.CloneXmlContent));
-            section.Diagnostics.Add(new Diagnostic("Continously Update XML Disk Cache?", cs.ContinouslyUpdateXmlDiskCache));
-            section.Diagnostics.Add(new Diagnostic("Default Doc Type Property", cs.DefaultDocumentTypeProperty));
-            section.Diagnostics.Add(new Diagnostic("Disallowed Upload Files", cs.DisallowedUploadFiles));
-            section.Diagnostics.Add(new Diagnostic("Enable Inherited Doc Types?", cs.EnableInheritedDocumentTypes));
-            section.Diagnostics.Add(new Diagnostic("Error 404 Page Ids", cs.Error404Collection.Select(x => x.ContentId.ToString())));
-            section.Diagnostics.Add(new Diagnostic("Ensure Unique Naming?", cs.EnsureUniqueNaming));
-            section.Diagnostics.Add(new Diagnostic("Force Safe Aliases?", cs.ForceSafeAliases));
-            section.Diagnostics.Add(new Diagnostic("Global Preview Storage Enabled?", cs.GlobalPreviewStorageEnabled));
-            section.Diagnostics.Add(new Diagnostic("Image AutoFill Aliases", cs.ImageAutoFillProperties.Select(x => x.Alias)));
-            section.Diagnostics.Add(new Diagnostic("Image File Types", cs.ImageFileTypes));
-            section.Diagnostics.Add(new Diagnostic("Image Tage Allowed Attributes", cs.ImageTagAllowedAttributes));
-            section.Diagnostics.Add(new Diagnostic("Macro Error Behaviour", cs.MacroErrorBehaviour));
-            section.Diagnostics.Add(new Diagnostic("Notification Email Address", cs.NotificationEmailAddress));
-            section.Diagnostics.Add(new Diagnostic("Property Context Help Option", cs.PropertyContextHelpOption));
-            section.Diagnostics.Add(new Diagnostic("Resolve URLs From TextString?", cs.ResolveUrlsFromTextString));
-            section.Diagnostics.Add(new Diagnostic("Script Editor Disable?", cs.ScriptEditorDisable));
-            section.Diagnostics.Add(new Diagnostic("Script Folder Path", cs.ScriptFolderPath));
-            section.Diagnostics.Add(new Diagnostic("Script File Types", cs.ScriptFileTypes));
-            section.Diagnostics.Add(new Diagnostic("Tidy Char Encoding", cs.TidyCharEncoding));
-            section.Diagnostics.Add(new Diagnostic("Tidy Editor Content?", cs.TidyEditorContent));
-            section.Diagnostics.Add(new Diagnostic("Umbraco Library Cache Duration", cs.UmbracoLibraryCacheDuration));
-            section.Diagnostics.Add(new Diagnostic("Upload Allows Directories?", cs.UploadAllowDirectories));
-            section.Diagnostics.Add(new Diagnostic("Use Legacy XML Schema?", cs.UseLegacyXmlSchema));
-            section.Diagnostics.Add(new Diagnostic("XML Cache Enabled?", cs.XmlCacheEnabled));
-            section.Diagnostics.Add(new Diagnostic("XML Content Check for Disk Changes?", cs.XmlContentCheckForDiskChanges));
+            var configs = new Umbraco.Core.Configuration.Configs();
+            configs.AddCoreConfigs();
+
+            IUmbracoSettingsSection settings = configs.GetConfig<IUmbracoSettingsSection>();
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Content Setting", settings.Content, true));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Request Handler Settings", settings.RequestHandler, true));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Tour Settings", settings.BackOffice.Tours, true));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Web Routing Settings", settings.WebRouting, true));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Security Settings", settings.Security, true));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Logging Settings", settings.Logging, true));
+
+            IHealthChecks health = configs.GetConfig<IHealthChecks>();
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Health Checks", health.NotificationSettings, true));
+
+            IGridConfig grid = configs.GetConfig<IGridConfig>();
+            section = new DiagnosticSection("Grid Settings", grid.EditorsConfig.Editors.Select(e => new Diagnostic(e.Name, e.View)));
             sections.Add(section);
 
-            var dc = UmbracoConfig.For.UmbracoSettings().DistributedCall;
-            section = new DiagnosticSection("Distributed Calls");
-            section.Diagnostics.Add(new Diagnostic("Enabled?", dc.Enabled));
-            section.Diagnostics.Add(new Diagnostic("User Id", dc.UserId));
-            foreach (var server in dc.Servers)
-            {
-                section.Diagnostics.Add(new Diagnostic(server.ServerName, String.Format("AppID: {0}, Address: {1}", server.AppId, server.ServerAddress)));
-            }
+            section = new DiagnosticSection("Media File System");
+            section.Diagnostics.Add(new Diagnostic("Type", mediaFileSystem.GetType()));
+            section.Diagnostics.Add(new Diagnostic("Can Add Physical?", mediaFileSystem.CanAddPhysical));
+            section.Diagnostics.Add(new Diagnostic("Full Root Path", mediaFileSystem.GetFullPath("~/")));
             sections.Add(section);
 
-            var dev = UmbracoConfig.For.UmbracoSettings().Developer;
-            section = new DiagnosticSection("Developer");
-            section.Diagnostics.Add(new Diagnostic("App_Code File Extensions", dev.AppCodeFileExtensions.Select(x => x.Extension)));
-            sections.Add(section);
+            group.Add(sections);
 
-            var lc = UmbracoConfig.For.UmbracoSettings().Logging;
-            section = new DiagnosticSection("Logging");
-            section.Diagnostics.Add(new Diagnostic("Enable Logging?", lc.EnableLogging));
-            section.Diagnostics.Add(new Diagnostic("Enable Async Logging?", lc.EnableAsyncLogging));
-            section.Diagnostics.Add(new Diagnostic("Auto Clean Logs?", lc.AutoCleanLogs));
-            section.Diagnostics.Add(new Diagnostic("Cleaning Miliseconds", lc.CleaningMiliseconds));
-            section.Diagnostics.Add(new Diagnostic("Disabled Log Types", lc.DisabledLogTypes.Select(x => x.LogTypeAlias)));
-            section.Diagnostics.Add(new Diagnostic("External Logger Configured?", lc.ExternalLoggerIsConfigured));
-            if (lc.ExternalLoggerIsConfigured)
-            {
-                section.Diagnostics.Add(new Diagnostic("External Logger Assembly", lc.ExternalLoggerAssembly));
-                section.Diagnostics.Add(new Diagnostic("External Logger Type", lc.ExternalLoggerType));
-                section.Diagnostics.Add(new Diagnostic("External Logger Enabled Audit Trail", lc.ExternalLoggerEnableAuditTrail));
-            }
-            sections.Add(section);
+            groups.Add(group);
 
-            UmbracoDataService dataService = new UmbracoDataService(umbHelper);
-            var servers = dataService.GetRegistredServers();
-
-            if (servers != null && servers.Any())
-            {
-                section = new DiagnosticSection("Server Registration");
-
-                foreach (var server in servers)
-                {
-                    section.Diagnostics.Add(new Diagnostic(server.ComputerName, server.ToDiagnostic()));
-                }
-
-                sections.Add(section);
-            }
-
-            var migrations = dataService.GetMigrations();
-
-            if (migrations != null && migrations.Any()) 
-            {
-                section = new DiagnosticSection("Migration History");
-
-                foreach (var migration in migrations)
-                {
-                    section.Diagnostics.Add(new Diagnostic(migration.Name, migration.ToDiagnostic()));
-                }
-
-                sections.Add(section);
-            }
-
-            var pro = UmbracoConfig.For.UmbracoSettings().Providers;
-            section = new DiagnosticSection("Providers");
-            section.Diagnostics.Add(new Diagnostic("Default BackOffice User Provider", pro.DefaultBackOfficeUserProvider));
-            sections.Add(section);
-
-            var rh = UmbracoConfig.For.UmbracoSettings().RequestHandler;
-            section = new DiagnosticSection("Request Handler");
-            section.Diagnostics.Add(new Diagnostic("Add Trailing Slash?", rh.AddTrailingSlash));
-            section.Diagnostics.Add(new Diagnostic("Char Replacements?", rh.CharCollection.Select(c => String.Format("{0} {1}", c.Replacement, c.Char))));
-            section.Diagnostics.Add(new Diagnostic("Convert URLs to ASCII?", rh.ConvertUrlsToAscii));
-            section.Diagnostics.Add(new Diagnostic("Remove Double Slashes?", rh.RemoveDoubleDashes));
-            section.Diagnostics.Add(new Diagnostic("Use Domain Prefixes?", rh.UseDomainPrefixes));
-            sections.Add(section);
-
-            var st = UmbracoConfig.For.UmbracoSettings().ScheduledTasks;
-            section = new DiagnosticSection("Scheduled Tasks");
-            section.Diagnostics.Add(new Diagnostic("Base URL", st.BaseUrl));
-
-            foreach (var task in st.Tasks)
-            {
-                section.Diagnostics.Add(new Diagnostic(task.Alias, String.Format("{0} ({1} secs)", task.Url, task.Interval)));
-            }
-            sections.Add(section);
-
-            var sec = UmbracoConfig.For.UmbracoSettings().Security;
-            section = new DiagnosticSection("Security");
-            section.Diagnostics.Add(new Diagnostic("Auth Cookie Domain", sec.AuthCookieDomain));
-            section.Diagnostics.Add(new Diagnostic("Auth Cookie Name", sec.AuthCookieName));
-            section.Diagnostics.Add(new Diagnostic("Hide Disabled Users?", sec.HideDisabledUsersInBackoffice));
-            section.Diagnostics.Add(new Diagnostic("Keep User Logged In?", sec.KeepUserLoggedIn));
-            sections.Add(section);
-
-            var temps = UmbracoConfig.For.UmbracoSettings().Templates;
-            section = new DiagnosticSection("Templates");
-            section.Diagnostics.Add(new Diagnostic("Default Rendering Engine", temps.DefaultRenderingEngine));
-            section.Diagnostics.Add(new Diagnostic("Enabled Skin Support?", temps.EnableSkinSupport));
-            section.Diagnostics.Add(new Diagnostic("Use ASP.NET Master Pages?", temps.UseAspNetMasterPages));
-            sections.Add(section);
-
-            var wr = UmbracoConfig.For.UmbracoSettings().WebRouting;
-            section = new DiagnosticSection("Web Routing");
-            section.Diagnostics.Add(new Diagnostic("Disable Alternative Templates?", wr.DisableAlternativeTemplates));
-            section.Diagnostics.Add(new Diagnostic("Disable Find Content By Id Path?", wr.DisableFindContentByIdPath));
-            section.Diagnostics.Add(new Diagnostic("Internal Redirect Preserves Template?", wr.InternalRedirectPreservesTemplate));
-            section.Diagnostics.Add(new Diagnostic("Try Skip IIS Custom Errors?", wr.TrySkipIisCustomErrors));
-            section.Diagnostics.Add(new Diagnostic("Umbraco Application URL", wr.UmbracoApplicationUrl));
-            section.Diagnostics.Add(new Diagnostic("URL Provider Mode", wr.UrlProviderMode));
-            sections.Add(section);
-
-            section = new DiagnosticSection("Registered Content Finders");
-            foreach (var item in ContentFinderResolver.Current.Finders)
-            {
-                var t = item.GetType();
-                section.Diagnostics.Add(new Diagnostic(t.Name, t.GetFullNameWithAssembly()));
-            }
-            sections.Add(section);
-
-            section = new DiagnosticSection("Registered URL Resolvers");
-            foreach (var item in UrlProviderResolver.Current.Providers)
-            {
-                var t = item.GetType();
-                section.Diagnostics.Add(new Diagnostic(t.Name, t.GetFullNameWithAssembly()));
-            }
-            sections.Add(section);
-
-            var br = UmbracoConfig.For.BaseRestExtensions();
-            section = new DiagnosticSection("Base Rest Extensions");
-            section.Diagnostics.Add(new Diagnostic("Enabled?", br.Enabled));
-            foreach (var item in br.Items)
-            {
-                section.Diagnostics.Add(new Diagnostic(item.Alias, item.Type));
-            }
-            sections.Add(section);
+            group = new DiagnosticGroup(id++, "Database Values");
+            sections = new List<DiagnosticSection>();
 
             try
             {
-                var mvc = Assembly.Load(new AssemblyName("Examine"));
-                var name = mvc.GetName();
+                var conn = ConfigurationManager.ConnectionStrings[Constants.System.UmbracoConnectionName];
 
-                section = new DiagnosticSection("Examine Settings");
-                section.Diagnostics.Add(new Diagnostic("Assembly Version", name.Version));
-                section.Diagnostics.Add(new Diagnostic("Full Name", mvc.FullName));
-
-                if (Examine.ExamineManager.Instance != null)
+                if (conn != null)
                 {
-                    foreach (var provider in Examine.ExamineManager.Instance.IndexProviderCollection)
-                    {
-                        var p = provider as ProviderBase;
-                        if (p != null)
-                            section.Diagnostics.Add(new Diagnostic(p.Name, p.GetType().FullName));
-                        var l = provider as LuceneIndexer;
-                        if (l != null)
-                            section.Diagnostics.Add(new Diagnostic(l.IndexSetName, l.LuceneIndexFolder));
-                    }
-
-                    foreach (ProviderBase p in Examine.ExamineManager.Instance.SearchProviderCollection)
-                    {
-                        section.Diagnostics.Add(new Diagnostic(p.Name, p.GetType().FullName));
-                    }
-
-                    section.Diagnostics.Add(new Diagnostic("Default Searcher", Examine.ExamineManager.Instance.DefaultSearchProvider.Name));
+                    section = new DiagnosticSection("Database Settings");
+                    section.Diagnostics.Add(new Diagnostic("Provider", conn.ProviderName));
+                    section.Diagnostics.Add(new Diagnostic("Name", conn.Name));
+                    section.Diagnostics.Add(new Diagnostic("Connection String", Regex.Replace(conn.ConnectionString, @"password(\W*)=(.+)(;|$)", "*******", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase)));
+                    sections.Add(section);
                 }
-
-                var types = ReflectionHelper.GetTypesAssignableFrom(typeof(UmbracoExamine.LocalStorage.ILocalStorageDirectory));
-                section.Diagnostics.Add(new Diagnostic("Storage Handlers", String.Join(", ", types.Select(t => t.Name))));
-
-                sections.Add(section);
             }
             catch
             {
                 // deliberate
             }
 
-            var domains = umbContext.Application.Services.DomainService.GetAll(true);
-
-            if (domains != null && domains.Any())
+            try
             {
-                section = new DiagnosticSection("Registered Domains");
-                foreach (var d in domains)
+                IEnumerable<ServerModel> servers = databaseService.GetRegistredServers();
+
+                if (servers != null && servers.Any())
                 {
-                    section.Diagnostics.Add(new Diagnostic(d.LanguageIsoCode, d.DomainName + (d.IsWildcard ? " (Wildcard)" : String.Empty)));
+                    section = new DiagnosticSection("Server Registration");
+
+                    foreach (ServerModel server in servers)
+                    {
+                        section.Diagnostics.Add(new Diagnostic(server.ComputerName, server.ToDiagnostic()));
+                    }
+
+                    sections.Add(section);
                 }
-                sections.Add(section);
             }
-
-            section = new DiagnosticSection("Supported Cultures");
-
-            var cultures = umbContext.Application.Services.TextService.GetSupportedCultures();
-
-            foreach (var c in cultures)
+            catch
             {
-                section.Diagnostics.Add(new Diagnostic(c.ThreeLetterISOLanguageName + " (" + c.TwoLetterISOLanguageName + ")", c.DisplayName));
+                // deliberate 
             }
 
-            sections.Add(section);
+            try
+            {
+                IEnumerable<UmbracoKeyValue> migrations = databaseService.GetKeyValues();
+
+                if (migrations != null && migrations.Any())
+                {
+                    section = new DiagnosticSection("Key Value Table");
+
+                    foreach (UmbracoKeyValue migration in migrations)
+                    {
+                        section.Diagnostics.Add(new Diagnostic(migration.Value, migration.ToDiagnostic()));
+                    }
+
+                    sections.Add(section);
+                }
+            }
+            catch
+            {
+                // deliberate
+            }
 
             group.Add(sections);
             groups.Add(group);
@@ -307,7 +177,7 @@ namespace Diplo.GodMode.Services
 
             if (httpContext != null && httpContext.Request != null)
             {
-                var request = umbContext.HttpContext.Request;
+                HttpRequestBase request = httpContext.Request;
 
                 if (request != null)
                 {
@@ -320,7 +190,8 @@ namespace Diplo.GodMode.Services
             section.Diagnostics.Add(new Diagnostic("Current Directory", Environment.CurrentDirectory));
             section.Diagnostics.Add(new Diagnostic("64 Bit Process?", Environment.Is64BitProcess));
             section.Diagnostics.Add(new Diagnostic("Framework Bits", IntPtr.Size * 8));
-            section.Diagnostics.Add(new Diagnostic("Process Physical Memory", String.Format("{0:n} MB", Environment.WorkingSet / 1048576)));
+            section.Diagnostics.Add(new Diagnostic("Process Physical Memory", string.Format("{0:n} MB", Environment.WorkingSet / 1048576)));
+            section.Diagnostics.Add(new Diagnostic("System Up Time", TimeSpan.FromTicks(Environment.TickCount)));
 
             try
             {
@@ -359,6 +230,9 @@ namespace Diplo.GodMode.Services
                 section.Diagnostics.Add(new Diagnostic("Cache Memory Limit ", HostingEnvironment.Cache.EffectivePercentagePhysicalMemoryLimit + "%"));
             }
 
+            section.Diagnostics.Add(new Diagnostic("Max Requests per CPU", HostingEnvironment.MaxConcurrentRequestsPerCPU));
+            section.Diagnostics.Add(new Diagnostic("Max Threads per CPU", HostingEnvironment.MaxConcurrentThreadsPerCPU));
+            section.Diagnostics.Add(new Diagnostic("Current Server Time", DateTime.Now));
 
             sections.Add(section);
 
@@ -367,21 +241,49 @@ namespace Diplo.GodMode.Services
                 section = new DiagnosticSection("Server Variables");
                 section.AddDiagnostics(httpContext.Request.ServerVariables, true, key => !ServerVarsToSkip.Contains(key));
             }
-            sections.Add(section);
 
-            section = new DiagnosticSection("Site Diagnostics");
-
-            sections.Add(section);
-
-            section = new DiagnosticSection("Database Settings");
-            var dbc = umbContext.Application.DatabaseContext;
-            section.Diagnostics.Add(new Diagnostic("Database Provider", dbc.DatabaseProvider));
-            section.Diagnostics.Add(new Diagnostic("Connection String", Regex.Replace(dbc.ConnectionString, @"password(\W*)=(.+)(;|$)", "*******", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase)));
             sections.Add(section);
 
             section = new DiagnosticSection("None Umbraco App Settings");
             section.AddDiagnostics(ConfigurationManager.AppSettings, false, key => !key.StartsWith("umbraco", StringComparison.OrdinalIgnoreCase));
             sections.Add(section);
+
+            try
+            {
+                section = new DiagnosticSection("Mail Settings");
+                var smtp = new System.Net.Mail.SmtpClient();
+                section.Diagnostics.Add(new Diagnostic("SMTP Host", smtp.Host));
+                section.Diagnostics.Add(new Diagnostic("SMTP Delivery Method", smtp.DeliveryMethod));
+                section.Diagnostics.Add(new Diagnostic("SMTP Port", smtp.Port));
+                section.Diagnostics.Add(new Diagnostic("SMTP Service Point", smtp.ServicePoint.ConnectionName));
+                section.Diagnostics.Add(new Diagnostic("SMTP Delivery Format", smtp.DeliveryFormat));
+                sections.Add(section);
+            }
+            catch
+            {
+                // deliberate
+            }
+
+            group.Add(sections);
+            groups.Add(group);
+
+            group = new DiagnosticGroup(id++, "Umbraco Constants");
+            sections = new List<DiagnosticSection>
+            {
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Applications", typeof(Constants.Applications)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Composing", typeof(Constants.Composing)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Conventions", typeof(Constants.Conventions)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Icons", typeof(Constants.Icons)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Object Types", typeof(Constants.ObjectTypes)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Property Editors", typeof(Constants.PropertyEditors)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Property Type Groups", typeof(Constants.PropertyTypeGroups)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Security", typeof(Constants.Security)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("System", typeof(Constants.System)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Trees", typeof(Constants.Trees)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("UDI Entity Type", typeof(Constants.UdiEntityType)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Umbraco Indexes", typeof(Constants.UmbracoIndexes)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Web", typeof(Constants.Web))
+            };
 
             group.Add(sections);
             groups.Add(group);
@@ -392,7 +294,7 @@ namespace Diplo.GodMode.Services
             try
             {
                 var mvc = Assembly.Load(new AssemblyName("System.Web.Mvc"));
-                var name = mvc.GetName();
+                AssemblyName name = mvc.GetName();
 
                 section = new DiagnosticSection("MVC Version");
                 section.Diagnostics.Add(new Diagnostic("MVC Version", name.Version));
@@ -411,19 +313,19 @@ namespace Diplo.GodMode.Services
             sections.Add(section);
 
             section = new DiagnosticSection("MVC Action Filters");
-            section.AddDiagnosticsFrom(typeof(System.Web.Mvc.IActionFilter));
+            section.AddDiagnosticsFrom(typeof(IActionFilter));
             sections.Add(section);
 
             section = new DiagnosticSection("MVC Authorization Filters");
-            section.AddDiagnosticsFrom(typeof(System.Web.Mvc.IAuthorizationFilter));
+            section.AddDiagnosticsFrom(typeof(IAuthorizationFilter));
             sections.Add(section);
 
             section = new DiagnosticSection("MVC Model Binders");
-            section.AddDiagnosticsFrom(typeof(System.Web.Mvc.IModelBinder));
+            section.AddDiagnosticsFrom(typeof(IModelBinder));
             sections.Add(section);
 
             section = new DiagnosticSection("MVC Controller Factories");
-            section.AddDiagnosticsFrom(typeof(System.Web.Mvc.IControllerFactory));
+            section.AddDiagnosticsFrom(typeof(IControllerFactory));
             sections.Add(section);
 
             section = new DiagnosticSection("MVC Controllers");

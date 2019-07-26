@@ -1,9 +1,14 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.UtilityBrowser.Controller",
-        function ($scope, $route, $routeParams, $http, navigationService, notificationsService, godModeResources, godModeConfig) {
-            $scope.config = godModeConfig.config;
-            $scope.warmup = {
+        function ($routeParams, $http, navigationService, notificationsService, godModeResources, godModeConfig) {
+
+            var vm = this;
+
+            navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
+
+            vm.config = godModeConfig.config;
+            vm.warmup = {
                 current: 0,
                 count: 0,
                 url: null
@@ -24,45 +29,48 @@
                 else {
                     notificationsService.error("No response was sent back from the server. Something didn't quite work out.");
                 }
-            }
+            };
 
-            $scope.clearCache = function (cache) {
+            vm.clearCache = function (cache) {
                 godModeResources.clearUmbracoCache(cache).then(function (response) {
                     handleResponse(response);
                 });
-            }
+            };
 
-            $scope.restartAppPool = function () {
+            vm.restartAppPool = function () {
                 if (window.confirm("This will take the site offline for a few moments. Are you sure?")) {
                     godModeResources.restartAppPool().then(function (response) {
                         handleResponse(response);
                         document.location.reload(true);
                     });
                 }
-            }
+            };
 
-            $scope.warmUpTemplates = function () {
+            vm.warmUpTemplates = function () {
                 godModeResources.getTemplateUrls().then(function (response) {
-                    $scope.warmup.current = 0;
-                    $scope.warmup.url = "[waiting...]";
+
+                    console.log(response);
+
+                    vm.warmup.current = 0;
+                    vm.warmup.url = "[waiting...]";
 
                     if (!response) {
                         console.log("Error fetching URLs....");
                     }
 
-                    $scope.warmup.count = response.length;
+                    vm.warmup.count = response.length;
 
                     angular.forEach(response, function (url) {
                         $http.get(url).then(function (res) {
-                            $scope.warmup.current++;
-                            $scope.warmup.url = url;
+                            vm.warmup.current++;
+                            vm.warmup.url = url;
                             console.log("Warmed up page: " + url);
                         }, function (err) {
-                            $scope.warmup.current++;
-                            $scope.warmup.url = url;
+                            vm.warmup.current++;
+                            vm.warmup.url = url;
                         });
                     });
                 });
-            }
+            };
         });
 })();
