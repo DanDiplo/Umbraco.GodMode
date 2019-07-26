@@ -2,7 +2,7 @@ Edit \BuildPackage\Package.build.xml and change BasePackageVersion to the versio
 
 The last digit is the build number and not used for the product version.
 
-Execute \BuildPackage\build.bat - this expects you to have your Umbraco solution in a folder called Umbraco8Sql (it then copies package content to UmbracoContent folder)
+Execute \BuildPackage\build.bat - this expects you to have the Umbraco solution in Umbraco.Web
 
 Check \BuildPackage\Package to find both the Umbraco and NuGet package files ready to roll
 

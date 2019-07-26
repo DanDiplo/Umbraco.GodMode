@@ -7,7 +7,7 @@
     <title>God Mode (Developer tools for Umbraco 8)</title>
     <authors>Dan Booth</authors>
     <owners>Dan Booth</owners>
-    <projectUrl>https://github.com/DanDiplo/Umbraco.GodMode/</projectUrl>
+    <projectUrl>https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
       Diplo God Mode makes Umbraco developers invincible! This custom tree in the Settings section of Umbraco 8 allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
@@ -40,7 +40,7 @@
     <license type="expression">MIT</license>
     <repository type="git" url="https://github.com/DanDiplo/Umbraco.GodMode/" />
     <language>en-GB</language>
-    <tags>umbraco umbraco8 developer backoffice audit log</tags>
+    <tags>godmode god mode umbraco umbraco8 developer backoffice</tags>
     <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
     <dependencies>
       <dependency id="UmbracoCms.Core" version="8.1.0" />
