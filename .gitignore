@@ -33,3 +33,4 @@ obj/
 BuildPackage/Package/*
 
 /BuildPackage/msbuild.binlog
+/BuildPackage/msbuild.binlog
