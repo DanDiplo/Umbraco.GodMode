@@ -13,6 +13,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildPackage", "BuildPackag
 		BuildPackage\Package.xml = BuildPackage\Package.xml
 	EndProjectSection
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Umbraco.Web", "Umbraco.Web\", "{06F3529F-F87F-46A5-A959-C7550E0D70B1}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_63649"
+		Debug.AspNetCompiler.PhysicalPath = "Umbraco.Web\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_63649\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_63649"
+		Release.AspNetCompiler.PhysicalPath = "Umbraco.Web\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_63649\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "63649"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +43,10 @@ Global
 		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{456F9D93-BAB6-49DF-AD77-EC943CD5826D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06F3529F-F87F-46A5-A959-C7550E0D70B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06F3529F-F87F-46A5-A959-C7550E0D70B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06F3529F-F87F-46A5-A959-C7550E0D70B1}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{06F3529F-F87F-46A5-A959-C7550E0D70B1}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

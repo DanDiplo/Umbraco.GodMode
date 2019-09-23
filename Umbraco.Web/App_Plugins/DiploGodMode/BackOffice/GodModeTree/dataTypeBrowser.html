@@ -58,8 +58,8 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="d in vm.dataTypes | filter: vm.filterDataTypes | orderBy: vm.sort.column : vm.sort.reverse">
-                        <td><a href="{{vm.config.editDataTypeUrl + d.Id}}" target="_blank" title="Edit DataType"><strong>{{ d.Name }}</strong></a></td>
-                        <td><a href="{{vm.config.baseTreeUrl + 'docTypeBrowser/' + d.Alias}}" target="_blank" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</a></td>
+                        <td><button type="button" ng-click="vm.openDataType(d.Id)" title="Edit DataType"><strong>{{ d.Name }}</strong></button></td>
+                        <td><button type="button" ng-click="vm.openDocTypeBrowser(d.Alias)" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</button></td>
                         <td>{{ d.DbType }}</td>
                         <td><godmode-True-False value="d.IsUsed"></godmode-True-False></td>
                         <td><div>{{ d.Id }}</div><code>{{ d.Udi }}</code></td>

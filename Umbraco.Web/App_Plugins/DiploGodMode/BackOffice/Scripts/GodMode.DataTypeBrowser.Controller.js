@@ -1,10 +1,9 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.DataTypeBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
-            vm.isLoading = true;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -17,10 +16,14 @@
             vm.triStateOptions = godModeResources.getTriStateOptions();
             vm.search.isUsed = vm.triStateOptions[0];
 
-            godModeResources.getDataTypesStatus().then(function (data) {
-                vm.dataTypes = data;
-                vm.isLoading = false;
-            });
+            var init = function () {
+                vm.isLoading = true;
+                godModeResources.getDataTypesStatus().then(function (data) {
+                    vm.dataTypes = data;
+                    vm.isLoading = false;
+                });
+            };
+            init();
 
             vm.sortBy = function (column) {
                 vm.sort.column = column;
@@ -57,6 +60,36 @@
                 }
 
                 return d;
+            };
+
+            vm.openDataType = function (dataTypeId) {
+                const editor = {
+                    view: "views/common/infiniteeditors/datatypesettings/datatypesettings.html",
+                    id: dataTypeId,
+                    submit: function () {
+                        init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
+            };
+
+            vm.openDocTypeBrowser = function (dataTypeAlias) {
+                const editor = {
+                    view: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/docTypeBrowser.html",
+                    id: dataTypeAlias,
+                    submit: function () {
+                        init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
             };
         });
 })();

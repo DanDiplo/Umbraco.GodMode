@@ -93,15 +93,15 @@
 
             <br />
 
-            <div ng-repeat="ct in vm.contentTypes | filter: vm.filterContentTypes as results">               
+            <div ng-repeat="ct in vm.contentTypes | filter: vm.filterContentTypes as results">
 
                 <umb-box>
-                    <div class="umb-box-header box-opener" ng-click="ct.IsOpen = !ct.IsOpen">
-                        <div class="span10">
+                    <div class="umb-box-header box-opener flex">
+                        <div class="span12" ng-click="ct.IsOpen = !ct.IsOpen">
                             <h4><i class="{{ ct.Icon }}"></i>&nbsp;{{ ct.Name }} <small>({{ ct.Alias }})</small></h4>
                         </div>
-                        <div class="span2 text-right">
-                            <a href="{{vm.config.editDocTypeUrl + ct.Id}}" title="Edit {{ ct.Name }} doctype" aria-label="Edit {{ct.Name}}" target="_blank"><span class="btn btn-action">Edit</span></a>
+                        <div class="">
+                            <button type="button" ng-click="vm.openContentType(ct.Id)" title="Edit {{ ct.Name }} doctype" aria-label="Edit {{ct.Name}}" class="btn btn-action">Edit</button>
                         </div>
                     </div>
 
@@ -127,7 +127,7 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="tmp in ct.Templates">
-                                    <td><a href="{{config.editTemplateUrl + tmp.Id}}" target="_blank" title="Edit Template">{{ tmp.Name }}</a></td>
+                                    <td><button type="button" ng-click="vm.openTemplate(tmp.Id)" title="Edit Template">{{ tmp.Name }}</button></td>
                                     <td>{{ tmp.Alias }}</td>
                                     <td>{{ tmp.Path }}</td>
                                 </tr>
@@ -147,7 +147,7 @@
                                 <tr ng-repeat="prop in ct.Properties">
                                     <td title="{{ prop.Description }}">{{ prop.Name }}</td>
                                     <td>{{ prop.Alias }}</td>
-                                    <td><a href="{{vm.config.editDataTypeUrl + prop.EditorId}}" target="_blank" title="Edit">{{ prop.EditorAlias }}</a></td>
+                                    <td><button type="button" ng-click="vm.openDataType(prop.EditorId)" title="Edit">{{ prop.EditorAlias }}</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -165,7 +165,7 @@
                                 <tr ng-repeat="prop in ct.CompositionProperties">
                                     <td title="{{ prop.Description }}">{{ prop.Name }}</td>
                                     <td>{{ prop.Alias }}</td>
-                                    <td><a href="{{vm.config.editDataTypeUrl + prop.EditorId}}" target="_blank" title="Edit">{{ prop.EditorAlias }}</a></td>
+                                    <td><button type="button" ng-click="vm.openDataType(prop.EditorId)" title="Edit">{{ prop.EditorAlias }}</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -181,7 +181,7 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="comp in ct.Compositions">
-                                    <td><i class="{{ comp.Icon }}"></i><a href="{{vm.config.editDocTypeUrl + comp.Id}}" title="Edit Composition" target="_blank">{{ comp.Name }}</a></td>
+                                    <td><i class="{{ comp.Icon }}"></i><button type="button" ng-click="vm.openContentType(comp.Id)" title="Edit Composition" target="_blank">{{ comp.Name }}</button></td>
                                     <td>{{ comp.Alias }}</td>
                                     <td><small>{{ comp.Description }}</small></td>
                                 </tr>

@@ -83,7 +83,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="c in vm.page.Items">
-                        <td><a href="{{vm.config.editContentUrl + c.Id}}" target="_blank" title="Edit"><strong>{{ c.Name }}</strong></a></td>
+                        <td><button type="button" ng-click="vm.openContent(c.Id)" title="Edit"><strong>{{ c.Name }}</strong></button></td>
                         <td><span class="{{c.Icon}}"></span>&nbsp;{{ c.Alias }}</td>
                         <td>{{ c.CreateDate | date:'short' : 'UTC' }}</td>
                         <td>{{ c.CreatorName }}</td>

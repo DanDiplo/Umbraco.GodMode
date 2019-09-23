@@ -50,7 +50,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="m in vm.page.Items">
-                        <td><strong><a href="#/member/member/edit/{{m.Id}}" target="_blank" title="Edit">{{ m.Username }}</a></strong></td>
+                        <td><strong><button type="button" ng-click="vm.openMember(m.Id)" title="Edit">{{ m.Username }}</button></strong></td>
                         <td>{{ m.Name }}</td>
                         <td><a href="mailto:{{m.Email}}" target="_blank" title="Email">{{ m.Email }}</a></td>
                         <td>{{ m.CreateDate | date:'short' : 'utc' }}</td>

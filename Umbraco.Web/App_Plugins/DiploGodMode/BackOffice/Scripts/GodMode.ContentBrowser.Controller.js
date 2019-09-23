@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
             vm.isLoading = true;
@@ -25,6 +25,7 @@
             vm.criteria.Trashed = vm.triStateOptions[0];
 
             vm.fetchContent = function (orderBy) {
+                vm.isLoading = true;
                 godModeResources.getContentPaged(vm.currentPage, vm.itemsPerPage, vm.criteria, orderBy).then(function (data) {
                     vm.page = data;
                     vm.currentPage = vm.page.CurrentPage;
@@ -86,5 +87,19 @@
 
                 vm.fetchContent();
             });
+
+            vm.openContent = function (contentId) {
+                const editor = {
+                    id: contentId,
+                    submit: function () {
+                        vm.fetchContent();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.contentEditor(editor);
+            };
         });
 })();

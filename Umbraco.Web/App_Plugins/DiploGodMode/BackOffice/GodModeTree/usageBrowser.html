@@ -54,7 +54,7 @@
                         <td>
                             <span class="{{c.Icon}}"></span>
                             <strong>
-                                <a ng-show="c.Type === 'Content'" href="{{vm.config.baseViewUrl + 'contentBrowser/' + c.Alias + '/'}}" title="View related content">{{ c.Alias }}</a>
+                                <button type="button" ng-click="vm.openContentBrowser(c.Alias)" ng-show="c.Type === 'Content'" title="View related content">{{ c.Alias }}</button>
                                 <span ng-show="c.Type !== 'Content'">{{ c.Alias }}</span>
                             </strong>
                         </td>

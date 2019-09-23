@@ -46,8 +46,8 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="p in vm.partials | filter: vm.filterPartials | orderBy: vm.sort.column : vm.sort.reverse">
-                        <td><a href="{{ vm.config.editPartialUrl + p.Path}}" target="_blank" title="Edit Partial">{{ p.Name }}</a></td>
-                        <td><a href="{{ vm.config.editTemplateUrl + p.TemplateId}}" title="Edit Template" target="_blank">{{ p.TemplateAlias }}</a></td>
+                        <td><button type="button" ng-click="vm.openPartial(p.Path)" title="Edit Partial">{{ p.Name }}</button></td>
+                        <td><button type="button" ng-click="vm.openTemplate(p.TemplateId)" title="Edit Template">{{ p.TemplateAlias }}</button></td>
                         <td><godmode-True-False value="p.IsCached"></godmode-True-False></td>
                     </tr>
                 </tbody>

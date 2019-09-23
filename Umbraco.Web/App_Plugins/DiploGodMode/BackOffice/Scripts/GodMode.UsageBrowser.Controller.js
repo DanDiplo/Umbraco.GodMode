@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.UsageBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
             vm.isLoading = true;
@@ -16,6 +16,7 @@
             vm.usage = [];
 
             vm.fetchContent = function (orderBy) {
+                vm.isLoading = true;
                 orderBy = orderBy === undefined ? "CT.Alias" : orderBy;
 
                 godModeResources.getContentUsage(null, orderBy).then(function (data) {
@@ -43,5 +44,20 @@
             };
 
             vm.fetchContent();
+
+            vm.openContentBrowser = function (contentTypeAlias) {
+                const editor = {
+                    view: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/contentBrowser.html",
+                    id: contentTypeAlias,
+                    submit: function () {
+                        init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
+            };
         });
 })();
