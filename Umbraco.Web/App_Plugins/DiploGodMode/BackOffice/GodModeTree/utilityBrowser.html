@@ -46,6 +46,10 @@
                         </div>
 
                         <div class="span4">
+                            <button class="btn btn-danger" title="Bumps Client Dependency version (which will take the site offline momentarily)" ng-click="vm.bumpClientDependencyVersion()"><i class="icon-axis-rotation"></i> Bump Client Dependency version</button>
+                        </div>
+
+                        <div class="span4">
                             <button class="btn btn-primary" title="Hits a single URL for every template in the site to 'warm-up' compilation of views" ng-click="vm.warmUpTemplates()"><i class="icon-server"></i> Warm-Up Templates</button>
 
                             <p ng-show="vm.warmup.current < vm.warmup.count">

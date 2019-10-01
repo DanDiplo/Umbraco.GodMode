@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Web;
 using System.Web.Mvc;
+using System.Xml;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
@@ -308,6 +310,38 @@ namespace Diplo.GodMode.Controllers
             catch (Exception ex)
             {
                 return new ServerResponse("Error restarting the application pool: " + ex.Message, ServerResponseType.Error);
+            }
+        }
+
+        [HttpPost]
+        public ServerResponse BumpClientDependencyVersion()
+        {
+            try
+            {
+                var path = HttpContext.Current.Server.MapPath("~/config/clientdependency.config");
+                var xmlDocument = new XmlDocument { PreserveWhitespace = true };
+                xmlDocument.Load(path);
+
+                var node = xmlDocument.SelectSingleNode("//clientDependency/@version");
+                if (node != null)
+                {
+                    int version;
+                    if (int.TryParse(node.Value, out version))
+                    {
+                        node.Value = (version + 1).ToString();
+                    }
+
+                    xmlDocument.Save(path);
+                    return new ServerResponse("Successfully bumped Client Dependency version - hold tight...", ServerResponseType.Success);
+                }
+                else
+                {
+                    return new ServerResponse("Error bumping Client Dependency version: No version found in clientdependency.config", ServerResponseType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ServerResponse("Error bumping Client Dependency version: " + ex.Message, ServerResponseType.Error);
             }
         }
 

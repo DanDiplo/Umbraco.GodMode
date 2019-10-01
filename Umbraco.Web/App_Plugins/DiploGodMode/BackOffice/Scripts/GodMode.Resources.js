@@ -156,6 +156,11 @@
                     $http.post(godModeConfig.baseApiUrl + "RestartAppPool")
                 );
             },
+            bumpClientDependencyVersion: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(godModeConfig.baseApiUrl + "BumpClientDependencyVersion")
+                );
+            },
             getTemplateUrls: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetTemplateUrlsToPing")
