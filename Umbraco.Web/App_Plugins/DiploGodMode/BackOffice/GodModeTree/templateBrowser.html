@@ -2,7 +2,7 @@
 
     <umb-editor-view footer="false">
 
-        <godmode-header heading="Template Browser" title="I'm a blueprint for a view, I am!"></godmode-header>
+        <godmode-header heading="Template Browser" title="I'm a blueprint for a view, I am!" on-reload="vm.init()"></godmode-header>
 
         <umb-editor-container>
 
@@ -39,12 +39,12 @@
             <div ng-repeat="temp in vm.templates | filter: vm.filterTemplates as results">
 
                 <umb-box>
-                    <div class="umb-box-header box-opener" ng-click="temp.IsOpen = !temp.IsOpen">
-                        <div class="span10">
+                    <div class="umb-box-header box-opener flex">
+                        <div class="span12" ng-click="temp.IsOpen = !temp.IsOpen">
                             <h4><strong>{{ temp.Name }}</strong> <small>({{ temp.Alias }})</small> <i ng-if="temp.IsMaster" class="icon icon-key color-amber" title="Master" aria-label="Master template"></i></h4>
                         </div>
-                        <div class="span2 text-right">
-                            <a class="accordion-toggle" href="{{vm.config.editTemplateUrl + temp.Id}}" title="Edit Template" target="_blank"><span class="btn btn-action">Edit</span></a>
+                        <div class="">
+                            <button type="button" ng-click="vm.openTemplate(temp.Id)" title="Edit Template" class="btn btn-action">Edit</button>
                         </div>
                     </div>
 
@@ -69,7 +69,7 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="t in temp.Parents">
-                                    <td width="50%"><a href="{{vm.config.editTemplateUrl + t.Id}}" target="_blank" title="Edit Template">{{ t.Name }}</a></td>
+                                    <td width="50%"><button type="button" ng-click="vm.openTemplate(t.Id)" title="Edit Template">{{ t.Name }}</button></td>
                                     <td width="50%">{{ t.FilePath }}</td>
                                 </tr>
                             </tbody>

@@ -13,10 +13,14 @@
             vm.sort.column = "Name";
             vm.sort.reverse = false;
 
-            godModeResources.getAssemblies().then(function (data) {
-                vm.assemblies = data;
-                vm.isLoading = false;
-            });
+            vm.init = function () {
+                vm.isLoading = true;
+                godModeResources.getAssemblies().then(function (data) {
+                    vm.assemblies = data;
+                    vm.isLoading = false;
+                });
+            };
+            vm.init();
 
             vm.getTypes = function (type) {
                 vm.types = [];

@@ -1,8 +1,8 @@
 ﻿<div ng-controller="GodMode.DataTypeBrowser.Controller as vm" class="god-mode">
 
-    <umb-editor-view footer="false">
+    <umb-editor-view footer="model.infiniteMode">
 
-        <godmode-header heading="DataType Browser" title="Are you my data-type?"></godmode-header>
+        <godmode-header heading="DataType Browser" title="Are you my data-type?" on-reload="vm.reload"></godmode-header>
 
         <umb-editor-container>
 
@@ -58,8 +58,8 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="d in vm.dataTypes | filter: vm.filterDataTypes | orderBy: vm.sort.column : vm.sort.reverse">
-                        <td><a href="{{vm.config.editDataTypeUrl + d.Id}}" target="_blank" title="Edit DataType"><strong>{{ d.Name }}</strong></a></td>
-                        <td><a href="{{vm.config.baseTreeUrl + 'docTypeBrowser/' + d.Alias}}" target="_blank" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</a></td>
+                        <td><button type="button" ng-click="vm.openDataType(d.Id)" title="Edit DataType"><strong>{{ d.Name }}</strong></button></td>
+                        <td><button type="button" ng-click="vm.openDocTypeBrowser(d.Alias)" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</button></td>
                         <td>{{ d.DbType }}</td>
                         <td><godmode-True-False value="d.IsUsed"></godmode-True-False></td>
                         <td><div>{{ d.Id }}</div><code>{{ d.Udi }}</code></td>
@@ -72,7 +72,20 @@
                 <p>This only checks for datatypes that are used directly by a document type. Datatypes that are nested within another datatype (eg. within Nested Content) are not discoverable via the Umbraco API.</p>
             </div>
    
+
         </umb-editor-container>
+        <umb-editor-footer ng-if="model.infiniteMode">
+
+            <umb-editor-footer-content-right>
+                <umb-button type="button"
+                            button-style="link"
+                            label-key="general_close"
+                            shortcut="esc"
+                            action="model.close()">
+                </umb-button>
+            </umb-editor-footer-content-right>
+
+        </umb-editor-footer>
 
     </umb-editor-view>
 

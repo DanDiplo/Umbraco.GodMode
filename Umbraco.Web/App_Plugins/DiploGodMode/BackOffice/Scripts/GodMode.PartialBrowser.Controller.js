@@ -1,10 +1,10 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.PartialBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
-            vm.isLoading = true;
+            vm.templates = [];
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -16,17 +16,23 @@
             vm.triStateOptions = godModeResources.getTriStateOptions();
             vm.search.isCached = vm.triStateOptions[0];
 
-            godModeResources.getTemplates().then(function (data) {
-                vm.templates = data;
+            vm.init = function () {
+                vm.isLoading = true;
 
-                vm.partials = data.map(function (p) {
-                    return p.Partials;
-                }).reduce(function (a, b) {
-                    return a.concat(b);
+                godModeResources.getTemplates().then(function (data) {
+                    vm.templates = data;
+
+                    vm.partials = data.map(function (p) {
+                        return p.Partials;
+                    }).reduce(function (a, b) {
+                        return a.concat(b);
+                    });
+
+                    vm.isLoading = false;
                 });
+            };
 
-                vm.isLoading = false;
-            });
+            vm.init();
 
             vm.sortBy = function (column) {
                 vm.sort.column = column;
@@ -49,6 +55,20 @@
                 }
 
                 return p;
+            };
+
+            vm.openTemplate = function (templateId) {
+                const editor = {
+                    id: templateId,
+                    submit: function () {
+                        vm.init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.templateEditor(editor);
             };
         });
 })();

@@ -45,13 +45,11 @@
                 restrict: 'E',
                 scope: {
                     heading: '@',
-                    tooltip: '@'
+                    tooltip: '@',
+                    onReload: '&'
                 },
                 link: function (scope, element, attrs) {
                     scope.version = godModeConfig.config.version;
-                    scope.reload = function () {
-                        $route.reload();
-                    };
                 },
                 templateUrl: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/godModeHeader.html"
             };

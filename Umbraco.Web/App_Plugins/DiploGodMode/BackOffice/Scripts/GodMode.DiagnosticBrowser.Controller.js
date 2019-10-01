@@ -15,17 +15,21 @@
             vm.sort.reverse = false;
             vm.heading = "Diagnostics";
 
-            godModeResources.getEnvironmentDiagnostics().then(function (data) {
-                vm.diagnostics = data;
-                vm.groups = vm.diagnostics.map(function (g) {
-                    return { Id: g.Id, Title: g.Title };
+            vm.init = function () {
+                vm.isLoading = true;
+                godModeResources.getEnvironmentDiagnostics().then(function (data) {
+                    vm.diagnostics = data;
+                    vm.groups = vm.diagnostics.map(function (g) {
+                        return { Id: g.Id, Title: g.Title };
+                    });
+
+                    vm.search.group = vm.groups[0];
+                    vm.selectGroup(vm.search.group);
+
+                    vm.isLoading = false;
                 });
-
-                vm.search.group = vm.groups[0];
-                vm.selectGroup(vm.search.group);
-
-                vm.isLoading = false;
-            });
+            };
+            vm.init();
 
             vm.selectGroup = function (group) {
                 var selectedGroup = vm.diagnostics.filter(function (g) {

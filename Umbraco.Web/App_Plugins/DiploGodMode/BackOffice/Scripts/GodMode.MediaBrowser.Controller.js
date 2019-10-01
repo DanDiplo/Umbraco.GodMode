@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.MediaBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
             vm.isLoading = true;
@@ -21,6 +21,7 @@
             vm.sort.column = "id";
 
             vm.fetchContent = function (orderBy, orderByDir) {
+                vm.isLoading = true;
                 godModeResources.getMedia(vm.currentPage, vm.itemsPerPage, vm.criteria, orderBy, orderByDir).then(function (data) {
                     vm.page = data;
                     vm.isLoading = false;
@@ -71,5 +72,19 @@
             vm.getMediaTypes();
 
             vm.fetchContent();
+
+            vm.openMedia = function (mediaId) {
+                const editor = {
+                    id: mediaId,
+                    submit: function () {
+                        vm.fetchContent();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.mediaEditor(editor);
+            };
         });
 })();

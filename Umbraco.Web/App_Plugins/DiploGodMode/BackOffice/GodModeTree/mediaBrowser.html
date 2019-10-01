@@ -2,7 +2,7 @@
 
     <umb-editor-view footer="false">
 
-        <godmode-header heading="Media Browser" title="Why can't clients organise their files?"></godmode-header>
+        <godmode-header heading="Media Browser" title="Why can't clients organise their files?" on-reload="vm.fetchContent()"></godmode-header>
 
         <umb-editor-container>
 
@@ -48,7 +48,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="m in vm.page.Items">
-                        <td><a href="{{vm.config.editMediaUrl + m.Id}}" target="_blank" title="Edit"><strong>{{ m.Name }}</strong></a></td>
+                        <td><button type="button" ng-click="vm.openMedia(m.Id)" title="Edit"><strong>{{ m.Name }}</strong></button></td>
                         <td>{{ m.Alias }}</td>
                         <td title="{{ m.Ext }}">{{ m.Type }}</td>
                         <td>{{ m.Size | godModeFileSize }}</td>

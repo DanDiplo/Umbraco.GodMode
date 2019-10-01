@@ -1,10 +1,9 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.MemberBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
-            vm.isLoading = true;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 

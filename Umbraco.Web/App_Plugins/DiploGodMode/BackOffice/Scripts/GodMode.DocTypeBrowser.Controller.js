@@ -1,10 +1,10 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.DocTypeBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             var vm = this;
-            vm.isLoading = true;
+            vm.contentTypes = [];
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -19,33 +19,45 @@
             vm.search.allowedAtRoot = vm.triStateOptions[0];
             vm.search.hasCompositions = vm.triStateOptions[0];
 
-            godModeResources.getContentTypeMap().then(function (data) {
-                vm.contentTypes = data;
-                vm.isLoading = false;
-            });
+            var init = function () {
+                vm.isLoading = true;
+                var openContentTypes = vm.contentTypes.filter(function (ct) { return ct.IsOpen; }).map(function (ct) { return ct.Id; });
 
-            godModeResources.getPropertyGroups().then(function (data) {
-                vm.propertyGroups = data;
-            });
+                godModeResources.getContentTypeMap().then(function (data) {
+                    vm.contentTypes = data;
+                    if (openContentTypes) {
+                        vm.contentTypes.map(function (ct) { if (openContentTypes.indexOf(ct.Id) > -1) ct.IsOpen = true; });
+                    }
+                    vm.isLoading = false;
+                });
 
-            godModeResources.getCompositions().then(function (data) {
-                vm.compositions = data;
-            });
+                godModeResources.getPropertyGroups().then(function (data) {
+                    vm.propertyGroups = data;
+                });
 
-            godModeResources.getDataTypes().then(function (data) {
-                vm.dataTypes = data;
-            });
+                godModeResources.getCompositions().then(function (data) {
+                    vm.compositions = data;
+                });
 
-            godModeResources.getPropertyEditors().then(function (data) {
-                vm.propertyEditors = data;
-                if (param !== "browse") {
-                    vm.propertyEditors.filter(function (elem) {
-                        if (elem.Alias === param) {
-                            vm.search.propertyEditor = elem;
-                        }
-                    });
-                }
-            });
+                godModeResources.getDataTypes().then(function (data) {
+                    vm.dataTypes = data;
+                });
+
+                godModeResources.getPropertyEditors().then(function (data) {
+                    vm.propertyEditors = data;
+                    if (param !== "browse") {
+                        vm.propertyEditors.filter(function (elem) {
+                            if (elem.Alias === param) {
+                                vm.search.propertyEditor = elem;
+                            }
+                        });
+                    }
+                });
+            };
+
+            vm.reload = function () { init(); };
+
+            init();
 
             vm.filterContentTypes = function (ct) {
 
@@ -110,6 +122,50 @@
                 }
 
                 return ct;
+            };
+
+            vm.openContentType = function (contentTypeId) {
+                const editor = {
+                    id: contentTypeId,
+                    submit: function () {
+                        init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.documentTypeEditor(editor);
+                return false;
+            };
+
+            vm.openDataType = function (dataTypeId) {
+                const editor = {
+                    view: "views/common/infiniteeditors/datatypesettings/datatypesettings.html",
+                    id: dataTypeId,
+                    submit: function () {
+                        init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
+            };
+
+            vm.openTemplate = function (templateId) {
+                const editor = {
+                    id: templateId,
+                    submit: function () {
+                        init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.templateEditor(editor);
             };
         });
 })();
