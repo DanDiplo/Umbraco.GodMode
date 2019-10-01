@@ -46,6 +46,15 @@
                 }
             };
 
+            vm.bumpClientDependencyVersion = function () {
+                if (window.confirm("This will take the site offline for a few moments. Are you sure?")) {
+                    godModeResources.bumpClientDependencyVersion().then(function (response) {
+                        handleResponse(response);
+                        document.location.reload(true);
+                    });
+                }
+            };
+
             vm.warmUpTemplates = function () {
                 godModeResources.getTemplateUrls().then(function (response) {
 
