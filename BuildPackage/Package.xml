@@ -3,13 +3,13 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>2.0.0</version>
+      <version>2.1.0</version>
       <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>https://github.com/DanDiplo/Umbraco.GodMode/</url>
       <requirements type="Strict">
         <major>8</major>
-        <minor>0</minor>
+        <minor>1</minor>
         <patch>0</patch>
       </requirements>
     </package>
@@ -22,24 +22,9 @@
     <readme>
       <![CDATA[
             Diplo God Mode makes Umbraco developers invincible! This custom tree in the Settings section of Umbraco 8 allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
-      
-      For instance, you can:
-      
-      * Easily see which document types inherit from any of your compositions
-      * See which document types use which property editor or data type instance
-      * See which partials are used by all your templates
-      * Find out which data types are being used (or not)
-      * Browse all media in the Media Library and sort it by file type, size or media type
-      * Browse all your content in an easy-to-filter flat table
-      * View all Umbraco members and filter them by assigned group
-      * See content usage statistics by Content Type
-      * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
-      * View all generated models (that inherit from PublishedContentModel)
-      * Browse all Umbraco and server settings (including registered servers and migration history)
-      * Look at all interfaces in assemblies
-      * Clear the various Umbraco caches and even restart the app pool
-      * Warm up the compilation of all views in a single bound... erm, click
-      * Plus lots more
+            
+      This release enables infinite editors for (almost) all links. This means when clicking a link to, say, view a doctype it opens in Umbraco's own infinite editor overlay. It also adds a Utilities feature to bump
+      the Client Dependency version. Both these amazing contributions are the fantastic work of Søren Kottal (@skttl). #H5YR!
 ]]>
     </readme>
   </info>
