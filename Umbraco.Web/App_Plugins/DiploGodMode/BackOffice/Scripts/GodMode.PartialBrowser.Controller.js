@@ -16,7 +16,7 @@
             vm.triStateOptions = godModeResources.getTriStateOptions();
             vm.search.isCached = vm.triStateOptions[0];
 
-            var init = function () {
+            vm.init = function () {
                 vm.isLoading = true;
 
                 godModeResources.getTemplates().then(function (data) {
@@ -32,7 +32,7 @@
                 });
             };
 
-            init();
+            vm.init();
 
             vm.sortBy = function (column) {
                 vm.sort.column = column;
@@ -61,7 +61,7 @@
                 const editor = {
                     id: templateId,
                     submit: function () {
-                        init();
+                        vm.init();
                         editorService.close();
                     },
                     close: function () {
@@ -76,7 +76,7 @@
                     view: "views/partialViews/edit.html",
                     id: path,
                     submit: function () {
-                        init();
+                        vm.init();
                         editorService.close();
                     },
                     close: function () {

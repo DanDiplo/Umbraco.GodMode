@@ -47,10 +47,14 @@
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, "reflectionTree", $routeParams.method + $routeParams.id], forceReload: false });
 
-            getControllersFunction.then(function (data) {
-                vm.controllers = data;
-                vm.isLoading = false;
-            });
+            vm.init = function () {
+                vm.isLoading = true;
+                getControllersFunction.then(function (data) {
+                    vm.controllers = data;
+                    vm.isLoading = false;
+                });
+            };
+            vm.init();
 
             vm.filterByUmbraco = function (c) {
                 if (!c.IsUmbraco === vm.search.isUmbraco.value) {

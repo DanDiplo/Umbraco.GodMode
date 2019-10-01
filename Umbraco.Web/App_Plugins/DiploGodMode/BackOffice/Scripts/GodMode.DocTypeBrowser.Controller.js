@@ -55,6 +55,8 @@
                 });
             };
 
+            vm.reload = function () { init(); };
+
             init();
 
             vm.filterContentTypes = function (ct) {

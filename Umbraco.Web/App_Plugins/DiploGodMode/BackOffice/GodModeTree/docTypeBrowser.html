@@ -1,8 +1,8 @@
 ﻿<div ng-controller="GodMode.DocTypeBrowser.Controller as vm" class="god-mode">
 
-    <umb-editor-view footer="false">
+    <umb-editor-view footer="model.infiniteMode">
 
-        <godmode-header heading="Document Type Browser" title="Because who doesn't love a doc type?"></godmode-header>
+        <godmode-header heading="Document Type Browser" title="Because who doesn't love a doc type?" on-reload="vm.reload()"></godmode-header>
 
         <umb-editor-container>
 
@@ -196,6 +196,18 @@
             <p ng-if="results.length === 0" class="alert alert-info alert-block">Sorry, there are no documents that match your chosen search criteria. Try changing the filters at the top of the page.</p>
 
         </umb-editor-container>
+        <umb-editor-footer ng-if="model.infiniteMode">
+
+            <umb-editor-footer-content-right>
+                <umb-button type="button"
+                            button-style="link"
+                            label-key="general_close"
+                            shortcut="esc"
+                            action="model.close()">
+                </umb-button>
+            </umb-editor-footer-content-right>
+
+        </umb-editor-footer>
 
     </umb-editor-view>
 

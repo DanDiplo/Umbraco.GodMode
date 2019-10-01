@@ -25,6 +25,8 @@
             };
             init();
 
+            vm.reload = function () { init(); };
+
             vm.sortBy = function (column) {
                 vm.sort.column = column;
                 vm.sort.reverse = !vm.sort.reverse;

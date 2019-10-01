@@ -2,7 +2,7 @@
 
     <umb-editor-view footer="false">
 
-        <godmode-header heading="Member Browser" title="Because everyone likes browsing a member, right?"></godmode-header>
+        <godmode-header heading="Member Browser" title="Because everyone likes browsing a member, right?" on-reload="vm.fetchMembers()"></godmode-header>
 
         <umb-editor-container>
 
@@ -50,7 +50,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="m in vm.page.Items">
-                        <td><strong><button type="button" ng-click="vm.openMember(m.Id)" title="Edit">{{ m.Username }}</button></strong></td>
+                        <td><strong><button type="button" ng-click="vm.openMember(m.Udi)" title="Edit">{{ m.Username }}</button></strong></td>
                         <td>{{ m.Name }}</td>
                         <td><a href="mailto:{{m.Email}}" target="_blank" title="Email">{{ m.Email }}</a></td>
                         <td>{{ m.CreateDate | date:'short' : 'utc' }}</td>

@@ -12,7 +12,7 @@
             vm.search = {};
 
 
-            var init = function () {
+            vm.init = function () {
                 var openTemplates = vm.templates.filter(function (t) { return t.IsOpen; }).map(function (t) { return t.Id; });
                 vm.isLoading = true;
 
@@ -28,7 +28,7 @@
                 });
             };
 
-            init();
+            vm.init();
 
             vm.filterTemplates = function (temp) {
                 if (vm.search.partial) {
@@ -58,7 +58,7 @@
                 const editor = {
                     id: templateId,
                     submit: function () {
-                        init();
+                        vm.init();
                         editorService.close();
                     },
                     close: function () {
@@ -73,7 +73,7 @@
                     view: "views/partialViews/edit.html",
                     id: path,
                     submit: function () {
-                        init();
+                        vm.init();
                         editorService.close();
                     },
                     close: function () {
