@@ -18,37 +18,39 @@
             vm.heading = "";
 
             var id = $routeParams.id;
-            var getControllersFunction;
-
-            if ($routeParams.id === "api") {
-                getControllersFunction = godModeResources.getApiControllers();
-                vm.heading = "API Controller";
-            }
-            else if ($routeParams.id === "surface") {
-                getControllersFunction = godModeResources.getSurfaceControllers();
-                vm.heading = "Surface Controller";
-            }
-            else if ($routeParams.id === "models") {
-                getControllersFunction = godModeResources.getPublishedContentModels();
-                vm.heading = "Published Content Model";
-            }
-            else if ($routeParams.id === "render") {
-                getControllersFunction = godModeResources.getRenderMvcControllers();
-                vm.heading = "RenderMvc Controller";
-            }
-            else if ($routeParams.id === "converters") {
-                getControllersFunction = godModeResources.getPropertyValueConveters();
-                vm.heading = "Property Value Converter";
-            }
-            else if ($routeParams.id === "composers") {
-                getControllersFunction = godModeResources.getComposers();
-                vm.heading = "Composer";
-            }
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, "reflectionTree", $routeParams.method + $routeParams.id], forceReload: false });
 
             vm.init = function () {
                 vm.isLoading = true;
+
+                var getControllersFunction;
+
+                if ($routeParams.id === "api") {
+                    getControllersFunction = godModeResources.getApiControllers();
+                    vm.heading = "API Controller";
+                }
+                else if ($routeParams.id === "surface") {
+                    getControllersFunction = godModeResources.getSurfaceControllers();
+                    vm.heading = "Surface Controller";
+                }
+                else if ($routeParams.id === "models") {
+                    getControllersFunction = godModeResources.getPublishedContentModels();
+                    vm.heading = "Published Content Model";
+                }
+                else if ($routeParams.id === "render") {
+                    getControllersFunction = godModeResources.getRenderMvcControllers();
+                    vm.heading = "RenderMvc Controller";
+                }
+                else if ($routeParams.id === "converters") {
+                    getControllersFunction = godModeResources.getPropertyValueConveters();
+                    vm.heading = "Property Value Converter";
+                }
+                else if ($routeParams.id === "composers") {
+                    getControllersFunction = godModeResources.getComposers();
+                    vm.heading = "Composer";
+                }
+
                 getControllersFunction.then(function (data) {
                     vm.controllers = data;
                     vm.isLoading = false;
