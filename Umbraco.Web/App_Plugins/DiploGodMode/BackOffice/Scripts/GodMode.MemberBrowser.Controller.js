@@ -71,5 +71,20 @@
                 vm.memberGroups = data;
                 vm.fetchMembers();
             });
+
+            vm.openMember = function (memberId) {
+                const editor = {
+                    view: "views/member/edit.html",
+                    id: memberId,
+                    submit: function () {
+                        vm.fetchMembers();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
+            };
         });
 })();
