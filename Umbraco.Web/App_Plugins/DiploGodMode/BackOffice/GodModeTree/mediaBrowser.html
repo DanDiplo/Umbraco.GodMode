@@ -13,7 +13,7 @@
                         <div class="span4">
                             <label class="control-label" for="search-id">Media Id:</label>
                             <br />
-                            <input type="search" id="search-id" ng-model="vm.criteria.id" placeholder="Filter by Id" class="input-small" ng-change="vm.filterChange()">
+                            <input type="search" id="search-id" ng-model="vm.criteria.id" placeholder="Search Id" class="input-small" ng-change="vm.filterChange()">
                         </div>
 
                         <div class="span4">
@@ -48,7 +48,10 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="m in vm.page.Items">
-                        <td><button type="button" ng-click="vm.openMedia(m.Id)" title="Edit"><strong>{{ m.Name }}</strong></button></td>
+                        <td>
+                            <button ng-if="m.Alias != 'Folder'" type="button" ng-click="vm.openMedia(m.Id)" title="Edit"><strong>{{ m.Name }}</strong></button>
+                            <strong ng-if="m.Alias === 'Folder'">{{m.Name}}</strong>
+                        </td>
                         <td>{{ m.Alias }}</td>
                         <td title="{{ m.Ext }}">{{ m.Type }}</td>
                         <td>{{ m.Size | godModeFileSize }}</td>
