@@ -28,11 +28,11 @@ namespace Diplo.GodMode.Services
         }
 
         /// <summary>
-        /// Gets all content type (doc type) aliases for content
+        /// Gets all content type (doc type) aliases for content that aren't elements
         /// </summary>
         public IEnumerable<string> GetContentTypeAliases()
         {
-            const string sql = @"SELECT CT.alias FROM cmsContentType CT INNER JOIN umbracoNode N ON CT.nodeId = N.id WHERE N.nodeObjectType = @0 ORDER BY CT.alias";
+            const string sql = @"SELECT CT.alias FROM cmsContentType CT INNER JOIN umbracoNode N ON CT.nodeId = N.id WHERE CT.isElement = 0 AND N.nodeObjectType = @0 ORDER BY CT.alias";
 
             var query = new Sql(sql, Constants.ObjectTypes.Strings.DocumentType);
 
