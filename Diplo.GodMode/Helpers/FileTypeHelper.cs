@@ -73,12 +73,15 @@ namespace Diplo.GodMode.Helpers
             { "ppt", "Presentation" },
             { "pptx", "Presentation" },
             { "zip" , "Zip Archive"},
+            { "7z" , "Archive"},
             { "jpg", "JPEG Image" },
             { "jpeg", "JPEG Image" },
             { "png", "PNG Image" },
             { "gif", "GIF Image" },
             { "bmp", "Bitmap Image" },
             { "svg", "Vector Image" },
+            { "tif", "TIF Image" },
+            { "bmp", "Bitmap Image" },
             { "mp3", "Audio" },
             { "mp4", "Video" },
             { "mov", "Video" },
@@ -86,7 +89,9 @@ namespace Diplo.GodMode.Helpers
             { "avi", "Video" },
             { "webm", "Video" },
             { "ogv", "Video" },
-            { "xml", "XML" }
+            { "xml", "XML" },
+            { "odt", "Open Office Document" },
+            { "ods", "Spreadsheet" }
         };
     }
 }
