@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Diplo.GodMode</id>
-    <version>2.1.0</version>
+    <version>2.3.0</version>
     <title>God Mode (Developer tools for Umbraco 8)</title>
     <authors>Dan Booth</authors>
     <owners>Dan Booth</owners>
@@ -17,9 +17,10 @@
       * Easily see which document types inherit from any of your compositions
       * See which document types use which property editor or data type instance
       * See which partials are used by all your templates
+      * Distinguish between element types and types that vary by culture or segment
       * Find out which data types are being used (or not)
       * Browse all media in the Media Library and sort it by file type, size or media type
-      * Browse all your content in an easy-to-filter flat table
+      * Browse all your content in an easy-to-filter flat table and also view the raw nuCache data
       * View all Umbraco members and filter them by assigned group
       * See content usage statistics by Content Type
       * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
@@ -28,14 +29,13 @@
       * Look at all interfaces in assemblies
       * Clear the various Umbraco caches and even restart the app pool or bump the Client Dependency version
       * Warm up the compilation of all views in a single bound... erm, click
-      * Now uses Infinite Editors for related content
+      * Uses Umbraco's infinite editor functionality for seamless editing
       * Plus lots more
     </description>
     <releaseNotes>
-      This release enables infinite editors for (almost) all links. This means when clicking a link to, say, view a doctype it opens in Umbraco's own infinite editor overlay. It also adds a Utilities feature to bump
-      the Client Dependency version. Both these amazing contributions are the fantastic work of Søren Kottal (@skttl). #H5YR!
+      This release (2.3.0) enables filtering by element type and the culture. It also enables viewing the raw nuCache data for each entry in the content table. It also fixes a small bug in the usage query.
 
-      Note: This version is for Umbraco 8. Please use the latest 1.x version for Umbraco 7 sites.
+      Note: This version is for Umbraco 8.3 and above. Please use the latest 1.x version for Umbraco 7 sites.
     </releaseNotes>
     <summary>
       God Mode is a custom Umbraco 8 tree aimed at developers to make it easy to locate, search and query your Umbraco 8 assets (doctypes, templates, property editors, media, content, members, controllers, models etc)
@@ -47,7 +47,7 @@
     <tags>godmode god mode umbraco umbraco8 developer backoffice</tags>
     <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
     <dependencies>
-      <dependency id="UmbracoCms.Core" version="8.1.0" />
+      <dependency id="UmbracoCms.Core" version="8.3.0" />
     </dependencies>
   </metadata>
 </package>

@@ -3,13 +3,13 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>2.1.0</version>
+      <version>2.3.0</version>
       <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>https://github.com/DanDiplo/Umbraco.GodMode/</url>
       <requirements type="Strict">
         <major>8</major>
-        <minor>1</minor>
+        <minor>3</minor>
         <patch>0</patch>
       </requirements>
     </package>
@@ -23,8 +23,7 @@
       <![CDATA[
             Diplo God Mode makes Umbraco developers invincible! This custom tree in the Settings section of Umbraco 8 allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
             
-      This release enables infinite editors for (almost) all links. This means when clicking a link to, say, view a doctype it opens in Umbraco's own infinite editor overlay. It also adds a Utilities feature to bump
-      the Client Dependency version. Both these amazing contributions are the fantastic work of Søren Kottal (@skttl). #H5YR!
+      This release (2.3.0) enables filtering by element type and the culture. It also enables viewing the raw nuCache data for each entry in the content table. It also fixes a small bug in the usage query.
 ]]>
     </readme>
   </info>
