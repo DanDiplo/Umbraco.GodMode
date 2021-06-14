@@ -28,26 +28,30 @@ namespace Diplo.GodMode.Models
         public Guid GuidType { get; set; }
 
         /// <summary>
-        /// Gets a short "code" indicating the member type
+        /// Gets a short "code" indicating the type
         /// </summary>
         public string Type
         {
             get
             {
-                if (this.GuidType == Constants.ObjectTypes.DocumentType)
+                if (this.GuidType == Constants.ObjectTypes.Document)
                 {
                     return "Content";
                 }
-                else if (this.GuidType == Constants.ObjectTypes.MediaType)
+                else if (this.GuidType == Constants.ObjectTypes.Media)
                 {
                     return "Media";
                 }
-                else if (this.GuidType == Constants.ObjectTypes.MemberType)
+                else if (this.GuidType == Constants.ObjectTypes.Member)
                 {
-                    return "Members";
+                    return "Member";
+                }
+                else if (this.GuidType == Constants.ObjectTypes.ContentItem)
+                {
+                    return "Content";
                 }
 
-                return string.Empty;
+                return "Not Set";
             }
         }
     }
