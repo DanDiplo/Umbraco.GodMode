@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.ReflectionBrowser.Controller",
         function ($routeParams, navigationService, godModeResources, godModeConfig) {
 
-            var vm = this;
+            const vm = this;
             vm.isLoading = true;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
@@ -16,8 +16,6 @@
             vm.triStateOptions = godModeResources.getTriStateOptions();
             vm.search.isUmbraco = vm.triStateOptions[0];
             vm.heading = "";
-
-            var id = $routeParams.id;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, "reflectionTree", $routeParams.method + $routeParams.id], forceReload: false });
 

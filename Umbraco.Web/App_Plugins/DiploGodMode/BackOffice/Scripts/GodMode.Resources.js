@@ -180,6 +180,14 @@
                     { label: 'Yes', value: true },
                     { label: 'No', value: false },
                 ];
+            },
+            getNuCacheItem: function (id) {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetNuCacheItem",
+                        {
+                            params: { id: id }
+                        })
+                );
             }
         };
     });

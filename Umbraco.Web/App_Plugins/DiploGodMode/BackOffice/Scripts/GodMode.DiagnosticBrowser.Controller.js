@@ -32,7 +32,7 @@
             vm.init();
 
             vm.selectGroup = function (group) {
-                var selectedGroup = vm.diagnostics.filter(function (g) {
+                let selectedGroup = vm.diagnostics.filter(function (g) {
                     return g.Id === group.Id;
                 });
 

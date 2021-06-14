@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.MediaBrowser.Controller",
         function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
-            var vm = this;
+            const vm = this;
             vm.isLoading = true;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
@@ -31,8 +31,8 @@
             vm.sortBy = function (column) {
                 vm.sort.column = column;
                 vm.sort.reverse = !vm.sort.reverse;
-                var orderBy = vm.sort.column;
-                var orderByDir = vm.sort.reverse ? "DESC" : "ASC";
+                let orderBy = vm.sort.column;
+                let orderByDir = vm.sort.reverse ? "DESC" : "ASC";
 
                 vm.fetchContent(orderBy, orderByDir);
             };

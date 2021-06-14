@@ -28,5 +28,7 @@ namespace Diplo.GodMode.Services.Interfaces
         IEnumerable<ServerModel> GetRegistredServers();
 
         IEnumerable<UmbracoKeyValue> GetKeyValues();
+
+        NuCacheItem GetNuCacheItem(int id);
     }
 }

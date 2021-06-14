@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.MemberBrowser.Controller",
         function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
-            var vm = this;
+            const vm = this;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -12,6 +12,7 @@
                 group: { Name: null, Id: null },
                 search: null
             };
+
             vm.page = {};
             vm.currentPage = 1;
             vm.itemsPerPage = 15;
@@ -21,7 +22,7 @@
 
             vm.fetchMembers = function (orderBy) {
                 vm.isLoading = true;
-                var groupId = vm.criteria.group !== null ? vm.criteria.group.Id : null;
+                let groupId = vm.criteria.group !== null ? vm.criteria.group.Id : null;
 
                 godModeResources.getMembersPaged(vm.currentPage, vm.itemsPerPage, groupId, vm.criteria.search, orderBy).then(function (data) {
                     vm.page = data;
@@ -33,7 +34,7 @@
             vm.sortBy = function (column) {
                 vm.sort.column = column;
                 vm.sort.reverse = !vm.sort.reverse;
-                var orderBy = vm.sort.column;
+                let orderBy = vm.sort.column;
 
                 if (orderBy) {
                     orderBy = vm.sort.reverse ? orderBy + " DESC" : orderBy + " ASC";

@@ -5,7 +5,7 @@
 
             navigationService.syncTree({ tree: $routeParams.tree, path: ["reflectionTree"], forceReload: false });
 
-            var vm = this;
+            const vm = this;
             vm.config = godModeConfig.config;
 
             vm.pages = [

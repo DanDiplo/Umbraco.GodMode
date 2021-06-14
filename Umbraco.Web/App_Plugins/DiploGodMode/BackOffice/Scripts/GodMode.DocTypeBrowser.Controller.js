@@ -1,9 +1,12 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.DocTypeBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService, $scope) {
 
-            var vm = this;
+            const vm = this;
+            const infiniteMode = $scope.model && $scope.model.infiniteMode;
+            const param = infiniteMode ? $scope.model.id : null;
+
             vm.contentTypes = [];
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
@@ -11,17 +14,20 @@
             vm.config = godModeConfig.config;
             vm.search = {};
             vm.search.includeInherited = true;
-            var param = $routeParams.id;
+
             vm.triStateOptions = godModeResources.getTriStateOptions();
+            vm.variations = ["Any", "Nothing", "Culture", "Segment", "CultureAndSegment"];
 
             vm.search.hasTemplate = vm.triStateOptions[0];
             vm.search.isListView = vm.triStateOptions[0];
             vm.search.allowedAtRoot = vm.triStateOptions[0];
             vm.search.hasCompositions = vm.triStateOptions[0];
+            vm.search.isElement = vm.triStateOptions[0];
+            vm.search.variesBy = vm.variations[0];
 
-            var init = function () {
+            const init = function () {
                 vm.isLoading = true;
-                var openContentTypes = vm.contentTypes.filter(function (ct) { return ct.IsOpen; }).map(function (ct) { return ct.Id; });
+                const openContentTypes = vm.contentTypes.filter(function (ct) { return ct.IsOpen; }).map(function (ct) { return ct.Id; });
 
                 godModeResources.getContentTypeMap().then(function (data) {
                     vm.contentTypes = data;
@@ -85,6 +91,14 @@
                     return;
                 }
 
+                if (!ct.IsElement === vm.search.isElement.value) {
+                    return;
+                }
+
+                if (vm.search.variesBy !== "Any" && ct.VariesBy !== vm.search.variesBy) {
+                    return;
+                }
+
                 if (vm.search.propertyGroup && ct.PropertyGroups.indexOf(vm.search.propertyGroup) === -1) {
                     return;
                 }
@@ -96,7 +110,7 @@
                 }
 
                 if (vm.search.property) {
-                    var props = vm.search.includeInherited ? ct.AllProperties : ct.Properties;
+                    const props = vm.search.includeInherited ? ct.AllProperties : ct.Properties;
 
                     if (!props.some(function (elem) {
                         return elem.Name.toLowerCase().indexOf(vm.search.property.toLowerCase()) > -1 || elem.Alias.toLowerCase().indexOf(vm.search.property.toLowerCase()) > -1;

@@ -47,7 +47,7 @@ namespace Diplo.GodMode.Models
                     return "Members";
                 }
 
-                return "";
+                return string.Empty;
             }
         }
     }

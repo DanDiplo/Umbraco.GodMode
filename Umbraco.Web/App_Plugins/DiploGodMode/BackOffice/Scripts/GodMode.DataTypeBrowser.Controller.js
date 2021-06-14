@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.DataTypeBrowser.Controller",
         function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
-            var vm = this;
+            const vm = this;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -16,13 +16,14 @@
             vm.triStateOptions = godModeResources.getTriStateOptions();
             vm.search.isUsed = vm.triStateOptions[0];
 
-            var init = function () {
+            const init = function () {
                 vm.isLoading = true;
                 godModeResources.getDataTypesStatus().then(function (data) {
                     vm.dataTypes = data;
                     vm.isLoading = false;
                 });
             };
+
             init();
 
             vm.reload = function () { init(); };

@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.UtilityBrowser.Controller",
         function ($routeParams, $http, navigationService, notificationsService, godModeResources, godModeConfig) {
 
-            var vm = this;
+            const vm = this;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -64,7 +64,7 @@
                     vm.warmup.url = "[waiting...]";
 
                     if (!response) {
-                        console.log("Error fetching URLs....");
+                        console.log("Eeek! Error fetching URLs....");
                     }
 
                     vm.warmup.count = response.length;

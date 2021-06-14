@@ -1,5 +1,5 @@
 ﻿{
-  javascript: [
+  "javascript": [
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.Config.js",
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.Resources.js",
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.ContentBrowser.Controller.js",
@@ -15,9 +15,10 @@
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.UtilityBrowser.Controller.js",
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.UsageBrowser.Controller.js",
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.Intro.Controller.js",
-    "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.TypesIntro.Controller.js"
+    "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.TypesIntro.Controller.js",
+    "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.nuCacheViewer.Controller.js"
   ],
-	css: [
+	"css": [
 		"~/App_Plugins/DiploGodMode/BackOffice/Css/godMode.css"
 	]
 }

@@ -325,8 +325,7 @@ namespace Diplo.GodMode.Controllers
                 var node = xmlDocument.SelectSingleNode("//clientDependency/@version");
                 if (node != null)
                 {
-                    int version;
-                    if (int.TryParse(node.Value, out version))
+                    if (int.TryParse(node.Value, out int version))
                     {
                         node.Value = (version + 1).ToString();
                     }
@@ -354,6 +353,12 @@ namespace Diplo.GodMode.Controllers
         {
             return this.dataBaseService.GetMemberGroups();
         }
+
+        public NuCacheItem GetNuCacheItem(int id)
+        {
+            return this.dataBaseService.GetNuCacheItem(id);
+        }
+
 
         private ServerResponse ClearCacheFor(string cache)
         {

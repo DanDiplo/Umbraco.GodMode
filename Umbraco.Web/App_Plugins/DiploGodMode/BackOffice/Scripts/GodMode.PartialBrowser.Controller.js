@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.PartialBrowser.Controller",
         function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
-            var vm = this;
+            const vm = this;
             vm.templates = [];
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });

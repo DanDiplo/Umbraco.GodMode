@@ -4,7 +4,7 @@
         .constant("godModeConfig", {
             "baseApiUrl": "BackOffice/Api/GodModeApi/",
             "config": {
-                "version": "2.0.0",
+                "version": "2.3.0",
                 "editTemplateUrl": "#/settings/templates/edit/",
                 "editDataTypeUrl": "#/settings/datatypes/edit/",
                 "editDocTypeUrl": "#settings/documentTypes/edit/",
@@ -59,8 +59,8 @@
                 require: 'ngModel',
                 link: function (scope, element, attrs, control) {
 
-                    var wrapper = angular.element('<div>');
-                    var button = angular.element('<div>').addClass('close-button');
+                    let wrapper = angular.element('<div>');
+                    let button = angular.element('<div>').addClass('close-button');
 
                     button.bind('click', function () {
                         control.$setViewValue('');
@@ -78,8 +78,8 @@
                 if (!bytes) return "N/A";
                 if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
                 if (typeof precision === 'undefined') precision = 1;
-                var units = ['bytes', 'KB', 'MB', 'GB'];
-                var number = Math.floor(Math.log(bytes) / Math.log(1024));
+                const units = ['bytes', 'KB', 'MB', 'GB'];
+                let number = Math.floor(Math.log(bytes) / Math.log(1024));
                 return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) + ' ' + units[number];
             };
         })
@@ -92,9 +92,9 @@
                 }
 
                 if ((filterOn || angular.isUndefined(filterOn)) && angular.isArray(items)) {
-                    var hashCheck = {}, newItems = [];
+                    let hashCheck = {}, newItems = [];
 
-                    var extractValueToCompare = function (item) {
+                    const extractValueToCompare = function (item) {
                         if (angular.isObject(item) && angular.isString(filterOn)) {
                             return item[filterOn];
                         } else {
@@ -103,9 +103,9 @@
                     };
 
                     angular.forEach(items, function (item) {
-                        var valueToCheck, isDuplicate = false;
+                        let valueToCheck, isDuplicate = false;
 
-                        for (var i = 0; i < newItems.length; i++) {
+                        for (let i = 0; i < newItems.length; i++) {
                             if (angular.equals(extractValueToCompare(newItems[i]), extractValueToCompare(item))) {
                                 isDuplicate = true;
                                 break;

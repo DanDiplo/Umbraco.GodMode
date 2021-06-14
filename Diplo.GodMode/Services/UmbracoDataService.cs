@@ -7,7 +7,6 @@ using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using NPoco;
 using Umbraco.Core;
-using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Persistence.Querying;
@@ -22,25 +21,21 @@ namespace Diplo.GodMode.Services
     /// <remarks>Really needs breaking down into smaller classes!</remarks>
     public class UmbracoDataService : IUmbracoDataService
     {
-        private readonly IContentService contentService;
         private readonly IContentTypeService contentTypeService;
         private readonly IDataTypeService dataTypeService;
         private readonly IMediaTypeService mediaTypeService;
         private readonly IFileService fileService;
         private readonly IMediaService mediaService;
         private readonly IScopeProvider scopeProvider;
-        private readonly ILogger logger;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ILogger logger)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService)
         {
-            this.contentService = contentService;
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
             this.mediaTypeService = mediaTypeService;
             this.fileService = fileService;
             this.mediaService = mediaService;
             this.scopeProvider = scopeProvider;
-            this.logger = logger;
         }
 
         /// <summary>
@@ -62,6 +57,11 @@ namespace Diplo.GodMode.Services
                     Id = ct.Id,
                     Udi = ct.GetUdi().Guid,
                     Description = ct.Description,
+                    VariesBy = ct.Variations.ToString(),
+                    IsListView = ct.IsContainer,
+                    IsElement = ct.IsElement,
+                    AllowedAtRoot = ct.AllowedAsRoot,
+                    VariesByCulture = ct.VariesByCulture(),
                     Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
                     Select(x => new TemplateMap()
                     {
@@ -87,8 +87,6 @@ namespace Diplo.GodMode.Services
                 map.AllProperties = map.Properties.Concat(map.CompositionProperties ?? Enumerable.Empty<PropertyTypeMap>());
                 map.HasCompositions = ct.ContentTypeComposition != null && ct.ContentTypeComposition.Any();
                 map.HasTemplates = ct.AllowedTemplates != null && ct.AllowedTemplates.Any();
-                map.IsListView = ct.IsContainer;
-                map.AllowedAtRoot = ct.AllowedAsRoot;
                 map.PropertyGroups = ct.PropertyGroups != null ? ct.PropertyGroups.Select(x => x.Name) : Enumerable.Empty<string>();
 
                 mapping.Add(map);
@@ -96,8 +94,6 @@ namespace Diplo.GodMode.Services
 
             return mapping;
         }
-
-
 
         /// <summary>
         /// Gets all property groups
@@ -147,7 +143,6 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<DataTypeMap> GetDataTypesStatus()
         {
-
             var dataTypes = this.dataTypeService.GetAll().ToList();
             var contentTypes = this.contentTypeService.GetAll();
             var mediaTypes = this.mediaTypeService.GetAll();
@@ -179,7 +174,6 @@ namespace Diplo.GodMode.Services
             {
                 var model = new TemplateModel(template)
                 {
-
                     IsMaster = template.IsMasterTemplate,
                     MasterAlias = template.MasterTemplateAlias,
                     Partials = PartialHelper.GetPartialInfo(template.Content, template.Id, template.Alias),
@@ -201,7 +195,7 @@ namespace Diplo.GodMode.Services
         {
             string tempExt;
 
-            IQuery<IMedia> criteria = new Query<IMedia>(scopeProvider.SqlContext);
+            IQuery<IMedia> criteria = new Query<IMedia>(this.scopeProvider.SqlContext);
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -242,7 +236,6 @@ namespace Diplo.GodMode.Services
                 TotalItems = totalRecords,
                 TotalPages = totalRecords / pageSize
             };
-
 
             return paged;
         }

@@ -2,7 +2,7 @@
     'use strict';
     angular.module("umbraco").controller("GodMode.TypeBrowser.Controller",
         function ($routeParams, navigationService, godModeResources, godModeConfig) {
-            var vm = this;
+            const vm = this;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, "reflectionTree", "typeBrowser"], forceReload: false });
 

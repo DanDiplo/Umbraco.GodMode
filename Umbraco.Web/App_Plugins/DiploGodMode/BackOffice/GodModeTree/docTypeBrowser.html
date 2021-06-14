@@ -56,6 +56,25 @@
 
                     <div class="row">
                         <div class="span4">
+                            <label class="control-label" for="search-isElement">Element Type?</label>
+                            <br />
+                            <select id="search-isElement" ng-model="vm.search.isElement" ng-options="opt.label for opt in vm.triStateOptions" class="input-large"></select>
+                        </div>
+                        <div class="span4">
+                            <label class="control-label" for="search-variesBy">Varies By:</label>
+                            <br />
+                            <select id="search-variesBy" ng-model="vm.search.variesBy" ng-options="item for item in vm.variations" class="input-large">
+                            </select>
+                        </div>
+                        <div class="span4">
+                            <label class="control-label" for="search-listView">List View?</label>
+                            <br />
+                            <select id="search-listView" ng-model="vm.search.isListView" ng-options="opt.label for opt in vm.triStateOptions" class="input-large"></select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="span4">
                             <label class="control-label" for="search-doctypes">Search document types</label>
                             <br />
                             <div class="input-prepend">
@@ -98,9 +117,13 @@
                 <umb-box>
                     <div class="umb-box-header box-opener flex">
                         <div class="span12" ng-click="ct.IsOpen = !ct.IsOpen">
-                            <h4><i class="{{ ct.Icon }}"></i>&nbsp;{{ ct.Name }} <small>({{ ct.Alias }})</small></h4>
+                            <h4>
+                                <i class="{{ ct.Icon }}"></i>&nbsp;{{ ct.Name }} <small>({{ ct.Alias }})</small>
+                                <small ng-show="ct.IsElement"><i class="icon icon-box color-blue"></i> Element</small>
+                                <small ng-show="ct.VariesBy !== 'Nothing'"><i class="icon icon-shuffle color-blue-grey"></i> Varies by {{ct.VariesBy}}</small>
+                            </h4>
                         </div>
-                        <div class="">
+                        <div>
                             <button type="button" ng-click="vm.openContentType(ct.Id)" title="Edit {{ ct.Name }} doctype" aria-label="Edit {{ct.Name}}" class="btn btn-action">Edit</button>
                         </div>
                     </div>
@@ -138,9 +161,10 @@
                             <caption><h5>Native Properties</h5></caption>
                             <thead>
                                 <tr>
-                                    <th width="34%">Name</th>
-                                    <th width="33%">Alias</th>
-                                    <th width="33%">Editor</th>
+                                    <th width="40%">Name</th>
+                                    <th width="20%">Alias</th>
+                                    <th width="20%">Editor</th>
+                                    <th width="20%">Varies By</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -148,17 +172,19 @@
                                     <td title="{{ prop.Description }}">{{ prop.Name }}</td>
                                     <td>{{ prop.Alias }}</td>
                                     <td><button type="button" ng-click="vm.openDataType(prop.EditorId)" title="Edit">{{ prop.EditorAlias }}</button></td>
+                                    <td>{{ prop.VariesBy }}</td>
                                 </tr>
                             </tbody>
                         </table>
 
                         <table class="table" ng-show="ct.CompositionProperties.length > 0">
-                            <caption><h5>Inherited Properties</h5></caption>
+                            <caption><h5><i class="icon-merge color-grey"></i> Inherited Properties</h5></caption>
                             <thead>
                                 <tr>
-                                    <th width="34%">Name</th>
-                                    <th width="33%">Alias</th>
-                                    <th width="33%">Editor</th>
+                                    <th width="40%">Name</th>
+                                    <th width="20%">Alias</th>
+                                    <th width="20%">Editor</th>
+                                    <th width="20%">Varies By</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -166,12 +192,13 @@
                                     <td title="{{ prop.Description }}">{{ prop.Name }}</td>
                                     <td>{{ prop.Alias }}</td>
                                     <td><button type="button" ng-click="vm.openDataType(prop.EditorId)" title="Edit">{{ prop.EditorAlias }}</button></td>
+                                    <td>{{ prop.VariesBy }}</td>
                                 </tr>
                             </tbody>
                         </table>
 
                         <table class="table" ng-show="ct.Compositions.length">
-                            <caption><h5>Composed Of</h5></caption>
+                            <caption><h5><i class="icon-merge color-grey"></i> Composed Of</h5></caption>
                             <thead>
                                 <tr>
                                     <th width="34%">Name</th>

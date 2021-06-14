@@ -15,16 +15,18 @@ namespace Diplo.GodMode.Models
         /// <summary>
         /// Instantiates a property type map from an Umbraco property type
         /// </summary>
-        /// <param name="ct"></param>
-        public PropertyTypeMap(PropertyType ct)
+        /// <param name="pt">The Umbraco property type</param>
+        public PropertyTypeMap(PropertyType pt)
         {
-            this.Alias = ct.Alias;
-            this.Description = ct.Description;
-            this.EditorAlias = ct.PropertyEditorAlias;
-            this.EditorId = ct.DataTypeId;
-            this.Id = ct.Id;
-            this.Name = ct.Name;
-            this.Description = ct.Description;
+            this.Alias = pt.Alias;
+            this.Description = pt.Description;
+            this.EditorAlias = pt.PropertyEditorAlias;
+            this.EditorId = pt.DataTypeId;
+            this.Id = pt.Id;
+            this.Name = pt.Name;
+            this.Description = pt.Description;
+            this.VariesBy = pt.Variations.ToString();
+            this.SupportsPublishing = pt.SupportsPublishing;
         }
 
         public string EditorAlias { get; set; }
@@ -32,5 +34,9 @@ namespace Diplo.GodMode.Models
         public string Description { get; set; }
 
         public int EditorId { get; set; }
+
+        public string VariesBy { get; set; }
+
+        public bool SupportsPublishing { get; set; }
     }
 }

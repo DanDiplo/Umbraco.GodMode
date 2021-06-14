@@ -3,3 +3,5 @@ To Build:
 Run build.bat in BuildPackage from command line.
 
 See the readme in there for more details.
+
+Note: Due to ancient nature of these build tools it requires the .NET Framework 3.5 installed

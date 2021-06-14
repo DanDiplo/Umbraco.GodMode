@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Umbraco.Core.Models;
 
 namespace Diplo.GodMode.Models
 {
@@ -24,5 +25,11 @@ namespace Diplo.GodMode.Models
         public bool AllowedAtRoot { get; set; }
 
         public bool IsComposition { get; set; }
+
+        public bool IsElement { get; set; }
+
+        public string VariesBy { get; set; }
+
+        public bool VariesByCulture { get; set; }
     }
 }

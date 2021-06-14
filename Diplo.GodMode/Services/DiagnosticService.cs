@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -50,17 +49,17 @@ namespace Diplo.GodMode.Services
             var sections = new List<DiagnosticSection>();
 
             var section = new DiagnosticSection("Umbraco Version");
-            section.Diagnostics.Add(new Diagnostic("Version", runtimeState.Version));
-            section.Diagnostics.Add(new Diagnostic("Semantic Version", runtimeState.SemanticVersion.ToSemanticString()));
-            section.Diagnostics.Add(new Diagnostic("Application URL", runtimeState.ApplicationUrl.ToString()));
-            section.Diagnostics.Add(new Diagnostic("Application Virtual Path", runtimeState.ApplicationVirtualPath));
-            section.Diagnostics.Add(new Diagnostic("Debug?", runtimeState.Debug));
-            section.Diagnostics.Add(new Diagnostic("Is Main Dom?", runtimeState.IsMainDom));
-            section.Diagnostics.Add(new Diagnostic("Runtime Level", runtimeState.Level));
-            section.Diagnostics.Add(new Diagnostic("Runtime Reason", runtimeState.Reason));
-            section.Diagnostics.Add(new Diagnostic("Server Role", runtimeState.ServerRole));
-            section.Diagnostics.Add(new Diagnostic("Current Migration State", runtimeState.CurrentMigrationState));
-            section.Diagnostics.Add(new Diagnostic("Final Migration State", runtimeState.FinalMigrationState));
+            section.Diagnostics.Add(new Diagnostic("Version", this.runtimeState.Version));
+            section.Diagnostics.Add(new Diagnostic("Semantic Version", this.runtimeState.SemanticVersion.ToSemanticString()));
+            section.Diagnostics.Add(new Diagnostic("Application URL", this.runtimeState.ApplicationUrl.ToString()));
+            section.Diagnostics.Add(new Diagnostic("Application Virtual Path", this.runtimeState.ApplicationVirtualPath));
+            section.Diagnostics.Add(new Diagnostic("Debug?", this.runtimeState.Debug));
+            section.Diagnostics.Add(new Diagnostic("Is Main Dom?", this.runtimeState.IsMainDom));
+            section.Diagnostics.Add(new Diagnostic("Runtime Level", this.runtimeState.Level));
+            section.Diagnostics.Add(new Diagnostic("Runtime Reason", this.runtimeState.Reason));
+            section.Diagnostics.Add(new Diagnostic("Server Role", this.runtimeState.ServerRole));
+            section.Diagnostics.Add(new Diagnostic("Current Migration State", this.runtimeState.CurrentMigrationState));
+            section.Diagnostics.Add(new Diagnostic("Final Migration State", this.runtimeState.FinalMigrationState));
 
             sections.Add(section);
 
@@ -89,9 +88,9 @@ namespace Diplo.GodMode.Services
             sections.Add(section);
 
             section = new DiagnosticSection("Media File System");
-            section.Diagnostics.Add(new Diagnostic("Type", mediaFileSystem.GetType()));
-            section.Diagnostics.Add(new Diagnostic("Can Add Physical?", mediaFileSystem.CanAddPhysical));
-            section.Diagnostics.Add(new Diagnostic("Full Root Path", mediaFileSystem.GetFullPath("~/")));
+            section.Diagnostics.Add(new Diagnostic("Type", this.mediaFileSystem.GetType()));
+            section.Diagnostics.Add(new Diagnostic("Can Add Physical?", this.mediaFileSystem.CanAddPhysical));
+            section.Diagnostics.Add(new Diagnostic("Full Root Path", this.mediaFileSystem.GetFullPath("~/")));
             sections.Add(section);
 
             group.Add(sections);
@@ -121,7 +120,7 @@ namespace Diplo.GodMode.Services
 
             try
             {
-                IEnumerable<ServerModel> servers = databaseService.GetRegistredServers();
+                IEnumerable<ServerModel> servers = this.databaseService.GetRegistredServers();
 
                 if (servers != null && servers.Any())
                 {
@@ -142,7 +141,7 @@ namespace Diplo.GodMode.Services
 
             try
             {
-                IEnumerable<UmbracoKeyValue> migrations = databaseService.GetKeyValues();
+                IEnumerable<UmbracoKeyValue> migrations = this.databaseService.GetKeyValues();
 
                 if (migrations != null && migrations.Any())
                 {
@@ -175,9 +174,9 @@ namespace Diplo.GodMode.Services
             section.Diagnostics.Add(new Diagnostic("Network Domain", Environment.UserDomainName));
             section.Diagnostics.Add(new Diagnostic("ASP.NET Version", Environment.Version));
 
-            if (httpContext != null && httpContext.Request != null)
+            if (this.httpContext != null && this.httpContext.Request != null)
             {
-                HttpRequestBase request = httpContext.Request;
+                HttpRequestBase request = this.httpContext.Request;
 
                 if (request != null)
                 {
@@ -236,10 +235,10 @@ namespace Diplo.GodMode.Services
 
             sections.Add(section);
 
-            if (httpContext != null && httpContext.Request != null)
+            if (this.httpContext != null && this.httpContext.Request != null)
             {
                 section = new DiagnosticSection("Server Variables");
-                section.AddDiagnostics(httpContext.Request.ServerVariables, true, key => !ServerVarsToSkip.Contains(key));
+                section.AddDiagnostics(this.httpContext.Request.ServerVariables, true, key => !ServerVarsToSkip.Contains(key));
             }
 
             sections.Add(section);

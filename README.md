@@ -8,16 +8,17 @@ For instance, you can:
 * Quickly search doc types, templates, editors, media etc.
 * Easily see which doc types inherit from any of your compositions
 * See which document types use which property editor or data type instance
+* Distinguish between element types and types that vary by culture or segment
 * See which partials are used by all your templates (and which are cached)
 * Find out which data types are being used (or not)
-* View all content pages in a searchable and filterable table (using fast, server-side pagination)
+* View all content pages in a searchable and filterable table (using fast, server-side pagination) and view nuCache data
 * View all Umbraco members and filter them by assigned group
 * Browse all media in the Media Library and filter by type
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from `PublishedContentModel`)
 * Clear internal Umbraco caches and even restart App Pool
 * View diagnostics and configuration settings about your Umbraco site and hosting environment
-* Warm up compilation of all templates ("views") in one bound... erm, click.
+* Warm up compilation of all templates ("views") in a single bound... erm, click.
 * Plus lots more!
 
 ## Screenshots
@@ -34,7 +35,7 @@ For instance, you can:
 
 ## Download & Installation
 
-***Important!**: This is for Umbraco 8.1 and above. Use the 1.x version in the v7 branch for Umbraco 7. For more info on the v7 version please [read this post](https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/).
+***Important!**: This is for Umbraco 8.1 and above (latest version is 8.3.0). Use the 1.x version in the v7 branch for Umbraco 7. For more info on the v7 version please [read this post](https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/).
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
@@ -49,3 +50,8 @@ After installation you should see an new **God Mode** tree in the **Settings** (
 If you have any issues with this then try restarting your site and bumping the `ClientDependency.config` version in the `/config/` folder of your Umbraco installation. Clearing your browser cache can also help with cached script files. Check your browser developer console for issues.
 
 Further information can be found in [this blog post](https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/).
+
+### Building
+
+See the `Build.txt` document for information on building. It uses some community MS Build packages to help make both the Umbraco package and NuGet package.
+Because some of these are rather old now it requires you have .NET Framework 3.5 installed (if you know how to fix this, let me know!).

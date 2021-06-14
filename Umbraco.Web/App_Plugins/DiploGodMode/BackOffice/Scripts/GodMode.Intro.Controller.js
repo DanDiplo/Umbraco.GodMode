@@ -3,7 +3,7 @@
     angular.module("umbraco").controller("GodMode.Intro.Controller",
         function ($routeParams, navigationService, godModeConfig) {
 
-            var vm = this;
+            const vm = this;
             vm.config = godModeConfig.config;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [], forceReload: false });

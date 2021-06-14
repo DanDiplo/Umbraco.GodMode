@@ -101,5 +101,22 @@
                 };
                 editorService.contentEditor(editor);
             };
+
+
+            vm.openNuCacheViewer = function (id) {
+                const editor = {
+                    view: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/nuCacheViewer.html",
+                    id: id,
+                    submit: function () {
+                        vm.fetchContent();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
+            };
+
         });
 })();

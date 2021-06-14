@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using NPoco;
@@ -10,6 +11,9 @@ using Umbraco.Web;
 
 namespace Diplo.GodMode.Services
 {
+    /// <summary>
+    /// Used to get data directly from the Umbraco database
+    /// </summary>
     public class UmbracoDatabaseService : IUmbracoDatabaseService
     {
         private readonly IScopeProvider scopeProvider;
@@ -50,8 +54,7 @@ namespace Diplo.GodMode.Services
         {
             var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name,  
                 N.createDate, Creator.Id AS CreatorId, Creator.userName as CreatorName,
-                V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName,
-				(SELECT COUNT(languageId) FROM umbracoDocumentCultureVariation CV WHERE CV.nodeId = N.id) as LanguageCount
+                V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName
                 FROM umbracoContent C
                 INNER JOIN umbracoNode N ON N.Id = C.nodeId
                 INNER JOIN cmsContentType CT ON C.contentTypeId = CT.nodeId
@@ -77,8 +80,10 @@ namespace Diplo.GodMode.Services
 
                 if (!string.IsNullOrEmpty(criteria.Id))
                 {
-                    int.TryParse(criteria.Id, out int criteriaId);
-                    query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
+                    if (int.TryParse(criteria.Id, out int criteriaId))
+                    {
+                        query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
+                    }
                 }
 
                 if (criteria.Level.HasValue)
@@ -99,11 +104,6 @@ namespace Diplo.GodMode.Services
                 if (criteria.UpdaterId.HasValue)
                 {
                     query = query.Append(" AND Updater.Id = @0", criteria.UpdaterId.Value);
-                }
-
-                if (criteria.LanguageId.HasValue)
-                {
-                    query = query.Append(" AND @0 IN (SELECT languageId FROM umbracoDocumentCultureVariation CV WHERE CV.nodeId = N.id)", criteria.LanguageId.Value);
                 }
             }
 
@@ -134,6 +134,7 @@ namespace Diplo.GodMode.Services
         /// </summary>
         /// <remarks>
         /// This is used so we can ping each URL to "warm-up" the compilation of the view it uses
+        /// Note: It doesn't work with SQL-CE
         /// </remarks>
         /// <returns>A list of URLs</returns>
         public IEnumerable<string> GetTemplateUrlsToPing()
@@ -154,7 +155,14 @@ namespace Diplo.GodMode.Services
 
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
-                ids = scope.Database.Fetch<int>(query);
+                try
+                {
+                    ids = scope.Database.Fetch<int>(query);
+                }
+                catch (Exception ex)
+                {
+                    throw new NotSupportedException("Sorry, this operation is only supported when using SQL Server", ex);
+                }
             }
 
             foreach (var id in ids)
@@ -163,7 +171,7 @@ namespace Diplo.GodMode.Services
 
                 try
                 {
-                    node = umbHelper.Content(id);
+                    node = this.umbHelper.Content(id);
                 }
                 catch
                 {
@@ -201,7 +209,7 @@ namespace Diplo.GodMode.Services
             const string sql = @"SELECT COUNT(N.id) as NodeCount, CT.description as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
             FROM cmsContentType CT
             LEFT JOIN umbracoContent C ON C.contentTypeId = CT.nodeId
-            LEFT JOIN umbracoNode N ON CT.nodeId = N.id  ";
+            LEFT JOIN umbracoNode N ON C.nodeId = N.id  ";
 
             var query = new Sql(sql);
 
@@ -273,10 +281,7 @@ namespace Diplo.GodMode.Services
             }
         }
 
-        public DatabaseType GetDatabaseType()
-        {
-            return this.scopeProvider.SqlContext.DatabaseType;
-        }
+        public DatabaseType GetDatabaseType() => this.scopeProvider.SqlContext.DatabaseType;
 
         public IEnumerable<ServerModel> GetRegistredServers()
         {
@@ -309,5 +314,20 @@ namespace Diplo.GodMode.Services
 
             return null;
         }
+
+        /// <summary>
+        /// Gets a single nu cache item by Node Id
+        /// </summary>
+        /// <param name="id">The node Id</param>
+        public NuCacheItem GetNuCacheItem(int id)
+        {
+            Sql query = new Sql("SELECT nodeId as Id, data as Data, text as Title, createDate as CreateDate FROM cmsContentNu Nu INNER JOIN umbracoNode N on Nu.nodeId = N.id WHERE Nu.published = 1 AND NodeId = @0", id);
+
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.Single<NuCacheItem>(query);
+            }
+        }
+
     }
 }
