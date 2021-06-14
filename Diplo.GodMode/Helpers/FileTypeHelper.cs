@@ -81,7 +81,6 @@ namespace Diplo.GodMode.Helpers
             { "bmp", "Bitmap Image" },
             { "svg", "Vector Image" },
             { "tif", "TIF Image" },
-            { "bmp", "Bitmap Image" },
             { "mp3", "Audio" },
             { "mp4", "Video" },
             { "mov", "Video" },
