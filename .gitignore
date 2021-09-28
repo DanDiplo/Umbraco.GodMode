@@ -1,0 +1,54 @@
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+artifacts/
+
+# Visual Studio Code
+.vscode
+
+# Rider
+.idea
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Archives and temp files
++*.zip
++*.7z
++*.bak
++*.bacpac
+[Dd]ocs/*.tmp
+**/* - Copy.cshtml
+
+# Visual Studio
+.vs/
+
+umbraco
+#wwwroot/media
+wwwroot/umbraco
+/Diplo.GodMode.Testsite/App_Plugins/

@@ -1,0 +1,60 @@
+﻿<div ng-controller="GodMode.PartialBrowser.Controller as vm" class="god-mode">
+
+    <umb-editor-view footer="false">
+
+        <godmode-header heading="Partial Browser" title="Are you partial to a nice partial?" on-reload="vm.init()"></godmode-header>
+
+        <umb-editor-container>
+
+            <umb-box>
+                <umb-box-content>
+                    <div class="row">
+
+                        <div class="span4">
+                            <label class="control-label" for="search-partial">Search:</label>
+                            <br />
+                            <input id="search-partial" type="search" ng-model="vm.search.partial" placeholder="Filter partial names" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-template">In Template:</label>
+                            <br />
+                            <select id="search-template" ng-model="vm.search.template" ng-options="item.Name for item in vm.templates" class="input-large">
+                                <option value="">Any</option>
+                            </select>
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-isCached">Is Cached?</label>
+                            <br />
+                            <select id="search-isCached" ng-model="vm.search.isCached" ng-options="opt.label for opt in vm.triStateOptions" class="input-medium"></select>
+                        </div>
+
+                    </div>
+                </umb-box-content>
+            </umb-box>
+
+            <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
+
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th><godmode-sortable sort-by="vm.sortBy('Name')" column="Name" sort="vm.sort">Partial Name</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('TemplateAlias')" column="TemplateAlias" sort="vm.sort">Template Name</godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('IsCached')" column="Iscached" sort="vm.sort">Cached?</godmode-sortable></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="p in vm.partials | filter: vm.filterPartials | orderBy: vm.sort.column : vm.sort.reverse">
+                        <td><button type="button" ng-click="vm.openPartial(p.Path)" title="Edit Partial">{{ p.Name }}</button></td>
+                        <td><button type="button" ng-click="vm.openTemplate(p.TemplateId)" title="Edit Template">{{ p.TemplateAlias }}</button></td>
+                        <td><godmode-True-False value="p.IsCached"></godmode-True-False></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

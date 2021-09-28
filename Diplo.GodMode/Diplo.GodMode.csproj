@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <ContentTargetFolders>.</ContentTargetFolders>
+        <Product>Diplo.GodMode</Product>
+        <PackageId>Diplo.GodMode</PackageId>
+        <Title>Diplo.GodMode</Title>
+        <Description>...</Description>
+        <Product>...</Product>
+        <PackageTags>umbraco plugin package</PackageTags>
+        <RootNamespace>Diplo.GodMode</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Umbraco.Cms.Web.Website" Version="9.0.0" />
+        <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="App_Plugins\DiploGodMode\**\*.*">
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        </Content>
+        <None Include="build\**\*.*">
+            <Pack>True</Pack>
+            <PackagePath>buildTransitive</PackagePath>
+        </None>
+    </ItemGroup>
+</Project>
