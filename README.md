@@ -1,7 +1,7 @@
 # Umbraco GodMode
-**Diplo God Mode makes Umbraco 8 developers invincible!**
+**Diplo God Mode makes Umbraco 9 developers invincible!**
 
-This custom tree in the **Settings** section of **Umbraco 8** allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models. It also provides diagnostics about your Umbraco set-up and the server it is running on.
+This custom tree in the **Settings** section of **Umbraco 9** allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models. It also provides diagnostics about your Umbraco set-up and the server it is running on.
 
 For instance, you can:
 
@@ -29,9 +29,9 @@ For instance, you can:
 
 ### Demo
 
-**YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s
+**YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s (v7)
 
-**Blog Post:** https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/
+**Blog Post:** https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/ (v8 version)
 
 ## Download & Installation
 
