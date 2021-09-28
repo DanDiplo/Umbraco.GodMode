@@ -1,29 +1,51 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
-        <ContentTargetFolders>.</ContentTargetFolders>
-        <Product>Diplo.GodMode</Product>
-        <PackageId>Diplo.GodMode</PackageId>
-        <Title>Diplo.GodMode</Title>
-        <Description>...</Description>
-        <Product>...</Product>
-        <PackageTags>umbraco plugin package</PackageTags>
-        <RootNamespace>Diplo.GodMode</RootNamespace>
-    </PropertyGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <ContentTargetFolders>.</ContentTargetFolders>
+    <PackageId>Diplo.GodMode</PackageId>
+    <Title>Diplo.GodMode</Title>
+    <Version>9.0.0</Version>
+    <Description>Diplo God Mode makes Umbraco 9 developers invincible!</Description>
+    <Product>Diplo GodMode</Product>
+    <PackageTags>umbraco plugin package developer-tool</PackageTags>
+    <RootNamespace>Diplo.GodMode</RootNamespace>
+    <Copyright>Dan 'Diplo' Booth</Copyright>
+    <PackageProjectUrl>https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/</PackageProjectUrl>
+    <PackageIcon>GodModeIcon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/tree/v9</RepositoryUrl>
+    <Authors>DanDiplo</Authors>
+    <PackageReleaseNotes>First release for Umbraco 9</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>NuGet.md</PackageReadmeFile>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Umbraco.Cms.Web.Website" Version="9.0.0" />
-        <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="9.0.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="9.0.0" />
+    <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="9.0.0" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="App_Plugins\DiploGodMode\**\*.*">
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-            <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-        </Content>
-        <None Include="build\**\*.*">
-            <Pack>True</Pack>
-            <PackagePath>buildTransitive</PackagePath>
-        </None>
-    </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Plugins\DiploGodMode\**\*.*">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <None Include="build\**\*.*">
+      <Pack>True</Pack>
+      <PackagePath>buildTransitive</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Screenshots\Icon\GodModeIcon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="NuGet.md">
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
 </Project>
