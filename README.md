@@ -35,7 +35,7 @@ For instance, you can:
 
 ## Download & Installation
 
-***Important!**: This is for Umbraco 8.1 and above (latest version is 8.3.0). Use the 1.x version in the v7 branch for Umbraco 7. For more info on the v7 version please [read this post](https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-7-package/).
+***Important!**: This is for Umbraco 9 and above. Use v8 branch for the Umbraco 8 version or the v7 branch for the Umbraco 7 branch.
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
@@ -45,13 +45,19 @@ For instance, you can:
 
 ### Usage
 
-After installation you should see an new **God Mode** tree in the **Settings** (Third Party) section within Umbraco. 
+After installation you should see an new **God Mode** tree in the **Settings** (Third Party) section within Umbraco.
 
-If you have any issues with this then try restarting your site and bumping the `ClientDependency.config` version in the `/config/` folder of your Umbraco installation. Clearing your browser cache can also help with cached script files. Check your browser developer console for issues.
+If you don't, try clearing your browser cache.
 
-Further information can be found in [this blog post](https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/).
+### Building / Developing
 
-### Building
+The v9 repository comes with two solutions:
 
-See the `Build.txt` document for information on building. It uses some community MS Build packages to help make both the Umbraco package and NuGet package.
-Because some of these are rather old now it requires you have .NET Framework 3.5 installed (if you know how to fix this, let me know!).
+`Diplo.GodMode` - this is the GodMode plugin source code.
+`Diplo.GodMode.TestSite` - this is a demo Umbraco 9 site that can be used to view and test the plugin.
+
+**Note:** You'll need to type `dotnet restore` within the `Diplo.GodMode.TestSite` folder to restore.
+
+Once you have restored then when you build the test site it will import changes from the plugin.
+
+See the [Umbraco 9 docs on packages](https://our.umbraco.com/documentation/UmbracoNetCoreUpdates?_ga=2.99408024.785525998.1632846711-370550528.1632846711#package-development) for more info on how the test site is linked to the plugin.
