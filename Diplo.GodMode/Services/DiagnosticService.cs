@@ -81,6 +81,7 @@ namespace Diplo.GodMode.Services
             sections.Add(section);
 
             var globalSettings = factory.GetRequiredService<IOptions<GlobalSettings>>();
+
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Global Settings", globalSettings.Value, false));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Settings", databaseFactory, false));
@@ -117,9 +118,7 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("User Password Settings", passwordConfiguration.Value, false));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Messenger Settings", globalSettings.Value.DatabaseServerMessenger, false));
-
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Registrar Settings", globalSettings.Value.DatabaseServerRegistrar, false));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MemberPasswordConfigurationSettings>("Member Password Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UmbracoPluginSettings>("Plugin Settings", factory));
 
@@ -133,6 +132,18 @@ namespace Diplo.GodMode.Services
 
             var healthCheckSettings = factory.GetRequiredService<IOptions<HealthChecksSettings>>();
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Health Check Settings", healthCheckSettings.Value.Notification, false));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ContentDashboardSettings>("Content Dashboard Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ActiveDirectorySettings>("Active Directory Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ContentNotificationSettings>("Content Notification Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ExceptionFilterSettings>("Exception Filter Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<KeepAliveSettings>("Keep Alive Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<BasicAuthSettings>("Basic Auth Settings", factory));
 
             group.Add(sections);
             groups.Add(group);
@@ -174,6 +185,8 @@ namespace Diplo.GodMode.Services
             section.Diagnostics.Add(new Diagnostic("Current Thread State", System.Threading.Thread.CurrentThread.ThreadState));
 
             sections.Add(section);
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<CookieOptions>("Cookie Options", factory));
 
             section = new DiagnosticSection("Environment Variables");
             foreach (DictionaryEntry kv in Environment.GetEnvironmentVariables())
@@ -281,6 +294,10 @@ namespace Diplo.GodMode.Services
                 // deliberate
             }
 
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Messenger Settings", globalSettings.Value.DatabaseServerMessenger, false));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Registrar Settings", globalSettings.Value.DatabaseServerRegistrar, false));
+
             group.Add(sections);
             groups.Add(group);
 
@@ -298,6 +315,10 @@ namespace Diplo.GodMode.Services
                 section.Diagnostics.Add(new Diagnostic("Compatibility", mvcAssembly.GetName().VersionCompatibility));
                 sections.Add(section);
             }
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MvcOptions>("MVC Options", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MvcOptions>("MVC View Options", factory));
 
             section = new DiagnosticSection("MVC Action Filters");
             section.AddDiagnosticsFrom(typeof(IActionFilter));
