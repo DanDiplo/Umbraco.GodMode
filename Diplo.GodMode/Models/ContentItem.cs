@@ -20,6 +20,8 @@ namespace Diplo.GodMode.Models
 
         public string Name { get; set; }
 
+        public string Path { get; set; }
+
         public DateTime CreateDate { get; set; }
 
         public DateTime UpdateDate { get; set; }

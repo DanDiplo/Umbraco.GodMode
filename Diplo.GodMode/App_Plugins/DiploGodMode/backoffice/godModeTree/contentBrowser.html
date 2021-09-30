@@ -81,7 +81,7 @@
                         <td>{{ c.UpdateDate | date:'short' : 'UTC' }}</td>
                         <td>{{ c.UpdaterName }}</td>
                         <td><godmode-True-False value="c.Trashed"></godmode-True-False></td>
-                        <td><div>{{ c.Id }}</div><code>{{ c.Udi }}</code></td>
+                        <td><div>{{ c.Id }} <small class="muted">({{c.Path}})</small></div><code>{{ c.Udi }}</code></td>
                         <td ng-show="vm.nuCacheViewer"><button type="button" ng-click="vm.openNuCacheViewer(c.Id)" title="View nuCache entry"><strong>Cache</strong></button></td>
                     </tr>
                 </tbody>

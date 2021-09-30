@@ -61,8 +61,8 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of content items</returns>
         public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name,  
-                N.createDate, Creator.Id AS CreatorId, Creator.userName as CreatorName,
+            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name, 
+                N.Path as Path, N.createDate, Creator.Id AS CreatorId, Creator.userName as CreatorName,
                 V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName
                 FROM umbracoContent C
                 INNER JOIN umbracoNode N ON N.Id = C.nodeId
