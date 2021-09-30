@@ -165,7 +165,8 @@ namespace Diplo.GodMode.Services
                 Name = x.Name,
                 Alias = x.EditorAlias,
                 DbType = x.DatabaseType.ToString(),
-                IsUsed = usedIds.Contains(x.Id)
+                IsUsed = usedIds.Contains(x.Id),
+                UpdateDate = x.UpdateDate == default ? x.CreateDate : x.UpdateDate
             }).
             OrderBy(x => x.Name);
         }

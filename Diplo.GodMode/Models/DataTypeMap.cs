@@ -7,5 +7,7 @@ namespace Diplo.GodMode.Models
         public string DbType { get; set; }
 
         public bool IsUsed { get; set; }
+
+        public DateTime UpdateDate { get; set; }
     }
 }

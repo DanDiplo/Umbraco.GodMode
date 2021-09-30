@@ -53,6 +53,7 @@
                         <th><godmode-sortable sort-by="vm.sortBy('Alias')" column="Alias" sort="vm.sort">Editor Alias</godmode-sortable></th>
                         <th><godmode-sortable sort-by="vm.sortBy('DbType')" column="DbType" sort="vm.sort">Database Type</godmode-sortable></th>
                         <th><godmode-sortable sort-by="vm.sortBy('IsUsed')" column="IsUsed" sort="vm.sort">Used by DocType? </godmode-sortable></th>
+                        <th><godmode-sortable sort-by="vm.sortBy('UpdateDate')" column="UpdateDate" sort="vm.sort">Last Updated</godmode-sortable></th>
                         <th><godmode-sortable sort-by="vm.sortBy('Id')" column="Id" sort="vm.sort">Id</godmode-sortable></th>
                     </tr>
                 </thead>
@@ -62,6 +63,7 @@
                         <td><button type="button" ng-click="vm.openDocTypeBrowser(d.Alias)" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</button></td>
                         <td>{{ d.DbType }}</td>
                         <td><godmode-True-False value="d.IsUsed"></godmode-True-False></td>
+                        <td>{{ d.UpdateDate }}</td>
                         <td><div>{{ d.Id }}</div><code>{{ d.Udi }}</code></td>
                     </tr>
                 </tbody>
@@ -69,7 +71,7 @@
 
             <div ng-show="!vm.isLoading" class="alert alert-warning alert-block">
                 <h4><span class="icon icon-alert"></span> Important!</h4>
-                <p>This only checks for datatypes that are used directly by a document type. Datatypes that are nested within another datatype (eg. within Nested Content) are not discoverable via the Umbraco API.</p>
+                <p>This only checks for datatypes that are used directly by a document type. Datatypes that are nested within another datatype (eg. within Block Editor or Nested Content) are not discoverable via the Umbraco API.</p>
             </div>
    
 
