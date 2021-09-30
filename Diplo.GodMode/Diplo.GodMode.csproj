@@ -10,7 +10,7 @@
     <PackageTags>umbraco plugin package developer-tool</PackageTags>
     <RootNamespace>Diplo.GodMode</RootNamespace>
     <Copyright>Dan 'Diplo' Booth</Copyright>
-    <PackageProjectUrl>https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/</PackageProjectUrl>
+    <PackageProjectUrl>https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/</PackageProjectUrl>
     <PackageIcon>GodModeIcon.png</PackageIcon>
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/tree/v9</RepositoryUrl>
     <Authors>DanDiplo</Authors>

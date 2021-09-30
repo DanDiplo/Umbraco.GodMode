@@ -37,10 +37,11 @@ namespace Diplo.GodMode.Services
         private readonly IUmbracoDatabaseFactory databaseFactory;
         private readonly IHostingEnvironment hostingEnvironment;
         private readonly IUmbracoDatabaseService databaseService;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment;
 
         private HttpContext httpContext;
 
-        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<UserPasswordConfigurationSettings> passwordConfiguration, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment)
+        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<UserPasswordConfigurationSettings> passwordConfiguration, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment)
         {
             this.runtimeState = runtimeState;
             this.version = umbracoVersion;
@@ -52,6 +53,7 @@ namespace Diplo.GodMode.Services
             this.databaseFactory = databaseFactory;
             this.hostingEnvironment = hostingEnvironment;
             this.databaseService = databaseService;
+            this.webHostEnvironment = webHostEnvironment;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
@@ -184,6 +186,8 @@ namespace Diplo.GodMode.Services
 
             sections.Add(section);
 
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Web Host Environment", webHostEnvironment));
+
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<CookieOptions>("Cookie Options", factory));
 
             section = new DiagnosticSection("Environment Variables");
@@ -315,8 +319,8 @@ namespace Diplo.GodMode.Services
             }
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MvcOptions>("MVC Options", factory));
-
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MvcOptions>("MVC View Options", factory));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<Microsoft.AspNetCore.Mvc.ViewFeatures.HtmlHelperOptions>("HTML Helper Options", factory));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<CookieTempDataProviderOptions>("Cookie TempData Options", factory));
 
             section = new DiagnosticSection("MVC Action Filters");
             section.AddDiagnosticsFrom(typeof(IActionFilter));
