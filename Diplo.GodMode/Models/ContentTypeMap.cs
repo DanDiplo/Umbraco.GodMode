@@ -31,5 +31,7 @@ namespace Diplo.GodMode.Models
         public ContentVariation VariesBy { get; set; }
 
         public bool VariesByCulture { get; set; }
+
+        public DateTime CreateDate { get; set; }
     }
 }

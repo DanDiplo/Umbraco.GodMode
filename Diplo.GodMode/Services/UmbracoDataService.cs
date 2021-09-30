@@ -68,6 +68,7 @@ namespace Diplo.GodMode.Services
                     IsElement = ct.IsElement,
                     AllowedAtRoot = ct.AllowedAsRoot,
                     VariesByCulture = ct.VariesByCulture(),
+                    CreateDate = ct.CreateDate,
                     Templates = ct.AllowedTemplates != null ? ct.AllowedTemplates.
                     Select(x => new TemplateMap()
                     {
