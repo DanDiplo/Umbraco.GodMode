@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Helpers
 {
@@ -14,13 +15,17 @@ namespace Diplo.GodMode.Helpers
         /// </summary>
         /// <param name="extension">The file extensions (without dot)</param>
         /// <returns>The mapped friendly name or 'Unknown'</returns>
-        internal static string GetFileTypeName(string extension)
+        internal static string GetFileTypeName(string extension, IMedia media)
         {
             if (string.IsNullOrEmpty(extension))
             {
+                if (media.ContentType.Alias.InvariantEquals("folder"))
+                {
+                    return "Folder";
+                }
+
                 return "Not Set";
             }
-
 
             if (fileTypes.TryGetValue(extension, out string name))
             {

@@ -43,6 +43,7 @@
                         <th><godmode-sortable sort-by="vm.sortBy('ContentTypeAlias')" column="Alias" sort="vm.sort">Media</godmode-sortable></th>
                         <th>Type</th>
                         <th>Size</th>
+                        <th><godmode-sortable sort-by="vm.sortBy('UpdateDate')" column="UpdateDate" sort="vm.sort">Update Date</godmode-sortable></th>
                         <th><godmode-sortable sort-by="vm.sortBy('Id')" column="Id" sort="vm.sort">Id</godmode-sortable></th>
                     </tr>
                 </thead>
@@ -55,7 +56,8 @@
                         <td>{{ m.Alias }}</td>
                         <td title="{{ m.Ext }}">{{ m.Type }}</td>
                         <td>{{ m.Size | godModeFileSize }}</td>
-                        <td><div>{{ m.Id }}</div> <code>{{m.Udi}}</code></td>
+                        <td>{{ m. UpdateDate }}</td>
+                        <td><div><strong>{{ m.Id }}</strong> <small class="muted">({{m.Path}})</small></div> <code>{{m.Udi}}</code></td>
                     </tr>
                 </tbody>
                 <tfoot>

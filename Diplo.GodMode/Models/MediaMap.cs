@@ -14,5 +14,10 @@ namespace Diplo.GodMode.Models
         public int Size { get; set; }
 
         public DateTime CreateDate { get; set; }
+
+        public DateTime UpdateDate { get; set; }
+
+        public string Path { get; set; }
+
     }
 }

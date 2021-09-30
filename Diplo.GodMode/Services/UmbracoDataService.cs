@@ -231,10 +231,12 @@ namespace Diplo.GodMode.Services
                     Name = x.Name,
                     Alias = x.ContentType.Name,
                     Ext = tempExt = FileTypeHelper.GetExtensionFromMedia(x),
-                    Type = FileTypeHelper.GetFileTypeName(tempExt),
+                    Type = FileTypeHelper.GetFileTypeName(tempExt, x),
                     Size = FileTypeHelper.GetFileSize(x),
                     Udi = x.Key,
                     CreateDate = x.CreateDate,
+                    UpdateDate = x.UpdateDate == default ? x.CreateDate : x.UpdateDate,
+                    Path = x.Path
                 }
             ).ToList();
 
