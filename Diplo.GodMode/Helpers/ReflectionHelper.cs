@@ -117,16 +117,11 @@ namespace Diplo.GodMode.Helpers
                         {
                             if (prop.PropertyType.IsArray || (prop.PropertyType != typeof(string) && prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable))))
                             {
-                                var items = (IEnumerable)value;
+                                var items = ((IEnumerable)value).Cast<string>().ToList();
 
                                 if (items != null)
                                 {
                                     string sValue = string.Join(", ", items);
-
-                                    if (sValue == value.ToString())
-                                    {
-                                        sValue = string.Empty;
-                                    }
 
                                     diagnostics.Add(new Diagnostic(GetPropertyDisplayName(prop), sValue));
                                 }

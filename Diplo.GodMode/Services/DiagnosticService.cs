@@ -120,8 +120,6 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MemberPasswordConfigurationSettings>("Member Password Settings", factory));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UmbracoPluginSettings>("Plugin Settings", factory));
-
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UnattendedSettings>("Unattended Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<TypeFinderSettings>("Type Finder Settings", factory));
