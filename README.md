@@ -32,11 +32,11 @@ For instance, you can:
 
 **YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s (v7)
 
-**Blog Post:** https://www.diplo.co.uk/blog/web-development/god-mode-umbraco-8-package/ (v8 version)
+**Blog Post:** https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/ (v9 version)
 
 ## Download & Installation
 
-***Important!**: This is for Umbraco 9 and above. Use v8 branch for the Umbraco 8 version or the v7 branch for the Umbraco 7 branch.
+***Important!**: This is for Umbraco 9 and above. Use v8 branch for the Umbraco 8 version or the v7 branch for the Umbraco 7 version.
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
