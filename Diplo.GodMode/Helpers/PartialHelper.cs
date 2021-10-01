@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Diplo.GodMode.Models;
+using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Controllers
 {
@@ -13,7 +14,7 @@ namespace Diplo.GodMode.Controllers
         /// <summary>
         /// Reguar expression to find partials in the template text. Adds a group for cached partials.
         /// </summary>
-        private static readonly Regex HtmlPartialRegex = new Regex(@"@Html.(Cached)?Partial\(\""(.+?)\"".*\)", RegexOptions.Compiled);
+        private static readonly Regex HtmlPartialRegex = new Regex(@"Html.(Cached)?Partial(Async)?\(\""(.+?)\"".*\)", RegexOptions.Compiled);
 
         /// <summary>
         /// Gets the partials from the given template content
@@ -35,8 +36,9 @@ namespace Diplo.GodMode.Controllers
                     {
                         TemplateId = id,
                         TemplateAlias = alias,
-                        Name = match.Groups[2].Value,
-                        IsCached = match.Groups[1].Value == "Cached"
+                        Name = match.Groups[3].Value,
+                        IsCached = match.Groups[1].Value.InvariantEquals("Cached"),
+                        IsAsync = match.Groups[2].Value.InvariantEquals("Async")
                     };
 
                     partial.Path = partial.Name.Replace("/", "%252F").Replace("~%252FViews%252FPartials%252F", string.Empty);

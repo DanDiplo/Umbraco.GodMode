@@ -14,7 +14,7 @@
             vm.sort.column = "Name";
             vm.sort.reverse = false;
             vm.triStateOptions = godModeResources.getTriStateOptions();
-            vm.search.isCached = vm.triStateOptions[0];
+            vm.search.isAsync = vm.triStateOptions[0];
 
             vm.init = function () {
                 vm.isLoading = true;
@@ -50,8 +50,8 @@
                     return p.TemplateId === vm.search.template.Id;
                 }
 
-                if (vm.search.isCached.value) {
-                    return p.IsCached === vm.search.isCached.value;
+                if (vm.search.isAsync.value) {
+                    return p.IsAsync === vm.search.isAsync.value;
                 }
 
                 return p;

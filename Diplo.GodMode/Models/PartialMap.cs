@@ -28,6 +28,11 @@ namespace Diplo.GodMode.Models
         public bool IsCached { get; set; }
 
         /// <summary>
+        /// Is it invoked async?
+        /// </summary>
+        public bool IsAsync {  get; set; }
+
+        /// <summary>
         /// Gets the filepath to the file
         /// </summary>
         public string Path { get; set; }
