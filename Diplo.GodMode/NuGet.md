@@ -14,11 +14,14 @@ For instance, you can:
 * View all content pages in a searchable and filterable table (using fast, server-side pagination) and view nuCache data
 * View all Umbraco members and filter them by assigned group
 * Browse all media in the Media Library and filter by type
-* See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
+* See all tags and tagged content, with option to delete tags
+* See which controllers (`Surface`, `API` and `Render`) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from `PublishedContentModel`)
 * Clear internal Umbraco caches and even restart App Pool
 * View diagnostics and configuration settings about your Umbraco site and hosting environment
 * Warm up compilation of all templates ("views") in a single bound... erm, click.
 * Plus lots more!
 
-**Note:** The 9.x version is for Umbraco 9. Use 2.x for Umbraco 8 or 1.x for Umbraco 7
+**Note:** The 9.x version is for Umbraco 9. Use 2.x for Umbraco 8 or 1.x for Umbraco 7.
+
+**More**: https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/
