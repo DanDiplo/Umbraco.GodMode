@@ -116,6 +116,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetComposers")
                 );
             },
+            getViewComponents: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetViewComponents")
+                );
+            },
             getEnvironmentDiagnostics: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetEnvironmentDiagnostics")

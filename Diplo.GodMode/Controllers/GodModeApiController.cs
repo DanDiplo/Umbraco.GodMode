@@ -210,6 +210,14 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
+        /// Gets all View Components
+        /// </summary>
+        public IEnumerable<TypeMap> GetViewComponents()
+        {
+            return ReflectionHelper.GetTypeMapFrom(typeof(ViewComponent));
+        }
+
+        /// <summary>
         /// Gets a type mapping of types assignable from a type passed as a string
         /// </summary>
         public IEnumerable<TypeMap> GetTypesAssignableFrom(string baseType)

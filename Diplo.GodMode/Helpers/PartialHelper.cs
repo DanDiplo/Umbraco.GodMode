@@ -14,7 +14,7 @@ namespace Diplo.GodMode.Controllers
         /// <summary>
         /// Reguar expression to find partials in the template text. Adds a group for cached partials.
         /// </summary>
-        private static readonly Regex HtmlPartialRegex = new Regex(@"Html.(Cached)?Partial(Async)?\(\""(.+?)\"".*\)", RegexOptions.Compiled);
+        private static readonly Regex HtmlPartialRegex = new Regex(@"Html.(Cached)?Partial(Async)?\(\""(.+?)\"".*\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Gets the partials from the given template content

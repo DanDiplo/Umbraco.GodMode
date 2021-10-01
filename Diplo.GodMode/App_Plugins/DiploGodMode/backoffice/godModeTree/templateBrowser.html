@@ -91,6 +91,20 @@
                             </tbody>
                         </table>
 
+                        <table class="table" ng-show="temp.ViewComponents" ng-if="temp.ViewComponents.length > 0">
+                            <caption><h5>View Components</h5></caption>
+                            <thead>
+                                <tr>
+                                    <th width="50%">Component Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="p in temp.ViewComponents">
+                                    <td>{{ p.Name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
                     </umb-box-content>
 
                 </umb-box>

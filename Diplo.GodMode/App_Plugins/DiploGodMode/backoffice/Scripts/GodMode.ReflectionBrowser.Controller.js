@@ -48,6 +48,10 @@
                     getControllersFunction = godModeResources.getComposers();
                     vm.heading = "Composer";
                 }
+                else if ($routeParams.id === "components") {
+                    getControllersFunction = godModeResources.getViewComponents();
+                    vm.heading = "View Component";
+                }
 
                 getControllersFunction.then(function (data) {
                     vm.controllers = data;

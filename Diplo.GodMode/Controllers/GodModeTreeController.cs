@@ -139,6 +139,8 @@ namespace Diplo.GodMode.Controllers
 
                 CreateTreeNode("reflectionBrowserConverters", parentId, qs, "Value Converters", "icon-wand", false, baseUrl + "reflectionBrowser/converters"),
 
+                CreateTreeNode("reflectionBrowserViewComponents", parentId, qs, "ViewComponents", "icon-code", false, baseUrl + "reflectionBrowser/components"),
+
                 CreateTreeNode("typeBrowser", parentId, qs, "Interface Browser", "icon-molecular-network", false, baseUrl + "typeBrowser/browse")
             };
 

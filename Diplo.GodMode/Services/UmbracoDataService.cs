@@ -182,10 +182,10 @@ namespace Diplo.GodMode.Services
             {
                 var model = new TemplateModel(template)
                 {
-
                     IsMaster = template.IsMasterTemplate,
                     MasterAlias = template.MasterTemplateAlias,
                     Partials = PartialHelper.GetPartialInfo(template.Content, template.Id, template.Alias),
+                    ViewComponents = ViewComponentHelper.GetViewComponentInfo(template.Content, template.Id, template.Alias),
                     Path = template.Path,
                     VirtualPath = template.VirtualPath,
                     Parents = templates.Where(t => template.Path.Split(',').Select(x => Convert.ToInt32(x)).Contains(t.Id)).Select(t => new TemplateModel(t)).OrderBy(d => template.Path.Split(',').IndexOf(d.Id.ToString()))
