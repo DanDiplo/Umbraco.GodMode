@@ -11,23 +11,8 @@
 }
 
 <section class="section section">
-    @{
-        var tags = tagService.GetAllTags();
+    @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
 
-        foreach (var tag in tags)
-        {
-            <h3>@tag.Text <code>(@tag.NodeCount)</code></h3>
-
-            var content = tagService.GetTaggedContentByTag(tag.Text);
-
-            foreach (var e in content)
-            {
-                var c = Umbraco.Content(e.EntityId);
-
-                <p>@c.ContentType.Alias : @c.Name <code>@c.Id</code></p>
-            }
-        }
-    }
 </section>
 
 <section class="section section--full-height background-image-full overlay overlay--dark section--content-center section--thick-border"
@@ -45,6 +30,9 @@
 </section>
 
 <section class="section section">
+
+    @await Component.InvokeAsync("BananasList", new { maxItems = 3 })
+
     @Html.GetGridHtml(Model, "bodyText", "bootstrap3-fluid")
 </section>
 

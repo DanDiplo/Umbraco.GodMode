@@ -1,0 +1,9 @@
+﻿@model IEnumerable<IPublishedContent>
+
+<h3>Beatrix is Bananas!!!</h3>
+<ul>
+    @foreach (var item in Model)
+    {
+        <li><a href="@item.Url()">@item.Name</a></li>
+    }
+</ul>

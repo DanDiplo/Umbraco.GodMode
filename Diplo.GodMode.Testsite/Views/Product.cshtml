@@ -8,6 +8,8 @@
 <!-- for the section we want to show the shop header -->
 @Html.Partial("~/Views/Partials/SectionHeader.cshtml", Model.Parent)
 
+@await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
+
 <section class="section">
     <div class="container">
         <div class="row">
