@@ -30,5 +30,9 @@ namespace Diplo.GodMode.Services.Interfaces
         IEnumerable<UmbracoKeyValue> GetKeyValues();
 
         NuCacheItem GetNuCacheItem(int id);
+
+        bool DeleteTag(int id);
+
+        List<Tag> GetOrphanedTags();
     }
 }

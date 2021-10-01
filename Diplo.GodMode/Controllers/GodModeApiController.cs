@@ -357,6 +357,17 @@ namespace Diplo.GodMode.Controllers
             return this.nuCacheSettings.NuCacheSerializerType.ToString();
         }
 
+        [HttpPost]
+        public bool DeleteTag(int id)
+        {
+            return this.dataBaseService.DeleteTag(id);
+        }
+
+        public List<Models.Tag> GetOrphanedTags()
+        {
+            return this.dataBaseService.GetOrphanedTags();
+        }
+
         private ServerResponse ClearCacheFor(string cache)
         {
             try

@@ -1,20 +1,26 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.TagBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, editorService) {
+        function ($routeParams, navigationService, godModeResources, editorService, notificationsService) {
 
             const vm = this;
             vm.isLoading = true;
             vm.search = {};
             vm.tags = [];
+            vm.orphanedTags = [];
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
-            let fetchContent = function () {
+            const fetchContent = function () {
                 vm.isLoading = true;
+
                 godModeResources.getTagMapping().then(function (data) {
                     vm.tags = data;
                     vm.isLoading = false;
+                });
+
+                godModeResources.getOrphanedTags().then(function (data) {
+                    vm.orphanedTags = data;
                 });
             };
 
@@ -43,6 +49,39 @@
 
                 return t;
             };
+
+            vm.contentFilter = function (c) {
+
+                if (vm.search.tagContent) {
+
+                    if (c.Name.toLowerCase().indexOf(vm.search.tagContent.toLowerCase()) === -1) {
+                        return;
+                    }
+                }
+
+                return c;
+            };
+
+            vm.deleteTag = function (id, name) {
+
+                name = name.replace("'", "");
+
+                if (!confirm("Are you sure you want to permanently delete the tag '" + name + "'?")) {
+                    return;
+                }
+
+                godModeResources.deleteTag(id).then(function (response) {
+
+                    if (response) {
+                        notificationsService.success("Successfully deleted the tag '" + name + "'");
+                    }
+                    else {
+                        notificationsService.error("Error deleting the tag '" + name + "'");
+                    }
+
+                    fetchContent();
+                });
+            }
 
             vm.openContent = function (contentId) {
                 const editor = {
