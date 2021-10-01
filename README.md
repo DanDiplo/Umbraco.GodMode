@@ -14,6 +14,7 @@ For instance, you can:
 * View all content pages in a searchable and filterable table (using fast, server-side pagination) and view nuCache data
 * View all Umbraco members and filter them by assigned group
 * Browse all media in the Media Library and filter by type
+* List all tags and the content associated with the tag. Find orphaned tags
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from `PublishedContentModel`)
 * Clear internal Umbraco caches and even restart App Pool
