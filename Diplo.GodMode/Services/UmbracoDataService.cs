@@ -2,7 +2,6 @@
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 using NPoco;
 using System;
 using System.Collections.Generic;
@@ -30,9 +29,9 @@ namespace Diplo.GodMode.Services
         private readonly IFileService fileService;
         private readonly IMediaService mediaService;
         private readonly IScopeProvider scopeProvider;
-        private readonly ILogger<UmbracoDataService> logger;
+        private readonly ITagService tagService;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ILogger<UmbracoDataService> logger)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService)
         {
             this.contentService = contentService;
             this.contentTypeService = contentTypeService;
@@ -41,7 +40,7 @@ namespace Diplo.GodMode.Services
             this.fileService = fileService;
             this.mediaService = mediaService;
             this.scopeProvider = scopeProvider;
-            this.logger = logger;
+            this.tagService = tagService;
         }
 
         /// <summary>
@@ -261,6 +260,83 @@ namespace Diplo.GodMode.Services
                 Name = x.Name,
                 Alias = x.Alias
             });
+        }
+
+        public IEnumerable<TagMapping> GetTagMapping()
+        {
+            var tagMap = new List<TagMapping>();
+
+            var contentTags = this.tagService.GetAllContentTags();
+
+            foreach (var tag in contentTags.OrderBy(t => t.Text))
+            {
+                var taggedContent = this.contentService.GetByIds(this.tagService.GetTaggedContentByTag(tag.Text).Select(x => x.EntityId)).Select(c => new ContentTags()
+                {
+                    Type = "Content",
+                    Alias = c.ContentType.Alias,
+                    Icon = c.ContentType.Icon,
+                    Id = c.Id,
+                    Name = c.Name,
+                    Udi = c.Key,
+                    Tags = this.tagService.GetTagsForEntity(c.Id).Select(x => new Models.Tag()
+                    {
+                        Id= x.Id,
+                        Group= x.Group,
+                        NodeCount= x.NodeCount,
+                        Text = x.Text
+                    })
+                });
+
+                tagMap.Add(new TagMapping()
+                {
+                    Key = tag.Text,
+                    Content = taggedContent,
+                    Tag = new Models.Tag()
+                    {
+                        Group = tag.Group,
+                        Id = tag.Id,
+                        NodeCount = tag.NodeCount,
+                        Text = tag.Text
+                    }
+                });
+            }
+
+            var mediaTags = this.tagService.GetAllMediaTags();
+
+            foreach (var tag in mediaTags.OrderBy(t => t.Text))
+            {
+                var taggedContent = this.mediaService.GetByIds(this.tagService.GetTaggedMediaByTag(tag.Text).Select(x => x.EntityId)).Select(c => new ContentTags()
+                {
+                    Type = "Media",
+                    Alias = c.ContentType.Alias,
+                    Icon = c.ContentType.Icon,
+                    Id = c.Id,
+                    Name = c.Name,
+                    Udi = c.Key,
+                    Tags = this.tagService.GetTagsForEntity(c.Id).Select(x => new Models.Tag()
+                    {
+                        Id = x.Id,
+                        Group = x.Group,
+                        NodeCount = x.NodeCount,
+                        Text = x.Text
+                    })
+                });
+
+                tagMap.Add(new TagMapping()
+                {
+                    Key = tag.Text,
+                    Content = taggedContent,
+                    Tag = new Models.Tag()
+                    {
+                        Group = tag.Group,
+                        Id = tag.Id,
+                        NodeCount = tag.NodeCount,
+                        Text = tag.Text
+                    }
+                });
+            }
+
+            return tagMap;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Diplo.GodMode.Models;
 using NPoco;
 using System.Collections.Generic;
+using Umbraco.Cms.Core.Models;
 
 namespace Diplo.GodMode.Services.Interfaces
 {
@@ -26,5 +27,7 @@ namespace Diplo.GodMode.Services.Interfaces
         IEnumerable<string> GetPropertyGroups();
 
         IEnumerable<TemplateModel> GetTemplates();
+
+        IEnumerable<TagMapping> GetTagMapping();
     }
 }

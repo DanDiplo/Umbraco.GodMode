@@ -1,0 +1,69 @@
+﻿<div ng-controller="GodMode.TagBrowser.Controller as vm" class="god-mode">
+
+    <umb-editor-view>
+
+        <godmode-header heading="Tag Browser" title="Tag - your it!" on-reload="vm.fetchContent(vm.sort.column)"></godmode-header>
+
+        <umb-editor-container>
+
+            <umb-box>
+                <umb-box-content>
+                    <div class="row">
+
+                        <div class="span4">
+                            <label class="control-label" for="search-tag">Tag Name:</label>
+                            <input id="search-tag" type="search" ng-model="vm.search.tagName" placeholder="Filter tag names" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-taggroup">Tag Group:</label>
+                            <input id="search-taggroup" type="search" ng-model="vm.search.tagGroup" placeholder="Filter tag groups" class="input-large">
+                        </div>
+
+                        <div class="span4">
+                            <label class="control-label" for="search-tagcontent">Content:</label>
+                            <input id="search-tagcontent" type="search" ng-model="vm.search.tagContent" placeholder="Filter tagged content" class="input-large">
+                        </div>
+
+                    </div>
+                </umb-box-content>
+            </umb-box>
+
+            <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
+
+            <umb-box ng-repeat="t in vm.tags | filter: vm.tagFilter">
+                <div class="umb-box-header flex">
+                    <h4>{{ t.Tag.Text }} <small class="muted">({{t.Tag.NodeCount}})</small> <span class="label">{{t.Tag.Group}}</span></h4>
+                </div>
+                <umb-box-content>
+
+                    <table class="table table-hover">
+                        <colgroup>
+                            <col style="width:30%">
+                            <col style="width:20%">
+                            <col style="width:20%">
+                            <col style="width:30%">
+                        </colgroup>
+                        <tbody>
+                            <tr ng-repeat="c in t.Content">
+                                <td>
+                                    <button ng-show="c.Type == 'Content'" type="button" ng-click="vm.openContent(c.Id)" title="Edit"><strong>{{ c.Name }}</strong></button>
+                                    <button ng-show="c.Type == 'Media'" type="button" ng-click="vm.openMedia(c.Id)" title="Edit"><strong>{{ c.Name }}</strong></button>
+                                </td>
+                                <td><span class="{{c.Icon}}"></span>&nbsp;{{ c.Alias }}</td>
+                                <td><div>{{ c.Id }}</div><code>{{ c.Udi }}</code></td>
+                                <td>
+                                    <span ng-repeat="ct in c.Tags"><span class="label label-inverse">{{ ct.Text }}</span>&nbsp;</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </umb-box-content>
+
+            </umb-box>
+        </umb-editor-container>
+
+    </umb-editor-view>
+
+</div>

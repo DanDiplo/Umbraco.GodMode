@@ -171,6 +171,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetTemplateUrlsToPing")
                 );
             },
+            getTagMapping: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetTagMapping")
+                );
+            },
             getContentUsage: function (id, orderBy) {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetContentUsageData",

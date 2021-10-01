@@ -16,7 +16,8 @@
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.UsageBrowser.Controller.js",
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.Intro.Controller.js",
     "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.TypesIntro.Controller.js",
-    "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.nuCacheViewer.Controller.js"
+    "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.nuCacheViewer.Controller.js",
+    "~/App_Plugins/DiploGodMode/BackOffice/Scripts/GodMode.TagBrowser.Controller.js"
   ],
   "css": [
     "~/App_Plugins/DiploGodMode/BackOffice/Css/godMode.css"

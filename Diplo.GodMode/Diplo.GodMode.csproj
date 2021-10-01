@@ -37,6 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="App_Plugins\DiploGodMode\backoffice\godModeTree\tagBrowser.html" />
+    <None Remove="App_Plugins\DiploGodMode\backoffice\Scripts\GodMode.TagBrowser.Controller.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\Screenshots\Icon\GodModeIcon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

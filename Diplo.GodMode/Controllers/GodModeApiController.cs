@@ -1,5 +1,6 @@
 ﻿using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
+using Diplo.GodMode.Services;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ using System.Reflection;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Web.BackOffice.Controllers;
@@ -293,6 +295,15 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<UsageModel> GetContentUsageData(int? id = null, string orderBy = null)
         {
             return dataBaseService.GetContentUsageData(id, orderBy);
+        }
+
+        /// <summary>
+        /// Gets all tags and the content tagged by the tag
+        /// </summary>
+        /// <returns>A dictionary of tagliciousness</returns>
+        public IEnumerable<TagMapping> GetTagMapping()
+        {
+            return dataService.GetTagMapping();
         }
 
         /// <summary>
