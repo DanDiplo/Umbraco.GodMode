@@ -83,7 +83,11 @@ namespace Diplo.GodMode.Services
                 {
                     if (int.TryParse(criteria.Id, out int criteriaId))
                     {
-                        query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
+                        query = query.Append(" AND N.id = @0", criteriaId);
+                    }
+                    else
+                    {
+                        query = query.Append(" AND N.uniqueID LIKE @0", "%" + criteria.Id + "%");
                     }
                 }
 
