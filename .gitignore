@@ -1,3 +1,5 @@
+Diplo.GodMode.Testsite
+
 
 #ignore thumbnails created by windows
 Thumbs.db
@@ -31,6 +33,5 @@ obj/
 #Ignore nuget packages
 /packages/
 BuildPackage/Package/*
+/BuildPackage/msbuild.binlog
 
-/BuildPackage/msbuild.binlog
-/BuildPackage/msbuild.binlog
