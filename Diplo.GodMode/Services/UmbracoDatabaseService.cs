@@ -61,9 +61,10 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of content items</returns>
         public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name, 
+            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, ISNULL(DCV.name, N.Text) as Name, 
                 N.Path as Path, N.createDate, Creator.Id AS CreatorId, Creator.userName as CreatorName,
-                V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName
+                V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName,
+				Lang.languageISOCode As Culture
                 FROM umbracoContent C
                 INNER JOIN umbracoNode N ON N.Id = C.nodeId
                 INNER JOIN cmsContentType CT ON C.contentTypeId = CT.nodeId
@@ -71,7 +72,9 @@ namespace Diplo.GodMode.Services
                 INNER JOIN umbracoContentVersion As V ON V.nodeId = N.id
                 INNER JOIN umbracoUser AS Creator ON Creator.Id = N.nodeUser
                 INNER JOIN umbracoUser As Updater ON V.userId = Updater.id
-                WHERE V.[current] = 1 ";
+				LEFT JOIN umbracoDocumentCultureVariation DCV ON DCV.nodeId = D.nodeId
+				LEFT JOIN umbracoLanguage Lang ON Lang.id = DCV.languageId
+                WHERE V.[current] = 1  ";
 
             var query = new Sql(sql);
 
@@ -91,7 +94,11 @@ namespace Diplo.GodMode.Services
                 {
                     if (int.TryParse(criteria.Id, out int criteriaId))
                     {
-                        query = query.Append(" AND (N.id = @0 OR N.uniqueID LIKE @1)", criteriaId, "%" + criteria.Id + "%");
+                        query = query.Append(" AND N.id = @0", criteriaId);
+                    }
+                    else
+                    {
+                        query = query.Append(" AND N.uniqueID LIKE @0", "%" + criteria.Id + "%");
                     }
                 }
 
@@ -114,6 +121,12 @@ namespace Diplo.GodMode.Services
                 {
                     query = query.Append(" AND Updater.Id = @0", criteria.UpdaterId.Value);
                 }
+
+                if (criteria.LanguageId.HasValue)
+                {
+                    query = query.Append(" AND IsNULL(Lang.Id, -1) = @0", criteria.LanguageId.Value);
+                }
+
             }
 
             if (!string.IsNullOrEmpty(orderBy))
@@ -130,7 +143,7 @@ namespace Diplo.GodMode.Services
 
         public IEnumerable<Lang> GetLanguages()
         {
-            var query = new Sql("SELECT id, languageCultureName as Name FROM umbracoLanguage");
+            var query = new Sql("SELECT id, languageCultureName as Name, LanguageISOCode as Culture FROM umbracoLanguage");
 
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {

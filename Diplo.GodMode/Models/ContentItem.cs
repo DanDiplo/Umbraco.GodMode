@@ -45,6 +45,6 @@ namespace Diplo.GodMode.Models
 
         public string UpdaterName { get; set; }
 
-        public int LanguageCount { get; set; }
+        public string Culture { get; set; }
     }
 }

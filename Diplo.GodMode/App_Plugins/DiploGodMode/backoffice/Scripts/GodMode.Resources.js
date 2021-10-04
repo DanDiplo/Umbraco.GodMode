@@ -54,7 +54,7 @@
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetContentPaged",
                         {
-                            params: { page: page, pageSize: pageSize, name: criteria.Name, alias: criteria.Alias, creatorId: criteria.CreatorId, id: criteria.Id, level: criteria.Level, trashed: criteria.Trashed.value, updaterId: criteria.UpdaterId, languageId: criteria.Language !== null ? criteria.Language.Id : null, orderBy: orderBy }
+                            params: { page: page, pageSize: pageSize, name: criteria.Name, alias: criteria.Alias, creatorId: criteria.CreatorId, id: criteria.Id, level: criteria.Level, trashed: criteria.Trashed.value, updaterId: criteria.UpdaterId, languageId: criteria.LanguageId ? criteria.LanguageId.Id : null, orderBy: orderBy }
                         })
                 );
             },

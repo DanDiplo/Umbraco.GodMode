@@ -10,7 +10,6 @@
 
             vm.config = godModeConfig.config;
             vm.criteria = {};
-            vm.criteria.Language = null;
             vm.page = {};
             vm.currentPage = 1;
             vm.itemsPerPage = 15;
@@ -19,7 +18,7 @@
             vm.languages = [];
             vm.sort = {};
             vm.sort.column = "N.id";
-            var param = $routeParams.id;
+            const param = $routeParams.id;
             vm.nuCacheViewer = false;
 
             vm.triStateOptions = godModeResources.getTriStateOptions();
@@ -27,11 +26,12 @@
 
             godModeResources.getNuCacheType().then(function (data) {
                 if (data) {
-                    vm.nuCacheViewer = data != "MessagePack";
+                    vm.nuCacheViewer = data !== "MessagePack";
                 }
             });
 
             vm.fetchContent = function (orderBy) {
+
                 vm.isLoading = true;
                 godModeResources.getContentPaged(vm.currentPage, vm.itemsPerPage, vm.criteria, orderBy).then(function (data) {
                     vm.page = data;
@@ -55,29 +55,36 @@
             vm.prevPage = function () {
                 if (vm.currentPage > 1) {
                     vm.currentPage--;
-                    vm.fetchContent();
+                    vm.fetchContent(vm.sort.column);
                 }
             };
 
             vm.nextPage = function () {
                 if (vm.currentPage < vm.page.TotalPages) {
                     vm.currentPage++;
-                    vm.fetchContent();
+                    vm.fetchContent(vm.sort.column);
                 }
             };
 
             vm.setPage = function (pageNumber) {
                 vm.currentPage = pageNumber;
-                vm.fetchContent();
+                vm.fetchContent(vm.sort.column);
             };
 
             vm.filterChange = function () {
                 vm.currentPage = 1;
                 vm.page = {};
-                vm.fetchContent();
+                vm.fetchContent(vm.sort.column);
             };
 
             godModeResources.getLanguages().then(function (data) {
+
+                data.push({
+                    Id: -1,
+                    Name: "No Language",
+                    Culture: null
+                })
+
                 vm.languages = data;
             });
 
