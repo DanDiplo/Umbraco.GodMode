@@ -5,6 +5,7 @@ using Diplo.GodMode.Services.Interfaces;
 using NPoco;
 using Umbraco.Core;
 using Umbraco.Core.Logging;
+using Umbraco.Core.Models;
 using Umbraco.Core.Models.PublishedContent;
 using Umbraco.Core.Scoping;
 using Umbraco.Web;
@@ -329,5 +330,35 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        /// <summary>
+        /// Deletes a tag from the database
+        /// </summary>
+        /// <param name="id">The tag ID</param>
+        /// <returns>True if deleted; false if not</returns>
+        public bool DeleteTag(int id)
+        {
+            int success = 0;
+
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                success += scope.Database.Execute(new Sql("DELETE FROM cmsTagRelationship WHERE tagId = @0", id));
+
+                success += scope.Database.Execute(new Sql("DELETE FROM cmsTags WHERE id = @0", id));
+            }
+
+            return success > 0;
+        }
+
+        /// <summary>
+        /// Gets all tags that are not associated with any content
+        /// </summary>
+        /// <returns>A list of tags</returns>
+        public List<Diplo.GodMode.Models.Tag> GetOrphanedTags()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.Fetch<Diplo.GodMode.Models.Tag>("SELECT T.Id, T.[Group], T.Tag as Text, L.languageISOCode as Culture FROM cmsTags T LEFT JOIN umbracoLanguage L ON T.languageId = L.id  WHERE T.id NOT IN (SELECT tagId FROM cmsTagRelationship)");
+            }
+        }
     }
 }

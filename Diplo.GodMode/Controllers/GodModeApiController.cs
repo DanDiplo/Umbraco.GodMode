@@ -287,6 +287,13 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
+        /// Gets all tags and the content tagged by the tag
+        /// </summary>
+        /// <returns>A dictionary of tagliciousness</returns>
+        public IEnumerable<TagMapping> GetTagMapping()
+        {
+            return dataService.GetTagMapping();
+        }
         /// Clears the internal Umbraco cache's
         /// </summary>
         /// <param name="cache">The cache name to clear</param>
@@ -359,6 +366,16 @@ namespace Diplo.GodMode.Controllers
             return this.dataBaseService.GetNuCacheItem(id);
         }
 
+        [System.Web.Http.HttpPost]
+        public bool DeleteTag(int id)
+        {
+            return this.dataBaseService.DeleteTag(id);
+        }
+
+        public List<Models.Tag> GetOrphanedTags()
+        {
+            return this.dataBaseService.GetOrphanedTags();
+        }
 
         private ServerResponse ClearCacheFor(string cache)
         {

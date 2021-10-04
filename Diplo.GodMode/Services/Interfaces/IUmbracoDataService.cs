@@ -26,5 +26,7 @@ namespace Diplo.GodMode.Services.Interfaces
         IEnumerable<string> GetPropertyGroups();
 
         IEnumerable<TemplateModel> GetTemplates();
+
+        IEnumerable<TagMapping> GetTagMapping();
     }
 }

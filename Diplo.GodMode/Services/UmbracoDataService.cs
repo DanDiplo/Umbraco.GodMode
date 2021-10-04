@@ -8,6 +8,7 @@ using Diplo.GodMode.Services.Interfaces;
 using NPoco;
 using Umbraco.Core;
 using Umbraco.Core.Models;
+using Umbraco.Core.Models.PublishedContent;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Scoping;
@@ -22,13 +23,17 @@ namespace Diplo.GodMode.Services
     public class UmbracoDataService : IUmbracoDataService
     {
         private readonly IContentTypeService contentTypeService;
+        private readonly IContentService contentService;
         private readonly IDataTypeService dataTypeService;
         private readonly IMediaTypeService mediaTypeService;
         private readonly IFileService fileService;
         private readonly IMediaService mediaService;
         private readonly IScopeProvider scopeProvider;
+        private readonly ITagService tagService;
+        private readonly IVariationContextAccessor variationContextAccessor;
+        private readonly ILocalizationService localizationService;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService, IContentService contentService, IVariationContextAccessor variationContextAccessor, ILocalizationService localizationService)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -36,6 +41,10 @@ namespace Diplo.GodMode.Services
             this.fileService = fileService;
             this.mediaService = mediaService;
             this.scopeProvider = scopeProvider;
+            this.tagService = tagService;
+            this.contentService = contentService;
+            this.variationContextAccessor = variationContextAccessor;
+            this.localizationService = localizationService;
         }
 
         /// <summary>
@@ -248,6 +257,98 @@ namespace Diplo.GodMode.Services
                 Name = x.Name,
                 Alias = x.Alias
             });
+        }
+
+        public IEnumerable<TagMapping> GetTagMapping()
+        {
+            var cultures = this.localizationService.GetAllLanguages().Select(x => x.IsoCode).ToList(); // get all cultures
+
+            cultures.Add(null); // plus invariant
+
+            var tagMap = new List<TagMapping>();
+
+            foreach (var culture in cultures)
+            {
+                var contentTags = this.tagService.GetAllContentTags(culture: culture);
+
+                foreach (var tag in contentTags.OrderBy(t => t.Text))
+                {
+                    var taggedContent = this.contentService.GetByIds(this.tagService.GetTaggedContentByTag(tag.Text, culture: culture).Select(x => x.EntityId)).Select(c => new ContentTags()
+                    {
+                        Type = "Content",
+                        Alias = c.ContentType.Alias,
+                        Icon = c.ContentType.Icon,
+                        Id = c.Id,
+                        Name = c.Name,
+                        Udi = c.Key,
+                        Tags = this.tagService.GetTagsForEntity(c.Id, culture: culture).Select(x => new Models.Tag()
+                        {
+                            Id = x.Id,
+                            Group = x.Group,
+                            NodeCount = x.NodeCount,
+                            Text = x.Text,
+                            Culture = culture
+                        })
+                    });
+
+                    tagMap.Add(new TagMapping()
+                    {
+                        Key = tag.Text,
+                        Content = taggedContent,
+                        Culture = culture,
+                        Tag = new Models.Tag()
+                        {
+                            Group = tag.Group,
+                            Id = tag.Id,
+                            NodeCount = tag.NodeCount,
+                            Text = tag.Text,
+                            Culture = culture
+                        }
+                    });
+                }
+
+                var mediaTags = this.tagService.GetAllMediaTags(culture: culture);
+
+                foreach (var tag in mediaTags.OrderBy(t => t.Text))
+                {
+                    var taggedContent = this.mediaService.GetByIds(this.tagService.GetTaggedMediaByTag(tag.Text, culture: culture).Select(x => x.EntityId)).Select(c => new ContentTags()
+                    {
+                        Type = "Media",
+                        Alias = c.ContentType.Alias,
+                        Icon = c.ContentType.Icon,
+                        Id = c.Id,
+                        Name = c.Name,
+                        Udi = c.Key,
+                        Tags = this.tagService.GetTagsForEntity(c.Id, culture: culture).Select(x => new Models.Tag()
+                        {
+                            Id = x.Id,
+                            Group = x.Group,
+                            NodeCount = x.NodeCount,
+                            Text = x.Text,
+                            Culture = culture
+                        })
+                    });
+
+                    tagMap.Add(new TagMapping()
+                    {
+                        Key = tag.Text,
+                        Content = taggedContent,
+                        Culture = culture,
+                        Tag = new Models.Tag()
+                        {
+                            Group = tag.Group,
+                            Id = tag.Id,
+                            NodeCount = tag.NodeCount,
+                            Text = tag.Text,
+                            Culture = culture
+                        }
+                    });
+                }
+            }
+
+
+
+            return tagMap;
         }
     }
 }

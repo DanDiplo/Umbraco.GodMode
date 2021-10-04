@@ -151,6 +151,16 @@
                     $http.post(godModeConfig.baseApiUrl + "ClearUmbracoCache?cache=" + cache)
                 );
             },
+            deleteTag: function (id) {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(godModeConfig.baseApiUrl + "DeleteTag?id=" + id)
+                );
+            },
+            getOrphanedTags: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetOrphanedTags")
+                );
+            },
             restartAppPool: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.post(godModeConfig.baseApiUrl + "RestartAppPool")
@@ -164,6 +174,11 @@
             getTemplateUrls: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetTemplateUrlsToPing")
+                );
+            },
+            getTagMapping: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetTagMapping")
                 );
             },
             getContentUsage: function (id, orderBy) {

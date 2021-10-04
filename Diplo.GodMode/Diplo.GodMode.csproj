@@ -264,6 +264,8 @@
     <Compile Include="Models\ServerModel.cs" />
     <Compile Include="Models\ServerResponse.cs" />
     <Compile Include="Models\ServerResponseType.cs" />
+    <Compile Include="Models\Tag.cs" />
+    <Compile Include="Models\TagMapping.cs" />
     <Compile Include="Models\TemplateMap.cs" />
     <Compile Include="Models\TemplateModel.cs" />
     <Compile Include="Models\TypeMap.cs" />

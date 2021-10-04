@@ -109,6 +109,8 @@ namespace Diplo.GodMode.Controllers
 
                 CreateTreeNode("memberBrowser", parentId, qs, "Member Browser", "icon-umb-members", false, baseUrl + "memberBrowser/browse"),
 
+                CreateTreeNode("tagBrowser", parentId, qs, "Tag Browser", "icon-tags", false, baseUrl + "tagBrowser/browse"),
+
                 CreateTreeNode(ReflectionTree, parentId, qs, "Types", "icon-folder", true, baseUrl + "typesIntro"),
 
                 CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"),
