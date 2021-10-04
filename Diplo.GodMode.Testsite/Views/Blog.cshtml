@@ -1,5 +1,4 @@
 ﻿@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels
-
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.Blog>
 
 @{
@@ -7,9 +6,15 @@
 }
 @Html.Partial("~/Views/Partials/SectionHeader.cshtml")
 
+
 <section class="section">
 
     <div class="container">
+
+        <h3>Root Content List</h3>
+
+        <vc:root-content-list max-items="2"></vc:root-content-list>
+
         @await Umbraco.RenderMacroAsync("latestBlogposts",
             new
             {

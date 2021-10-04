@@ -96,11 +96,15 @@
                             <thead>
                                 <tr>
                                     <th width="50%">Component Name</th>
+                                    <th width="40%">Parameters</th>
+                                    <th width="10%">Tag Helper?</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr ng-repeat="p in temp.ViewComponents">
                                     <td>{{ p.Name }}</td>
+                                    <td>{{ p.Parameters }}</td>
+                                    <td>{{ p.TagHelper }}</td>
                                 </tr>
                             </tbody>
                         </table>

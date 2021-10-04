@@ -21,5 +21,15 @@ namespace Diplo.GodMode.Models
         /// Gets the partial name
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets any parameters used to call it
+        /// </summary>
+        public string Parameters { get; set; }
+
+        /// <summary>
+        /// Gets whether it is a tag helper
+        /// </summary>
+        public bool TagHelper { get; set; }
     }
 }
