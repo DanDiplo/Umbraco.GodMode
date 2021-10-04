@@ -52,3 +52,5 @@ umbraco
 #wwwroot/media
 wwwroot/umbraco
 /Diplo.GodMode.Testsite/App_Plugins/
+/BuildPackage
+/packages
