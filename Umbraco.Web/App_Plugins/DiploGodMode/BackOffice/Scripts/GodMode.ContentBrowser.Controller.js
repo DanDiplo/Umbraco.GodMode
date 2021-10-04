@@ -48,26 +48,26 @@
             vm.prevPage = function () {
                 if (vm.currentPage > 1) {
                     vm.currentPage--;
-                    vm.fetchContent();
+                    vm.fetchContent(vm.sort.column);
                 }
             };
 
             vm.nextPage = function () {
                 if (vm.currentPage < vm.page.TotalPages) {
                     vm.currentPage++;
-                    vm.fetchContent();
+                    vm.fetchContent(vm.sort.column);
                 }
             };
 
             vm.setPage = function (pageNumber) {
                 vm.currentPage = pageNumber;
-                vm.fetchContent();
+                vm.fetchContent(vm.sort.column);
             };
 
             vm.filterChange = function () {
                 vm.currentPage = 1;
                 vm.page = {};
-                vm.fetchContent();
+                vm.fetchContent(vm.sort.column);
             };
 
             godModeResources.getLanguages().then(function (data) {
