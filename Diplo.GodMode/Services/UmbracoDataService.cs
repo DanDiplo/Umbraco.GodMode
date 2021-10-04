@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
@@ -30,10 +31,10 @@ namespace Diplo.GodMode.Services
         private readonly IMediaService mediaService;
         private readonly IScopeProvider scopeProvider;
         private readonly ITagService tagService;
+        private readonly ILocalizationService localizationService;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService, ILocalizationService localizationService)
         {
-            this.contentService = contentService;
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
             this.mediaTypeService = mediaTypeService;
@@ -41,6 +42,8 @@ namespace Diplo.GodMode.Services
             this.mediaService = mediaService;
             this.scopeProvider = scopeProvider;
             this.tagService = tagService;
+            this.contentService = contentService;
+            this.localizationService = localizationService;
         }
 
         /// <summary>
@@ -264,76 +267,89 @@ namespace Diplo.GodMode.Services
 
         public IEnumerable<TagMapping> GetTagMapping()
         {
+            var cultures = this.localizationService.GetAllLanguages().Select(x => x.IsoCode).ToList(); // get all cultures
+
+            cultures.Add(null); // plus invariant
+
             var tagMap = new List<TagMapping>();
 
-            var contentTags = this.tagService.GetAllContentTags();
-
-            foreach (var tag in contentTags.OrderBy(t => t.Text))
+            foreach (var culture in cultures)
             {
-                var taggedContent = this.contentService.GetByIds(this.tagService.GetTaggedContentByTag(tag.Text).Select(x => x.EntityId)).Select(c => new ContentTags()
-                {
-                    Type = "Content",
-                    Alias = c.ContentType.Alias,
-                    Icon = c.ContentType.Icon,
-                    Id = c.Id,
-                    Name = c.Name,
-                    Udi = c.Key,
-                    Tags = this.tagService.GetTagsForEntity(c.Id).Select(x => new Models.Tag()
-                    {
-                        Id= x.Id,
-                        Group= x.Group,
-                        NodeCount= x.NodeCount,
-                        Text = x.Text
-                    })
-                });
+                var contentTags = this.tagService.GetAllContentTags(culture: culture);
 
-                tagMap.Add(new TagMapping()
+                foreach (var tag in contentTags.OrderBy(t => t.Text))
                 {
-                    Key = tag.Text,
-                    Content = taggedContent,
-                    Tag = new Models.Tag()
+                    var taggedContent = this.contentService.GetByIds(this.tagService.GetTaggedContentByTag(tag.Text, culture: culture).Select(x => x.EntityId)).Select(c => new ContentTags()
                     {
-                        Group = tag.Group,
-                        Id = tag.Id,
-                        NodeCount = tag.NodeCount,
-                        Text = tag.Text
-                    }
-                });
-            }
+                        Type = "Content",
+                        Alias = c.ContentType.Alias,
+                        Icon = c.ContentType.Icon,
+                        Id = c.Id,
+                        Name = c.Name,
+                        Udi = c.Key,
+                        Tags = this.tagService.GetTagsForEntity(c.Id, culture: culture).Select(x => new Models.Tag()
+                        {
+                            Id = x.Id,
+                            Group = x.Group,
+                            NodeCount = x.NodeCount,
+                            Text = x.Text,
+                            Culture = culture
+                        })
+                    });
 
-            var mediaTags = this.tagService.GetAllMediaTags();
+                    tagMap.Add(new TagMapping()
+                    {
+                        Key = tag.Text,
+                        Content = taggedContent,
+                        Culture = culture,
+                        Tag = new Models.Tag()
+                        {
+                            Group = tag.Group,
+                            Id = tag.Id,
+                            NodeCount = tag.NodeCount,
+                            Text = tag.Text,
+                            Culture = culture
+                        }
+                    });
+                }
 
-            foreach (var tag in mediaTags.OrderBy(t => t.Text))
-            {
-                var taggedContent = this.mediaService.GetByIds(this.tagService.GetTaggedMediaByTag(tag.Text).Select(x => x.EntityId)).Select(c => new ContentTags()
+                var mediaTags = this.tagService.GetAllMediaTags(culture: culture);
+
+                foreach (var tag in mediaTags.OrderBy(t => t.Text))
                 {
-                    Type = "Media",
-                    Alias = c.ContentType.Alias,
-                    Icon = c.ContentType.Icon,
-                    Id = c.Id,
-                    Name = c.Name,
-                    Udi = c.Key,
-                    Tags = this.tagService.GetTagsForEntity(c.Id).Select(x => new Models.Tag()
+                    var taggedContent = this.mediaService.GetByIds(this.tagService.GetTaggedMediaByTag(tag.Text, culture: culture).Select(x => x.EntityId)).Select(c => new ContentTags()
                     {
-                        Id = x.Id,
-                        Group = x.Group,
-                        NodeCount = x.NodeCount,
-                        Text = x.Text
-                    })
-                });
+                        Type = "Media",
+                        Alias = c.ContentType.Alias,
+                        Icon = c.ContentType.Icon,
+                        Id = c.Id,
+                        Name = c.Name,
+                        Udi = c.Key,
+                        Tags = this.tagService.GetTagsForEntity(c.Id, culture: culture).Select(x => new Models.Tag()
+                        {
+                            Id = x.Id,
+                            Group = x.Group,
+                            NodeCount = x.NodeCount,
+                            Text = x.Text,
+                            Culture = culture
+                        })
+                    });
 
-                tagMap.Add(new TagMapping()
-                {
-                    Key = tag.Text,
-                    Content = taggedContent,
-                    Tag = new Models.Tag()
+                    tagMap.Add(new TagMapping()
                     {
-                        Group = tag.Group,
-                        Id = tag.Id,
-                        NodeCount = tag.NodeCount,
-                        Text = tag.Text
-                    }
-                });
+                        Key = tag.Text,
+                        Content = taggedContent,
+                        Culture = culture,
+                        Tag = new Models.Tag()
+                        {
+                            Group = tag.Group,
+                            Id = tag.Id,
+                            NodeCount = tag.NodeCount,
+                            Text = tag.Text,
+                            Culture = culture
+                        }
+                    });
+                }
             }
 
             return tagMap;

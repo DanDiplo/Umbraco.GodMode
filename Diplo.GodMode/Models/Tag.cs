@@ -15,5 +15,7 @@ namespace Diplo.GodMode.Models
         public int Id { get; set; }
 
         public int NodeCount { get; set; }
+
+        public string Culture { get; set; }
     }
 }

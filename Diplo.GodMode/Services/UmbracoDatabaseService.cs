@@ -360,7 +360,7 @@ namespace Diplo.GodMode.Services
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
-                return scope.Database.Fetch<Tag>("SELECT Id, [Group], Tag as Text FROM cmsTags WHERE id NOT IN (SELECT tagId FROM cmsTagRelationship)");
+                return scope.Database.Fetch<Diplo.GodMode.Models.Tag>("SELECT T.Id, T.[Group], T.Tag as Text, L.languageISOCode as Culture FROM cmsTags T LEFT JOIN umbracoLanguage L ON T.languageId = L.id  WHERE T.id NOT IN (SELECT tagId FROM cmsTagRelationship)");
             }
         }
     }

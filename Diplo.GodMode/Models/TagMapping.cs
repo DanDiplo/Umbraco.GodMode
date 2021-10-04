@@ -14,6 +14,8 @@ namespace Diplo.GodMode.Models
         public Tag Tag { get; set; }
 
         public IEnumerable<ContentTags> Content { get; set; }
+
+        public string Culture { get; set; }
     }
 
 }

@@ -31,7 +31,7 @@
             <umb-box ng-repeat="t in vm.tags | filter: vm.tagFilter">
                 <div class="umb-box-header flex">
                     <div class="span12">
-                        <h3><span class="icon-tag color-grey"></span> <span title="ID: {{t.Tag.Id}}">{{ t.Tag.Text }}</span> <small class="muted"><code>{{t.Tag.NodeCount}}</code></small> <span class="label">{{t.Tag.Group}}</span></h3>
+                        <h3><span class="icon-tag color-grey"></span> <span title="ID: {{t.Tag.Id}}">{{ t.Tag.Text }}</span> <small class="muted"><code>{{t.Tag.NodeCount}}</code></small> <span class="label">{{t.Tag.Group}}</span> <span ng-show="t.Tag.Culture" class="label">{{t.Tag.Culture}}</span> </h3>
                     </div>
                     <div>
                         <button type="button" ng-click="vm.deleteTag(t.Tag.Id, t.Tag.Text)" title="Delete '{{ t.Tag.Text }}'" aria-label="Delete {{t.Tag.Text}}" class="btn btn-danger">Delete</button>
@@ -69,7 +69,7 @@
                     <p>The following tags exist in the database but are not associated with any content. You may delete them if you wish:</p>
                     <ul>
                         <li ng-repeat="t in vm.orphanedTags">
-                            <span class="label label-inverse">{{ t.Text }}</span> <span class="label">{{ t.Group }}</span> &nbsp;<a ng-click="vm.deleteTag(t.Id, t.Text)" class="color-red icon-trash" title="Delete" aria-label="Delete"></a>
+                            <span class="label label-inverse">{{ t.Text }}</span> <span class="label">{{ t.Group }}</span> <span ng-show="t.Tag.Culture" class="label">{{t.Culture}}</span> &nbsp;<a ng-click="vm.deleteTag(t.Id, t.Text)" class="color-red icon-trash" title="Delete" aria-label="Delete"></a>
                         </li>
                     </ul>
                 </umb-box-content>
