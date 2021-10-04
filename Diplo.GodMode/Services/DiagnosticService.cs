@@ -19,6 +19,7 @@ using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
+using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
 namespace Diplo.GodMode.Services
 {
@@ -30,7 +31,6 @@ namespace Diplo.GodMode.Services
         private readonly IRuntimeState runtimeState;
         private readonly IUmbracoVersion version;
         private readonly IServiceProvider factory;
-        private readonly IOptions<UserPasswordConfigurationSettings> passwordConfiguration;
         private readonly IOptions<NuCacheSettings> nuCacheSettings;
         private readonly IOptions<IndexCreatorSettings> indexSettings;
         private readonly IHttpContextAccessor httpContextAccessor;
@@ -38,15 +38,15 @@ namespace Diplo.GodMode.Services
         private readonly IHostingEnvironment hostingEnvironment;
         private readonly IUmbracoDatabaseService databaseService;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment;
+        private readonly Smidge.ISmidgeConfig smidgeConfig;
 
         private HttpContext httpContext;
 
-        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<UserPasswordConfigurationSettings> passwordConfiguration, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment)
+        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig)
         {
             this.runtimeState = runtimeState;
             this.version = umbracoVersion;
             this.factory = factory;
-            this.passwordConfiguration = passwordConfiguration;
             this.nuCacheSettings = nuCacheSettings;
             this.indexSettings = indexSettings;
             this.httpContextAccessor = httpContextAccessor;
@@ -54,6 +54,7 @@ namespace Diplo.GodMode.Services
             this.hostingEnvironment = hostingEnvironment;
             this.databaseService = databaseService;
             this.webHostEnvironment = webHostEnvironment;
+            this.smidgeConfig = smidgeConfig;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
@@ -118,7 +119,7 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("NuCache Settings", nuCacheSettings.Value, false));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("User Password Settings", passwordConfiguration.Value, false));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UserPasswordConfigurationSettings>("User Password Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MemberPasswordConfigurationSettings>("Member Password Settings", factory));
 
@@ -142,6 +143,8 @@ namespace Diplo.GodMode.Services
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ExceptionFilterSettings>("Exception Filter Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<KeepAliveSettings>("Keep Alive Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Smidge Config", smidgeConfig, false));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<BasicAuthSettings>("Basic Auth Settings", factory));
 
