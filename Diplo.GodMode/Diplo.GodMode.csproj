@@ -4,7 +4,7 @@
     <ContentTargetFolders>.</ContentTargetFolders>
     <PackageId>Diplo.GodMode</PackageId>
     <Title>Diplo.GodMode</Title>
-    <Version>9.1.0</Version>
+    <Version>9.1.1</Version>
     <Description>Diplo God Mode makes Umbraco 9 developers invincible!</Description>
     <Product>Diplo GodMode</Product>
     <PackageTags>umbraco plugin package developer-tool</PackageTags>
@@ -14,7 +14,7 @@
     <PackageIcon>GodModeIcon.png</PackageIcon>
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/tree/v9</RepositoryUrl>
     <Authors>DanDiplo</Authors>
-    <PackageReleaseNotes>Added tag browser, more diagnostics and casing fixes</PackageReleaseNotes>
+    <PackageReleaseNotes>Better multilingual support for tags and content</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>NuGet.md</PackageReadmeFile>
