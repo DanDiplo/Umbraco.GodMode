@@ -1,6 +1,5 @@
 ﻿using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
-using Diplo.GodMode.Services;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +13,6 @@ using System.Reflection;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
-using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Web.BackOffice.Controllers;
