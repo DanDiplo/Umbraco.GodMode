@@ -20,6 +20,7 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Cms.Web.Common.ApplicationBuilder;
+using Umbraco.Cms.Core.Cache;
 
 namespace Diplo.GodMode.Services
 {
@@ -248,7 +249,8 @@ namespace Diplo.GodMode.Services
                 DiagnosticSection.AddDiagnosticSectionFromConstant("Umbraco Indexes", typeof(Constants.UmbracoIndexes)),
                 DiagnosticSection.AddDiagnosticSectionFromConstant("Web", typeof(Constants.Web)),
                 DiagnosticSection.AddDiagnosticSectionFromConstant("System Directories", typeof(Constants.SystemDirectories)),
-                DiagnosticSection.AddDiagnosticSectionFromConstant("Authorization Policies", typeof(AuthorizationPolicies))
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Authorization Policies", typeof(AuthorizationPolicies)),
+                DiagnosticSection.AddDiagnosticSectionFromConstant("Cache Keys", typeof(CacheKeys))
             };
 
             group.Add(sections);
