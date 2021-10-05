@@ -190,13 +190,56 @@ namespace Diplo.GodMode.Services
                     ViewComponents = ViewComponentHelper.GetViewComponentInfo(template.Content, template.Id, template.Alias),
                     Path = template.Path,
                     VirtualPath = template.VirtualPath,
+                    Layout = LayoutHelper.GetTemplateInfo(template),
+                    HasCorrectMaster = true,
                     Parents = templates.Where(t => template.Path.Split(',').Select(x => Convert.ToInt32(x)).Contains(t.Id)).Select(t => new TemplateModel(t)).OrderBy(d => template.Path.Split(',').IndexOf(d.Id.ToString()))
                 };
+
+                if (!string.IsNullOrEmpty(model.Layout) && model.Layout != "null")
+                {
+                    if (!model.Layout.InvariantEquals(template.MasterTemplateAlias))
+                    {
+                        model.HasCorrectMaster = false;
+                    }
+                }
 
                 templateModels.Add(model);
             }
 
             return templateModels;
+        }
+
+        /// <summary>
+        /// Attemps to set the correct master template for templates that have a layout but this isn't set in the DB
+        /// </summary>
+        /// <returns>A count of those that are fixed</returns>
+        public int FixTemplateMasters()
+        {
+            int fixedCount = 0;
+
+            var templates = this.fileService.GetTemplates().ToList();
+
+            foreach (var template in templates)
+            {
+                string layout = LayoutHelper.GetTemplateInfo(template);
+
+                if (!string.IsNullOrEmpty(layout) && layout != "null")
+                {
+                    if (!layout.InvariantEquals(template.MasterTemplateAlias))
+                    {
+                        var masterTemplate = templates.FirstOrDefault(t => t.Alias.InvariantEquals(layout));
+
+                        if (masterTemplate != null)
+                        {
+                            template.SetMasterTemplate(masterTemplate);
+                            this.fileService.SaveTemplate(template);
+                            fixedCount++;
+                        }
+                    }
+                }
+            }
+
+            return fixedCount;
         }
 
         /// <summary>
@@ -264,6 +307,9 @@ namespace Diplo.GodMode.Services
             });
         }
 
+        /// <summary>
+        /// Gets all tags for all cultures and maps them to their related content
+        /// </summary>
         public IEnumerable<TagMapping> GetTagMapping()
         {
             var cultures = this.localizationService.GetAllLanguages().Select(x => x.IsoCode).ToList(); // get all cultures

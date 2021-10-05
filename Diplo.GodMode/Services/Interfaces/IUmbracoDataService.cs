@@ -28,6 +28,8 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<TemplateModel> GetTemplates();
 
+        public int FixTemplateMasters();
+
         IEnumerable<TagMapping> GetTagMapping();
     }
 }

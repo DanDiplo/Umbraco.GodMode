@@ -38,6 +38,10 @@ namespace Diplo.GodMode.Models
 
         public string FilePath { get; set; }
 
+        public bool HasCorrectMaster { get; set; }
+
+        public string Layout { get; set; }
+
         public IEnumerable<PartialMap> Partials { get; set; }
 
         public IEnumerable<ComponentMap> ViewComponents { get; set; }

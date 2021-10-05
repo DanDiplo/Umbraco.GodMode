@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.TemplateBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService, notificationsService) {
 
             const vm = this;
             vm.templates = [];
@@ -11,7 +11,6 @@
             vm.config = godModeConfig.config;
             vm.search = {};
 
-
             vm.init = function () {
                 let openTemplates = vm.templates.filter(function (t) { return t.IsOpen; }).map(function (t) { return t.Id; });
                 vm.isLoading = true;
@@ -19,12 +18,15 @@
                 godModeResources.getTemplates().then(function (data) {
                     vm.templates = data;
 
+                    vm.brokenTemplatesCount = (vm.templates.filter(x => x.HasCorrectMaster === false)).length;
+
                     if (openTemplates) {
                         vm.templates.map(function (t) { if (openTemplates.indexOf(t.Id) > -1) t.IsOpen = true; });
                     }
                     vm.partials = data.map(function (p) { return p.Partials; }).reduce(function (a, b) { return a.concat(b); });
                     vm.masters = data.filter(function (t) { return t.IsMaster; });
                     vm.isLoading = false;
+                    vm.fixTemplatesBtnDisabled = false;
                 });
             };
 
@@ -52,6 +54,16 @@
                 }
 
                 return temp;
+            };
+
+            vm.fixTemplates = function () {
+                vm.isLoading = true;
+                vm.fixTemplatesBtnDisabled = true;
+
+                godModeResources.fixTemplateMasters().then(function (data) {
+                    notificationsService.success("Fixed " + data + " templates and assigned them the correct master template");
+                    vm.init();
+                });
             };
 
             vm.openTemplate = function (templateId) {

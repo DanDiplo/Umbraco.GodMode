@@ -295,6 +295,16 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
+        /// Attemps to fix template masters
+        /// </summary>
+        /// <returns>A count</returns>
+        [HttpPost]
+        public int FixTemplateMasters()
+        {
+            return dataService.FixTemplateMasters();
+        }
+
+        /// <summary>
         /// Gets a list of content types and a count of their usage
         /// </summary>
         /// <param name="id">Optional Id of the content type to filter by</param>

@@ -171,6 +171,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetOrphanedTags")
                 );
             },
+            fixTemplateMasters: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(godModeConfig.baseApiUrl + "FixTemplateMasters")
+                );
+            },
             restartAppPool: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.post(godModeConfig.baseApiUrl + "RestartAppPool")
