@@ -22,6 +22,8 @@ namespace Diplo.GodMode.Helpers
 
         public static readonly Func<Type, Type, bool> IsAssignableFromPredicate = (a, b) => a.Inherits(b);
 
+        private static readonly string[] PropertiesToIgnore = new[] { "PreviewBadge" };
+
         public static IEnumerable<Type> GetTypesAssignableFrom(Type baseType, Func<Assembly, bool> predicate = null)
         {
             return GetLoadableTypes(predicate).Where(t => IsAssignableClassFromPredicate(baseType, t));
@@ -105,7 +107,7 @@ namespace Diplo.GodMode.Helpers
 
             var diagnostics = new List<Diagnostic>(props.Length);
 
-            foreach (var prop in props)
+            foreach (var prop in props.Where(p => !PropertiesToIgnore.InvariantContains(p.Name)))
             {
                 try
                 {
@@ -166,7 +168,7 @@ namespace Diplo.GodMode.Helpers
 
         private static string GetPropertyDisplayName(PropertyInfo prop)
         {
-           return prop.Name.Split('.').Last() + (prop.PropertyType == typeof(bool) ? "?" : string.Empty);
+            return prop.Name.Split('.').Last() + (prop.PropertyType == typeof(bool) ? "?" : string.Empty);
         }
 
         private static string SplitOnCapitals(string text)
