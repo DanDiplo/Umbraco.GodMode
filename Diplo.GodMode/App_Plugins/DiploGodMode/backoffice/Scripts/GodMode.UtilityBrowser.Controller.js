@@ -38,7 +38,7 @@
             };
 
             vm.restartAppPool = function () {
-                if (window.confirm("This will take the site offline. Are you really, really sure?")) {
+                if (window.confirm("This will take the site offline (and won't restart it). Are you really, really, really sure?")) {
                     godModeResources.restartAppPool().then(function (response) {
                         handleResponse(response);
                         document.location.reload(true);

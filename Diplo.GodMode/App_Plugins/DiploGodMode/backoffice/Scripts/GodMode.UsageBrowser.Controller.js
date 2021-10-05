@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.UsageBrowser.Controller",
-        function ($routeParams, $location, navigationService, godModeResources, godModeConfig, editorService) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
 
             const vm = this;
             vm.isLoading = true;
@@ -47,7 +47,7 @@
 
             vm.openContentBrowser = function (contentTypeAlias) {
                 const editor = {
-                    view: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/contentBrowser.html",
+                    view: godModeConfig.basePathUrl + "contentBrowser.html",
                     id: contentTypeAlias,
                     submit: function () {
                         init();

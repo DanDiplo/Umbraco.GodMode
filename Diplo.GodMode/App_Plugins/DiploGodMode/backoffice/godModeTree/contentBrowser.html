@@ -92,7 +92,7 @@
                         <td>{{ c.UpdaterName }}</td>
                         <td>{{ c.Culture }}</td>
                         <td><godmode-True-False value="c.Trashed"></godmode-True-False></td>
-                        <td><div>{{ c.Id }} <small class="muted">({{c.Path}})</small></div><code>{{ c.Udi }}</code></td>
+                        <td><div><strong>{{ c.Id }}</strong> <small class="muted">({{c.Path}})</small></div><code>{{ c.Udi }}</code></td>
                         <td ng-show="vm.nuCacheViewer"><button type="button" ng-click="vm.openNuCacheViewer(c.Id)" title="View nuCache entry"><strong>Cache</strong></button></td>
                     </tr>
                 </tbody>
@@ -111,7 +111,10 @@
                     </tr>
                     <tr ng-hide="vm.isLoading || vm.page.Items.length > 0">
                         <td colspan="8">
-                            <p class="text-center"><strong>Sorry, no content was found for your selected criteria.</strong></p>
+                            <p class="text-center">
+                                <strong>Sorry, no content was found for your selected criteria.</strong><br /><br />
+                                <span ng-show="vm.criteria.LanguageId.Id > 0"><strong>Note:</strong> When only one language is configured for the site then Umbraco doesn't set the culture so filtering by that one language won't work.</span>
+                            </p>
                         </td>
                     </tr>
                 </tfoot>

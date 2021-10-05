@@ -81,8 +81,9 @@
             };
 
             vm.openDocTypeBrowser = function (dataTypeAlias) {
+
                 const editor = {
-                    view: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/docTypeBrowser.html",
+                    view: godModeConfig.basePathUrl + "docTypeBrowser.html",
                     id: dataTypeAlias,
                     submit: function () {
                         init();

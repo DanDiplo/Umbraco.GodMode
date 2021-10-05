@@ -119,7 +119,7 @@
 
             vm.openNuCacheViewer = function (id) {
                 const editor = {
-                    view: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/nuCacheViewer.html",
+                    view: godModeConfig.basePathUrl + "nuCacheViewer.html",
                     id: id,
                     submit: function () {
                         vm.fetchContent();

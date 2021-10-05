@@ -64,16 +64,16 @@
                         <td>{{ d.DbType }}</td>
                         <td><godmode-True-False value="d.IsUsed"></godmode-True-False></td>
                         <td>{{ d.UpdateDate }}</td>
-                        <td><div>{{ d.Id }}</div><code>{{ d.Udi }}</code></td>
+                        <td><div><strong>{{ d.Id }}</strong></div> <code>{{ d.Udi }}</code></td>
                     </tr>
                 </tbody>
             </table>
 
             <div ng-show="!vm.isLoading" class="alert alert-warning alert-block">
                 <h4><span class="icon icon-alert"></span> Important!</h4>
-                <p>This only checks for datatypes that are used directly by a document type. Datatypes that are nested within another datatype (eg. within Block Editor or Nested Content) are not discoverable via the Umbraco API.</p>
+                <p>This only checks for datatypes that are used directly by a document type. Datatypes that are nested within another datatype (eg. within Block Editor, Grid or Nested Content) are not discoverable via the Umbraco API.</p>
             </div>
-   
+
 
         </umb-editor-container>
         <umb-editor-footer ng-if="model.infiniteMode">

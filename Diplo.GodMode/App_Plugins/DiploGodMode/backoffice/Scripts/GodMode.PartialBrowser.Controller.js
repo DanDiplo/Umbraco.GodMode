@@ -50,8 +50,8 @@
                     return p.TemplateId === vm.search.template.Id;
                 }
 
-                if (vm.search.isAsync.value) {
-                    return p.IsAsync === vm.search.isAsync.value;
+                if (!p.IsAsync === vm.search.isAsync.value) {
+                    return;
                 }
 
                 return p;

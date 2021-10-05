@@ -2,7 +2,8 @@
     'use strict';
     angular.module("umbraco")
         .constant("godModeConfig", {
-            "baseApiUrl": "BackOffice/Api/GodModeApi/",
+            "baseApiUrl": "backoffice/Api/GodModeApi/",
+            "basePathUrl": "/App_Plugins/DiploGodMode/backoffice/godModeTree/",
             "config": {
                 "version": "9.0.0",
                 "editTemplateUrl": "#/settings/templates/edit/",
@@ -51,7 +52,7 @@
                 link: function (scope, element, attrs) {
                     scope.version = godModeConfig.config.version;
                 },
-                templateUrl: "/App_Plugins/DiploGodMode/BackOffice/GodModeTree/godModeHeader.html"
+                templateUrl: "/App_Plugins/DiploGodMode/backoffice/godModeTree/godModeHeader.html"
             };
         })
         .directive('clearable', function () {

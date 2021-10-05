@@ -68,8 +68,8 @@
                     <h3>Orphaned Tags</h3>
                     <p>The following tags exist in the database but are not associated with any content. You may delete them if you wish:</p>
                     <ul>
-                        <li ng-repeat="t in vm.orphanedTags">
-                            <span class="label label-inverse">{{ t.Text }}</span> <span class="label">{{ t.Group }}</span> <span ng-show="t.Tag.Culture" class="label">{{t.Culture}}</span> &nbsp;<a ng-click="vm.deleteTag(t.Id, t.Text)" class="color-red icon-trash" title="Delete" aria-label="Delete"></a>
+                        <li ng-repeat="t in vm.orphanedTags" class="add-on">
+                            <span class="label label-inverse">{{ t.Text }}</span> <span class="label">{{ t.Group }}</span> <span ng-show="t.Tag.Culture" class="label">{{t.Culture}}</span> &nbsp;<a ng-click="vm.deleteTag(t.Id, t.Text)" class="icon-delete icon-trash" title="Delete" aria-label="Delete"></a>
                         </li>
                     </ul>
                 </umb-box-content>

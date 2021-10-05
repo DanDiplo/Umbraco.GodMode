@@ -54,7 +54,7 @@
                     <tbody>
                         <tr ng-repeat="item in section.Diagnostics | filter: vm.filterValues">
                             <td><strong>{{ item.Key }}</strong></td>
-                            <td>{{ item.Value }}</td>
+                            <td class="wrap">{{ item.Value }}</td>
                         </tr>
                     </tbody>
                 </table>
