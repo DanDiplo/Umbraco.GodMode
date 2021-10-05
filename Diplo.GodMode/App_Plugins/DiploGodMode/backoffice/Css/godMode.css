@@ -25,19 +25,23 @@
     background-color: #eee;
 }
 
+.god-mode table tbody .wrap {
+    white-space:pre-wrap;
+}
+
 .god-mode table tbody button {
-    text-align:left;
-    background:none;
-    padding:0;
-    margin:0;
-    border:0;
-    display:inline;
-    font:inherit;
+    text-align: left;
+    background: none;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    display: inline;
+    font: inherit;
     text-decoration: underline;
     text-decoration-color: #aaa;
 }
 
-    .god-mode table tbody button:hover {
+    .god-mode table tbody button:hover, .god-mode table tbody a:hover {
         text-decoration: underline;
         text-decoration-color: #2bc37c;
     }
