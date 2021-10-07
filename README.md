@@ -28,9 +28,11 @@ For instance, you can:
 
 ![Doc Type Browser](https://www.diplo.co.uk/media/1190/doctypedetail.png)
 
+See more in https://github.com/DanDiplo/Umbraco.GodMode/tree/v9/Screenshots
+
 ### Demo
 
-**YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s (v7)
+**YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s (old v7 version)
 
 **Blog Post:** https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/ (v9 version)
 
