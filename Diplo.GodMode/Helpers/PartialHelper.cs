@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Diplo.GodMode.Models;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Diplo.GodMode.Models;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Controllers
@@ -41,7 +41,7 @@ namespace Diplo.GodMode.Controllers
                         IsAsync = match.Groups[2].Value.InvariantEquals("Async")
                     };
 
-                    partial.Path = partial.Name.Replace("/", "%252F").Replace("~%252FViews%252FPartials%252F", string.Empty);
+                    partial.Path = partial.Name.Replace("~/Views/Partials/", string.Empty, StringComparison.OrdinalIgnoreCase);
                     partials.Add(partial);
                 }
             }
