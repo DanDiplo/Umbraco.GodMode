@@ -14,7 +14,7 @@
     <PackageIcon>GodModeIcon.png</PackageIcon>
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/tree/v9</RepositoryUrl>
     <Authors>DanDiplo</Authors>
-    <PackageReleaseNotes>New template features and more file path  fixesfor Linux</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix opening nested partials in infinite editor</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>NuGet.md</PackageReadmeFile>
