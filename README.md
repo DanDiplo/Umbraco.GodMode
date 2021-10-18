@@ -28,9 +28,11 @@ For instance, you can:
 
 ![Doc Type Browser](https://www.diplo.co.uk/media/1190/doctypedetail.png)
 
+See more in https://github.com/DanDiplo/Umbraco.GodMode/tree/v9/Screenshots
+
 ### Demo
 
-**YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s (v7)
+**YouTube:** https://www.youtube.com/watch?v=xLjTV5LMp44&t=7s (old v7 version)
 
 **Blog Post:** https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/ (v9 version)
 
@@ -57,8 +59,39 @@ The v9 repository comes with two solutions:
 `Diplo.GodMode` - this is the GodMode plugin source code.
 `Diplo.GodMode.TestSite` - this is a demo Umbraco 9 site that can be used to view and test the plugin.
 
-**Note:** You'll need to type `dotnet restore` within the `Diplo.GodMode.TestSite` folder to restore.
+Clone the project and ensure you are in the `v9` branch. You should see a folder called `Umbraco.GodMode`.
 
-Once you have restored then when you build the test site it will import changes from the plugin.
+Within this folder there are the two projects - `Diplo.GodMode` is the plugin source code and `Diplo.GodMode.TestSite` is a test Umbraco site that is "connected" to the plugin, so that when you build this project it pulls in the latest version of the plugin.
+
+#### CLI - using DOTNET command line
+
+When you first clone the code then open a command line prompt within the `Diplo.GodMode.TestSite` folder and type: `dotnet restore`
+
+If you are using CLI then CD to the `Diplo.GodMode` folder and type `dotnet build` to build the plugin.
+
+After this CD back to `Diplo.GodMode.TestSite` and do the same - type `dotnet build` (you may see a couple of warnings, don't worry!).
+
+To run in a browser type `dotnet run` in the current `Diplo.GodMode.TestSite` folder. You should see the CLI report that it is listening on a couple of ports eg.
+
+`Now listening on: https://localhost:44349`
+`Now listening on: http://localhost:56911`
+
+**Note:** To run on HTTPS locally you may need to install a local dev cert: `dotnet dev-certs https --trust`
+
+Go to one of these addresses in your browser and it should kickstart the Umbraco installation procedure. Add your login details and you are good to go! (You may see some errors about the DB, but it will create a fresh install, and install the starter kit). Once logged in to the Umbraco back-end go to the Settings section and you should see the God Mode tree at the bottom, under "Third Party".
+
+When you make changes to the plugin project - `Diplo.GodMode` - then rebuild the test site and it should pull in these changes. Scripts will be copied to the `App_Plugins` folder. To ensure you get latest copies of JS etc. then I run with the development console open in my browser with the cache disabled.
+
+#### Using Visual Studio
+
+Within the `Diplo.GodMode` folder you should see a VS solution file called `Diplo.GodMode.sln` which you can open in Visual Studio. This enables you to edit the source code for the plugin. The AngularJS and HTML etc. are all in the 'App_Plugins/DiploGodMode/backoffice' folder. You should be able to build this in the usual way (`CTRL-SHIFT-B`).
+
+To run the test site open the `Diplo.GodMode.Testsite.sln` solution in the `Diplo.GodMode.Testsite` folder. Build this solution.
+
+If it doesn't build or you see the message: `Error	NU1105	Unable to find project information for 'Diplo.GodMode\Diplo.GodMode.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line.` then open the folder containing the solution in a command prompt and type `dotnet restore` to restore the project.
+
+After this you should be able to build it and then run the site using `CTRL-F5` to launch. When you launch for the first time it will install Umbraco and the starter kit as well as the plugin. Whenever you rebuild this project it will pull in the latest changes from the main plugin. So you can have both solutions running simultaneously. See the CLI notes for more info.
+
+#### Extra Info
 
 See the [Umbraco 9 docs on packages](https://our.umbraco.com/documentation/UmbracoNetCoreUpdates?_ga=2.99408024.785525998.1632846711-370550528.1632846711#package-development) for more info on how the test site is linked to the plugin.
