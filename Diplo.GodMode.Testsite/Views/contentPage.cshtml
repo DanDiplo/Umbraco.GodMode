@@ -14,6 +14,9 @@
         <div class="col-md-3">
             <nav class="nav-bar nav-bar--list">
                 @await Html.PartialAsync("~/Views/Partials/Navigation/SubNavigation.cshtml")
+
+                    @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
+
             </nav>
         </div>
 

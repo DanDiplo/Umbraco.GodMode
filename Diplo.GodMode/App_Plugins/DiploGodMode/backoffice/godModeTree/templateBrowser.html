@@ -89,7 +89,7 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="p in temp.Partials">
-                                    <td><a href="{{vm.config.editPartialUrl + p.Path}}" target="_blank" title="Edit Partial">{{ p.Name }}</a></td>
+                                    <td><button type="button" ng-click="vm.openPartial(p.Path)" title="Edit Partial">{{ p.Name }}</button></td>
                                     <td><godmode-True-False value="p.IsAsync"></godmode-True-False></td>
                                 </tr>
                             </tbody>

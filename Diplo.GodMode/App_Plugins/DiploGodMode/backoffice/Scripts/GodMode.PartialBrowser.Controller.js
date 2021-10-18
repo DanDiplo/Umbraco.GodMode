@@ -74,7 +74,7 @@
             vm.openPartial = function (path) {
                 const editor = {
                     view: "views/partialViews/edit.html",
-                    id: path,
+                    id: encodeURIComponent(path),
                     submit: function () {
                         vm.init();
                         editorService.close();

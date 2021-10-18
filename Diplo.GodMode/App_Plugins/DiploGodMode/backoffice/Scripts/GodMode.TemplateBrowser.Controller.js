@@ -79,5 +79,21 @@
                 };
                 editorService.templateEditor(editor);
             };
+
+            vm.openPartial = function (path) {
+                const editor = {
+                    view: "views/partialViews/edit.html",
+                    id: encodeURIComponent(path),
+                    submit: function () {
+                        vm.init();
+                        editorService.close();
+                    },
+                    close: function () {
+                        editorService.close();
+                    }
+                };
+                editorService.open(editor);
+            };
+
         });
 })();
