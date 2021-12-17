@@ -82,7 +82,7 @@ namespace Diplo.GodMode.Controllers
 
             root.RoutePath = string.Format("{0}/{1}/{2}", Constants.Applications.Settings, GodModeSettings.TreeAlias, "intro");
             root.Icon = "icon-sience"; // yes, it's really spelt like that!
-            root.HasChildren = false;
+            root.HasChildren = true;
             root.MenuUrl = null;
 
             return root;
