@@ -19,8 +19,8 @@ using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
-using Umbraco.Cms.Web.Common.ApplicationBuilder;
 using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Features;
 
 namespace Diplo.GodMode.Services
 {
@@ -40,10 +40,11 @@ namespace Diplo.GodMode.Services
         private readonly IUmbracoDatabaseService databaseService;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment;
         private readonly Smidge.ISmidgeConfig smidgeConfig;
+        private readonly UmbracoFeatures features;
 
         private HttpContext httpContext;
 
-        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig)
+        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, UmbracoFeatures features)
         {
             this.runtimeState = runtimeState;
             this.version = umbracoVersion;
@@ -56,6 +57,7 @@ namespace Diplo.GodMode.Services
             this.databaseService = databaseService;
             this.webHostEnvironment = webHostEnvironment;
             this.smidgeConfig = smidgeConfig;
+            this.features = features;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
@@ -148,6 +150,8 @@ namespace Diplo.GodMode.Services
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Smidge Config", smidgeConfig, false));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<BasicAuthSettings>("Basic Auth Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionPropertiesFrom("Disabled Features", features.Disabled, new string[] { "Controllers"}));
 
             group.Add(sections);
             groups.Add(group);
