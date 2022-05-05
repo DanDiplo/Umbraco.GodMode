@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using Diplo.GodMode.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -123,6 +124,28 @@ namespace Diplo.GodMode.Models
                 foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
                 {
                     section.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
+                }
+            }
+
+            return section;
+        }
+
+        public static DiagnosticSection AddDiagnosticSectionPropertiesFrom(string heading, object obj, string[] ignoreProperties = null)
+        {
+            var section = new DiagnosticSection(heading);
+
+            if (obj != null)
+            {
+                var properties = obj.GetType().GetProperties();
+
+                if (ignoreProperties != null)
+                {
+                    properties = properties.Where(p => !ignoreProperties.Contains(p.Name)).ToArray();
+                }
+
+                foreach (var prop in properties)
+                {
+                    section.Diagnostics.Add(new Diagnostic(prop.Name, prop.GetValue(obj)));
                 }
             }
 
