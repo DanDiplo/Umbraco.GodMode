@@ -315,7 +315,7 @@ namespace Diplo.GodMode.Services
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
-                const string sql = @"SELECT Id, Address, ComputerName, RegisteredDate, LastNotifiedDate, IsActive, IsMaster FROM umbracoServer";
+                const string sql = @"SELECT Id, Address, ComputerName, RegisteredDate, LastNotifiedDate, IsActive, isSchedulingPublisher FROM umbracoServer";
                 return scope.Database.Fetch<ServerModel>(sql);
             }
         }

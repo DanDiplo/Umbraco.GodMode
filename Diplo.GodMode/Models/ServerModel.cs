@@ -23,11 +23,11 @@ namespace Diplo.GodMode.Models
 
         public bool IsActive { get; set; }
 
-        public bool IsMaster { get; set; }
+        public bool IsSchedulingPublisher { get; set; }
 
         public string ToDiagnostic()
         {
-            return String.Format("{0}{1} - Registered: {2}, Modified: {3}, Active: {4}, Master: {5}", this.IsMaster ? "* " : String.Empty, this.Address, this.RegisteredDate, this.LastNotifiedDate, this.IsActive, this.IsMaster);
+            return String.Format("{0}{1} - Registered: {2}, Modified: {3}, Active: {4}, Is Scheduling Publisher (Master)?: {5}", this.IsSchedulingPublisher ? "* " : String.Empty, this.Address, this.RegisteredDate, this.LastNotifiedDate, this.IsActive, this.IsSchedulingPublisher);
         }
     }
 }
