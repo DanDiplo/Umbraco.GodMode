@@ -76,6 +76,21 @@ namespace Diplo.GodMode.Helpers
                 .Where(fi => fi.IsLiteral && !fi.IsInitOnly).ToList();
         }
 
+        public static IEnumerable<Type> GetTypesInNameSpace(Assembly assembly, string nameSpace)
+        {
+            return assembly.GetTypes().Where(type => type.Namespace == nameSpace);
+        }
+
+        public static IEnumerable<Type> GetInterfaceTypesInNameSpace(Assembly assembly, string nameSpace)
+        {
+            return assembly.GetTypes().Where(type => type.IsInterface && type.Namespace == nameSpace);
+        }
+
+        public static IEnumerable<Type> GetTypesInNameSpace(string nameSpace)
+        {
+            return GetTypesInNameSpace(Assembly.GetExecutingAssembly(), nameSpace);
+        }
+
         public static IEnumerable<Diagnostic> PopulateDiagnosticsFromConstants(Type type)
         {
             if (type == null)
