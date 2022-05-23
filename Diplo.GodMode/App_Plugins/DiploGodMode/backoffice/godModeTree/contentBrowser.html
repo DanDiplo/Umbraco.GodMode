@@ -100,7 +100,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="8">
+                        <th colspan="9">
                             <div class="pagination pagination-centered" ng-show="vm.page.TotalPages > 1">
                                 <umb-pagination page-number="vm.page.CurrentPage"
                                                 total-pages="vm.page.TotalPages"
@@ -112,7 +112,7 @@
                         </th>
                     </tr>
                     <tr ng-hide="vm.isLoading || vm.page.Items.length > 0">
-                        <td colspan="8">
+                        <td colspan="9">
                             <p class="text-center">
                                 <strong>Sorry, no content was found for your selected criteria.</strong><br /><br />
                                 <span ng-show="vm.criteria.LanguageId.Id > 0"><strong>Note:</strong> When only one language is configured for the site then Umbraco doesn't set the culture so filtering by that one language won't work.</span>
