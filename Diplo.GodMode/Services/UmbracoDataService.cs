@@ -290,9 +290,8 @@ namespace Diplo.GodMode.Services
                 Items = media,
                 ItemsPerPage = pageSize,
                 TotalItems = totalRecords,
-                TotalPages = totalRecords / pageSize
+                TotalPages = (long)Math.Ceiling(totalRecords / (decimal)pageSize)
             };
-
 
             return paged;
         }
