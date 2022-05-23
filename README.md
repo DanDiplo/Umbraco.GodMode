@@ -92,6 +92,10 @@ If it doesn't build or you see the message: `Error	NU1105	Unable to find project
 
 After this you should be able to build it and then run the site using `CTRL-F5` to launch. When you launch for the first time it will install Umbraco and the starter kit as well as the plugin. Whenever you rebuild this project it will pull in the latest changes from the main plugin. So you can have both solutions running simultaneously. See the CLI notes for more info.
 
+#### Creating NuGet Package
+
+Type `dotnet pack` at the command line. The package should be created in `bin\Debug\` folder. To set the version update the properties in the project.
+
 #### Extra Info
 
 See the [Umbraco 9 docs on packages](https://our.umbraco.com/documentation/UmbracoNetCoreUpdates?_ga=2.99408024.785525998.1632846711-370550528.1632846711#package-development) for more info on how the test site is linked to the plugin.
