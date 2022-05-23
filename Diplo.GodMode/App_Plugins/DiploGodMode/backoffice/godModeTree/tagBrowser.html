@@ -28,7 +28,9 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
-            <umb-box ng-repeat="t in vm.tags | filter: vm.tagFilter">
+            <p class="gm-results" ng-show="vm.tags"><strong>{{results.length}}</strong> / <strong>{{vm.tags.length}}</strong></p>
+
+            <umb-box ng-repeat="t in vm.tags | filter: vm.tagFilter as results">
                 <div class="umb-box-header flex">
                     <div class="span12">
                         <h3><span class="icon-tag color-grey"></span> <span title="ID: {{t.Tag.Id}}">{{ t.Tag.Text }}</span> <small class="muted"><code>{{t.Tag.NodeCount}}</code></small> <span class="label">{{t.Tag.Group}}</span> <span ng-show="t.Tag.Culture" class="label">{{t.Tag.Culture}}</span> </h3>

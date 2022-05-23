@@ -44,6 +44,8 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.controllers"><strong>{{results.length}}</strong> / <strong>{{vm.controllers.length}}</strong></p>
+
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -54,7 +56,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="c in vm.controllers | filter: vm.filterControllers | orderBy: vm.sort.column : vm.sort.reverse">
+                    <tr ng-repeat="c in vm.controllers | filter: vm.filterControllers | orderBy: vm.sort.column : vm.sort.reverse as results">
                         <td title="{{c.Namespace}}"><strong>{{ c.Name }}</strong></td>
                         <td title="{{c.Assembly}}"><code>{{ c.Module }}</code></td>
                         <td>{{ c.BaseType }}</td>

@@ -31,6 +31,8 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.page.Items"><strong>{{vm.page.Items.length}}</strong> / <strong>{{vm.page.TotalItems}}</strong></p>
+
             <table class="table">
                 <colgroup>
                     <col style="width:22%">

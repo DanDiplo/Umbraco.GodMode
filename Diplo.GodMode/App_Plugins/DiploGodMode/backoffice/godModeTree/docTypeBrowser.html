@@ -110,7 +110,7 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
-            <br />
+            <p class="gm-results" ng-show="vm.contentTypes"><strong>{{results.length}}</strong> / <strong>{{vm.contentTypes.length}}</strong></p>
 
             <div ng-repeat="ct in vm.contentTypes | filter: vm.filterContentTypes as results">
 

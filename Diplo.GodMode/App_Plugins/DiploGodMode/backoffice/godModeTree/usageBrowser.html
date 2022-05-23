@@ -36,6 +36,8 @@
 
             <umb-load-indicator ng-show="isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.usage"><strong>{{results.length}}</strong> / <strong>{{vm.usage.length}}</strong></p>
+
             <table class="table table-hover">
                 <colgroup>
                     <col style="width:30%">
@@ -50,7 +52,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="c in vm.usage | filter:  vm.criteria.Type === null ? undefined : vm.criteria">
+                    <tr ng-repeat="c in vm.usage | filter:  vm.criteria.Type === null ? undefined : vm.criteria as results">
                         <td>
                             <span class="{{c.Icon}}"></span>
                             <strong>

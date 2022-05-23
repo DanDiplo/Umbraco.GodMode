@@ -35,6 +35,8 @@
 
             <p class="alert alert-info" ng-hide="vm.interfaces.length > 0">Please select an Assembly (above) and then the Interface you wish to browse. You will then see all types that implement the Interface.</p>
 
+            <p class="gm-results" ng-show="vm.types"><strong>{{results.length}}</strong> / <strong>{{vm.types.length}}</strong></p>
+
             <table class="table table-hover" ng-show="vm.interfaces.length > 0">
                 <thead>
                     <tr>
@@ -45,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="t in vm.types | orderBy: vm.sort.column : vm.sort.reverse">
+                    <tr ng-repeat="t in vm.types | orderBy: vm.sort.column : vm.sort.reverse as results">
                         <td>{{ t.Name }}</td>
                         <td>{{ t.Namespace }}</td>
                         <td title="{{t.Assembly}}"><code>{{ t.Module }}</code></td>

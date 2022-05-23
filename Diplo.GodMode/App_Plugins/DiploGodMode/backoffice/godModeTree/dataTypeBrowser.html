@@ -46,6 +46,8 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.dataTypes"><strong>{{results.length}}</strong> / <strong>{{vm.dataTypes.length}}</strong></p>
+
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -58,7 +60,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="d in vm.dataTypes | filter: vm.filterDataTypes | orderBy: vm.sort.column : vm.sort.reverse">
+                    <tr ng-repeat="d in vm.dataTypes | filter: vm.filterDataTypes | orderBy: vm.sort.column : vm.sort.reverse  as results">
                         <td><button type="button" ng-click="vm.openDataType(d.Id)" title="Edit DataType"><strong>{{ d.Name }}</strong></button></td>
                         <td><button type="button" ng-click="vm.openDocTypeBrowser(d.Alias)" title="Search for in doc types"><i class="icon icon-search"></i> {{ d.Alias }}</button></td>
                         <td>{{ d.DbType }}</td>

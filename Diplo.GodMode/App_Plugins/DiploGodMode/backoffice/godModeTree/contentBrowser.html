@@ -56,6 +56,8 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.page.Items"><strong>{{vm.page.Items.length}}</strong> / <strong>{{vm.page.TotalItems}}</strong></p>
+
             <table class="table table-hover">
                 <colgroup>
                     <col style="width:23%">

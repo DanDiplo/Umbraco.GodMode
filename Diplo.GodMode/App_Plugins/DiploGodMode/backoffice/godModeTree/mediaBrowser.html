@@ -36,6 +36,8 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.page.Items"><strong>{{vm.page.Items.length}}</strong> / <strong>{{vm.page.TotalItems}}</strong></p>
+
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -63,7 +65,7 @@
                 <tfoot>
                     <tr>
                         <th colspan="8">
-                            <div class="pagination pagination-centered" ng-show="vm.page.TotalPages > 1">
+                            <div class="pagination pagination-centered" ng-show="vm.page.TotalPages > 0">
                                 <umb-pagination page-number="vm.page.CurrentPage"
                                                 total-pages="vm.page.TotalPages"
                                                 on-next="vm.nextPage"

@@ -36,6 +36,8 @@
 
             <umb-load-indicator ng-show="vm.isLoading"></umb-load-indicator>
 
+            <p class="gm-results" ng-show="vm.templates"><strong>{{results.length}}</strong> / <strong>{{vm.templates.length}}</strong></p>
+
             <div ng-repeat="temp in vm.templates | filter: vm.filterTemplates as results">
 
                 <umb-box>
@@ -44,7 +46,7 @@
                             <h4>
                                 <strong>{{ temp.Name }}</strong> <small>({{ temp.Alias }}) {{ temp.HasCorrectMaster}}</small>
                                 <span ng-if="temp.IsMaster" class="icon icon-key color-amber" title="Master" aria-label="Master template"></span>
-                                <span ng-show="!temp.HasCorrectMaster" class="icon icon-alert color-red" aria-label="Warning"></span> 
+                                <span ng-show="!temp.HasCorrectMaster" class="icon icon-alert color-red" aria-label="Warning"></span>
                             </h4>
                         </div>
                         <div class="">
