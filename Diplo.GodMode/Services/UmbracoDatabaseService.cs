@@ -227,7 +227,7 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of data</returns>
         public List<UsageModel> GetContentUsageData(int? id = null, string orderBy = "CT.alias")
         {
-            const string sql = @"SELECT COUNT(N.id) as NodeCount, CT.description as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
+            const string sql = @"SELECT COUNT(N.id) as NodeCount, COALESCE(CT.description,'') as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
             FROM cmsContentType CT
             LEFT JOIN umbracoContent C ON C.contentTypeId = CT.nodeId
             LEFT JOIN umbracoNode N ON C.nodeId = N.id  ";
