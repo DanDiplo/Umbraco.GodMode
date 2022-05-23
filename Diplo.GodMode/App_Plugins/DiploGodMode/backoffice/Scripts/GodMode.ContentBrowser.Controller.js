@@ -1,10 +1,11 @@
 ﻿(function () {
     'use strict';
     angular.module("umbraco").controller("GodMode.ContentBrowser.Controller",
-        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService) {
+        function ($routeParams, navigationService, godModeResources, godModeConfig, editorService, $scope) {
 
             const vm = this;
-            vm.isLoading = true;
+            const infiniteMode = $scope.model && $scope.model.infiniteMode;
+            const param = infiniteMode ? $scope.model.id : null;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -18,7 +19,6 @@
             vm.languages = [];
             vm.sort = {};
             vm.sort.column = "N.id";
-            const param = $routeParams.id;
             vm.nuCacheViewer = false;
 
             vm.triStateOptions = godModeResources.getTriStateOptions();
