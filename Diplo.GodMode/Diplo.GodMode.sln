@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.0.31717.71
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diplo.GodMode", "Diplo.GodMode.csproj", "{25F17E43-94E0-4897-84CC-0E1689AC44CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diplo.GodMode", "Diplo.GodMode.csproj", "{E5A9BEC5-C7E4-484B-9421-EB7419A26C5D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Info", "Info", "{5817E1B7-C49A-4B1D-9D11-3FB298C531DF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Info", "Info", "{497B432F-0FB8-4DEF-B083-2A8C6CE0B47A}"
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
 	EndProjectSection
@@ -16,15 +16,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{25F17E43-94E0-4897-84CC-0E1689AC44CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{25F17E43-94E0-4897-84CC-0E1689AC44CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{25F17E43-94E0-4897-84CC-0E1689AC44CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{25F17E43-94E0-4897-84CC-0E1689AC44CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5A9BEC5-C7E4-484B-9421-EB7419A26C5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5A9BEC5-C7E4-484B-9421-EB7419A26C5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5A9BEC5-C7E4-484B-9421-EB7419A26C5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5A9BEC5-C7E4-484B-9421-EB7419A26C5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {7169ABA0-F9AE-400A-A778-8CF0B686A775}
+		SolutionGuid = {3B12F3DD-004D-49BB-BF89-D5CBFB139ADE}
 	EndGlobalSection
 EndGlobal
