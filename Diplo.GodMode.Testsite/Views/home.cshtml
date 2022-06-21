@@ -1,37 +1,29 @@
-﻿
-@using Microsoft.Extensions.DependencyInjection
-@using Umbraco.Extensions
+﻿@using Umbraco.Extensions
 @using Umbraco.Cms.Web.Common.PublishedModels;
-
-@inject global::Umbraco.Cms.Core.Services.ITagService tagService;
-
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Home>
 @{
     Layout = "master.cshtml";
     var backgroundImage = Model.HeroBackgroundImage != null ? Model.HeroBackgroundImage.Url() : String.Empty;
 }
 
-<section class="section section">
-
-    @{
-    }
-
-
-    @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
-
-</section>
-
 <section class="section section--full-height background-image-full overlay overlay--dark section--content-center section--thick-border"
          style="background-image: url('@backgroundImage')">
     <div class="section__hero-content">
-        <h1>@Model.HeroHeader</h1>
+        <h1>Diplo God Mode (Test Starter Kit)</h1>
         <p class="section__description">@Model.HeroDescription</p>
-        @if (Model.HeroCtalink != null)
-        {
-            <a class="button button--border--solid" href="@Model.HeroCtalink.Url()">
-                @Model.HeroCtacaption
-            </a>
-        }
+
+        <a class="button button--border--solid" href="/Umbraco/#/settings/godModeTree/intro">
+            Access God Mode
+        </a>
+
+        <p>
+            <strong>Username: </strong> <code>test@example.com</code>
+        </p>
+        
+        <p>
+            <strong>Password: </strong> <code>DiploGodMode!</code>
+        </p>
+
     </div>
 </section>
 
@@ -42,6 +34,11 @@
     @Html.GetGridHtml(Model, "bodyText", "bootstrap3-fluid")
 </section>
 
+<section class="section section">
+
+    @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
+
+</section>
 
 <section class="section section--themed">
 
