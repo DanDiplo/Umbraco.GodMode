@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services
@@ -41,9 +41,9 @@ namespace Diplo.GodMode.Services
                 sql += " AND isElement = " + (isElement.Value ? "1" : "0");
             }
 
-            sql += "ORDER BY CT.alias";
-
             var query = new Sql(sql, Constants.ObjectTypes.Strings.DocumentType);
+
+            query.OrderBy("CT.alias");
 
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
@@ -61,7 +61,7 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of content items</returns>
         public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, ISNULL(DCV.name, N.Text) as Name, 
+            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name, 
                 N.Path as Path, N.createDate, Creator.Id AS CreatorId, Creator.userName as CreatorName,
                 V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName,
 				Lang.languageISOCode As Culture
@@ -124,9 +124,15 @@ namespace Diplo.GodMode.Services
 
                 if (criteria.LanguageId.HasValue)
                 {
-                    query = query.Append(" AND IsNULL(Lang.Id, -1) = @0", criteria.LanguageId.Value);
+                    if (criteria.LanguageId.Value == -1)
+                    {
+                        query = query.Append(" AND Lang.Id IS NULL", criteria.LanguageId.Value);
+                    }
+                    else
+                    {
+                        query = query.Append(" AND Lang.Id = @0", criteria.LanguageId.Value);
+                    }
                 }
-
             }
 
             if (!string.IsNullOrEmpty(orderBy))
