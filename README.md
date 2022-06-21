@@ -38,7 +38,7 @@ See more in https://github.com/DanDiplo/Umbraco.GodMode/tree/v9/Screenshots
 
 ## Download & Installation
 
-***Important!**: This is for Umbraco 9 and above. Use v8 branch for the Umbraco 8 version or the v7 branch for the Umbraco 7 version.
+***Important!**: This is for Umbraco 9.x. Use v10 branch for Umbraco 10. Use v8 branch for the Umbraco 8 version or the v7 branch for the Umbraco 7 version.
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
@@ -57,6 +57,7 @@ If you don't, try clearing your browser cache.
 The v9 repository comes with two solutions:
 
 `Diplo.GodMode` - this is the GodMode plugin source code.
+
 `Diplo.GodMode.TestSite` - this is a demo Umbraco 9 site that can be used to view and test the plugin.
 
 Clone the project and ensure you are in the `v9` branch. You should see a folder called `Umbraco.GodMode`.
