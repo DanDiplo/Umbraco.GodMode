@@ -13,14 +13,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Features;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
-using Umbraco.Cms.Core.Cache;
-using Umbraco.Cms.Core.Features;
 
 namespace Diplo.GodMode.Services
 {
@@ -151,7 +151,7 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<BasicAuthSettings>("Basic Auth Settings", factory));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionPropertiesFrom("Disabled Features", features.Disabled, new string[] { "Controllers"}));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionPropertiesFrom("Disabled Features", features.Disabled, new string[] { "Controllers" }));
 
             group.Add(sections);
             groups.Add(group);

@@ -1,28 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ContentTargetFolders>.</ContentTargetFolders>
     <PackageId>Diplo.GodMode</PackageId>
     <Title>Diplo.GodMode</Title>
-    <Version>9.2.3</Version>
-    <Description>Diplo God Mode makes Umbraco 9 developers invincible!</Description>
+    <Version>10.0.0</Version>
+    <Description>Diplo God Mode makes Umbraco developers invincible!</Description>
     <Product>Diplo GodMode</Product>
     <PackageTags>umbraco plugin package developer-tool</PackageTags>
     <RootNamespace>Diplo.GodMode</RootNamespace>
     <Copyright>Dan 'Diplo' Booth</Copyright>
     <PackageProjectUrl>https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/</PackageProjectUrl>
     <PackageIcon>GodModeIcon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/tree/v9</RepositoryUrl>
+    <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/tree/v10</RepositoryUrl>
     <Authors>DanDiplo</Authors>
-    <PackageReleaseNotes>Added counts and some minor bug fixes</PackageReleaseNotes>
+    <PackageReleaseNotes>Umbraco 10 support</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>NuGet.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms.Web.Website" Version="9.0.0" />
-    <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="9.0.0" />
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="10.0.0" />
+    <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
