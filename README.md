@@ -1,7 +1,7 @@
 # Umbraco GodMode
-**Diplo God Mode makes Umbraco 9 developers invincible!**
+**Diplo God Mode makes Umbraco developers invincible!**
 
-This custom tree in the **Settings** section of **Umbraco 9** allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models. It also provides diagnostics about your Umbraco set-up and the server it is running on.
+This custom tree in the **Settings** section of **Umbraco 10** allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models. It also provides diagnostics about your Umbraco set-up and the server it is running on.
 
 For instance, you can:
 
@@ -38,7 +38,7 @@ See more in https://github.com/DanDiplo/Umbraco.GodMode/tree/v9/Screenshots
 
 ## Download & Installation
 
-***Important!**: This is for Umbraco 9 and above. Use v8 branch for the Umbraco 8 version or the v7 branch for the Umbraco 7 version.
+***Important!**: This is for Umbraco 10 and above. Use `v9` branch for Umbraco 9. Use `v8` branch for the Umbraco 8 version or the `v7` branch for the Umbraco 7 version.
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
@@ -54,9 +54,10 @@ If you don't, try clearing your browser cache.
 
 ### Building / Developing
 
-The v9 repository comes with two solutions:
+The v10 repository comes with two solutions:
 
 `Diplo.GodMode` - this is the GodMode plugin source code.
+
 `Diplo.GodMode.TestSite` - this is a demo Umbraco 9 site that can be used to view and test the plugin.
 
 Clone the project and ensure you are in the `v9` branch. You should see a folder called `Umbraco.GodMode`.
@@ -74,6 +75,7 @@ After this CD back to `Diplo.GodMode.TestSite` and do the same - type `dotnet bu
 To run in a browser type `dotnet run` in the current `Diplo.GodMode.TestSite` folder. You should see the CLI report that it is listening on a couple of ports eg.
 
 `Now listening on: https://localhost:44349`
+
 `Now listening on: http://localhost:56911`
 
 **Note:** To run on HTTPS locally you may need to install a local dev cert: `dotnet dev-certs https --trust`
@@ -81,6 +83,12 @@ To run in a browser type `dotnet run` in the current `Diplo.GodMode.TestSite` fo
 Go to one of these addresses in your browser and it should kickstart the Umbraco installation procedure. Add your login details and you are good to go! (You may see some errors about the DB, but it will create a fresh install, and install the starter kit). Once logged in to the Umbraco back-end go to the Settings section and you should see the God Mode tree at the bottom, under "Third Party".
 
 When you make changes to the plugin project - `Diplo.GodMode` - then rebuild the test site and it should pull in these changes. Scripts will be copied to the `App_Plugins` folder. To ensure you get latest copies of JS etc. then I run with the development console open in my browser with the cache disabled.
+
+You can login to the test site backend using the following credentials:
+
+**username:** `test@example.com`
+
+**password**: `DiploGodMode!`
 
 #### Using Visual Studio
 
@@ -98,4 +106,4 @@ Type `dotnet pack` at the command line. The package should be created in `bin\De
 
 #### Extra Info
 
-See the [Umbraco 9 docs on packages](https://our.umbraco.com/documentation/UmbracoNetCoreUpdates?_ga=2.99408024.785525998.1632846711-370550528.1632846711#package-development) for more info on how the test site is linked to the plugin.
+See https://our.umbraco.com/documentation/Fundamentals/Setup/Install/
