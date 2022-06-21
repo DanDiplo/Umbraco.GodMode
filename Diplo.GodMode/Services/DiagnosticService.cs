@@ -128,8 +128,6 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UnattendedSettings>("Unattended Settings", factory));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<TypeFinderSettings>("Type Finder Settings", factory));
-
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<RichTextEditorSettings>("RichText Editor Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ContentSettings>("Content Settings", factory));
@@ -138,8 +136,6 @@ namespace Diplo.GodMode.Services
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Health Check Settings", healthCheckSettings.Value.Notification, false));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ContentDashboardSettings>("Content Dashboard Settings", factory));
-
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ActiveDirectorySettings>("Active Directory Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ContentNotificationSettings>("Content Notification Settings", factory));
 
