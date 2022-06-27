@@ -58,9 +58,9 @@ The v10 repository comes with two solutions:
 
 `Diplo.GodMode` - this is the GodMode plugin source code.
 
-`Diplo.GodMode.TestSite` - this is a demo Umbraco 9 site that can be used to view and test the plugin.
+`Diplo.GodMode.TestSite` - this is a demo Umbraco 10 site that can be used to view and test the plugin.
 
-Clone the project and ensure you are in the `v9` branch. You should see a folder called `Umbraco.GodMode`.
+Clone the project and ensure you are in the `v10` branch. You should see a folder called `Umbraco.GodMode`.
 
 Within this folder there are the two projects - `Diplo.GodMode` is the plugin source code and `Diplo.GodMode.TestSite` is a test Umbraco site that is "connected" to the plugin, so that when you build this project it pulls in the latest version of the plugin.
 
