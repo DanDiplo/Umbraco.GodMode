@@ -1,6 +1,6 @@
 ﻿{
   "name": "Diplo GodMode",
-  "version": "10.0.0",
+  "version": "10.0.1",
   "allowPackageTelemetry": true,
   "javascript": [
     "~/App_Plugins/DiploGodMode/backoffice/Scripts/GodMode.Config.js",

@@ -64,6 +64,8 @@ Clone the project and ensure you are in the `v10` branch. You should see a folde
 
 Within this folder there are the two projects - `Diplo.GodMode` is the plugin source code and `Diplo.GodMode.TestSite` is a test Umbraco site that is "connected" to the plugin, so that when you build this project it pulls in the latest version of the plugin.
 
+**Note** Update the `<version>` tag in `Diplo.GodMode.csproj` and also in `package.manifest` for telemetry.
+
 #### CLI - using DOTNET command line
 
 When you first clone the code then open a command line prompt within the `Diplo.GodMode.TestSite` folder and type: `dotnet restore`
