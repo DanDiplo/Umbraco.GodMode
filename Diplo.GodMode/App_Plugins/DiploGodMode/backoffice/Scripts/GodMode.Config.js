@@ -5,7 +5,7 @@
             "baseApiUrl": "backoffice/Api/GodModeApi/",
             "basePathUrl": "/App_Plugins/DiploGodMode/backoffice/godModeTree/",
             "config": {
-                "version": "9.0.0",
+                "version": "10.0.0",
                 "editTemplateUrl": "#/settings/templates/edit/",
                 "editDataTypeUrl": "#/settings/datatypes/edit/",
                 "editDocTypeUrl": "#settings/documentTypes/edit/",
