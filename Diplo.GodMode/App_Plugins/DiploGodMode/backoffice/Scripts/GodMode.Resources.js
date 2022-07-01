@@ -224,6 +224,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetNuCacheType")
                 );
             },
+            copyDataType: function (id) {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(godModeConfig.baseApiUrl + "CopyDataType?id=" + id)
+                );
+            },
         };
     });
 })();
