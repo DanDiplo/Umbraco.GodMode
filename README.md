@@ -45,6 +45,8 @@ See more in https://github.com/DanDiplo/Umbraco.GodMode/tree/v9/Screenshots
 
 **NuGet:** https://www.nuget.org/packages/Diplo.GodMode/
 
+`dotnet add package Diplo.GodMode`
+
 `PM> Install-Package Diplo.GodMode`
 
 **Our Umbraco:** https://our.umbraco.org/projects/developer-tools/diplo-god-mode/
