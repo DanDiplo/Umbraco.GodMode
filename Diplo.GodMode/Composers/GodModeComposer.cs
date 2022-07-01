@@ -3,6 +3,8 @@ using Diplo.GodMode.Services.Interfaces;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Diplo.GodMode.Menus;
+using Umbraco.Cms.Core.Notifications;
 
 namespace Diplo.GodMode.Composers
 {
@@ -16,6 +18,8 @@ namespace Diplo.GodMode.Composers
             builder.Services.AddScoped<IDiagnosticService, DiagnosticService>();
             builder.Services.AddScoped<IUmbracoDatabaseService, UmbracoDatabaseService>();
             builder.Services.AddScoped<IUmbracoDataService, UmbracoDataService>();
+
+            builder.AddNotificationHandler<MenuRenderingNotification, DataTypeTreeNotificationHandler>();
         }
     }
 }
