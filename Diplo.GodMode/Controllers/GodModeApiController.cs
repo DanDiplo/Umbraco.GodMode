@@ -13,6 +13,7 @@ using System.Reflection;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Web.BackOffice.Controllers;
@@ -382,6 +383,12 @@ namespace Diplo.GodMode.Controllers
         public List<Models.Tag> GetOrphanedTags()
         {
             return this.dataBaseService.GetOrphanedTags();
+        }
+
+        [HttpPost]
+        public ServerResponse CopyDataType(int id)
+        {
+            return this.dataService.CopyDataType(id);
         }
 
         private ServerResponse ClearCacheFor(string cache)

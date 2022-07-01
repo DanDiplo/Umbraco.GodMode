@@ -9,6 +9,7 @@ using System.Linq;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
+using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence.Querying;
 using Umbraco.Cms.Infrastructure.Scoping;
@@ -31,8 +32,9 @@ namespace Diplo.GodMode.Services
         private readonly IScopeProvider scopeProvider;
         private readonly ITagService tagService;
         private readonly ILocalizationService localizationService;
+        private readonly IConfigurationEditorJsonSerializer serializer;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService, ILocalizationService localizationService)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService, ILocalizationService localizationService, IConfigurationEditorJsonSerializer serializer)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -43,6 +45,7 @@ namespace Diplo.GodMode.Services
             this.tagService = tagService;
             this.contentService = contentService;
             this.localizationService = localizationService;
+            this.serializer = serializer;
         }
 
         /// <summary>
@@ -397,6 +400,41 @@ namespace Diplo.GodMode.Services
             }
 
             return tagMap;
+        }
+
+        /// <summary>
+        /// Used to copy a data type since this is missing in core
+        /// </summary>
+        /// <param name="id">The ID of the datatype being copied</param>
+        /// <returns>A response</returns>
+        public ServerResponse CopyDataType(int id)
+        {
+            var dt = this.dataTypeService.GetDataType(id);
+
+            if (dt == null)
+            {
+                return new ServerResponse($"No datatype with Id of {id} was found", ServerResponseType.Error);
+            }
+
+            try
+            {
+                var copy = new DataType(dt.Editor, this.serializer, dt.ParentId)
+                {
+                    Configuration = dt.Configuration,
+                    CreateDate = DateTime.Now,
+                    UpdateDate = DateTime.Now,
+                    DatabaseType = dt.DatabaseType,
+                    Name = dt.Name + " (Copy)"
+                };
+
+                this.dataTypeService.Save(copy);
+
+                return new ServerResponse($"Created '{copy.Name}' successfully", ServerResponseType.Success);
+            }
+            catch (Exception ex)
+            {
+                return new ServerResponse(ex.Message, ServerResponseType.Error);
+            }
         }
     }
 }
