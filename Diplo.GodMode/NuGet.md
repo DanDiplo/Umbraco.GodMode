@@ -20,7 +20,12 @@ For instance, you can:
 * Clear internal Umbraco caches and even restart App Pool
 * View diagnostics and configuration settings about your Umbraco site and hosting environment
 * Warm up compilation of all templates ("views") in a single bound... erm, click.
-* Plus lots more!
+
+## Other Features
+
+* Adds a "Copy" function to the `DataTypes` tree in `Settings` to allow you to clone any existing datatype
+
+### Additional Info
 
 **Note:** The 10.x version is for Umbraco 10. The 9.x version is for Umbraco 9. Use 2.x for Umbraco 8 or 1.x for Umbraco 7.
 
