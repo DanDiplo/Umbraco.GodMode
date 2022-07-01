@@ -28,5 +28,7 @@ namespace Diplo.GodMode.Services.Interfaces
         IEnumerable<TemplateModel> GetTemplates();
 
         IEnumerable<TagMapping> GetTagMapping();
+
+        ServerResponse CopyDataType(int id);
     }
 }

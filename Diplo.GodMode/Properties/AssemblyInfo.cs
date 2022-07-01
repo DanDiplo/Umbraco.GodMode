@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Diplo.GodMode")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("God Mode developer tool for Umbraco 8")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Diplodocus Squad")]
 [assembly: AssemblyProduct("Diplo.GodMode")]
@@ -31,6 +31,6 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
-// [assembly: AssemblyVersion("2.4.1.0")]
-[assembly: AssemblyVersion("2.4.1.0")]
-[assembly: AssemblyFileVersion("2.4.1.0")]
+// [assembly: AssemblyVersion("2.5.0.0")]
+[assembly: AssemblyVersion("2.5.0.0")]
+[assembly: AssemblyFileVersion("2.5.0.0")]

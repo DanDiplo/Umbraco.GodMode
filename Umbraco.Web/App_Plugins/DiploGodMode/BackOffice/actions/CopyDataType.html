@@ -1,0 +1,8 @@
+﻿<div ng-controller="GodMode.CopyDataType.Controller as vm">
+    <umb-pane>
+        <p>Copy <strong>{{vm.currentNode.name}}</strong> ?</p>
+    </umb-pane>
+
+    <umb-confirm on-confirm="vm.copy" on-cancel="vm.cancel"></umb-confirm>
+
+</div>

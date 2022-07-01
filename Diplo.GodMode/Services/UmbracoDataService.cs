@@ -348,5 +348,40 @@ namespace Diplo.GodMode.Services
 
             return tagMap;
         }
+
+        /// <summary>
+        /// Used to copy a data type since this is missing in core
+        /// </summary>
+        /// <param name="id">The ID of the datatype being copied</param>
+        /// <returns>A response</returns>
+        public ServerResponse CopyDataType(int id)
+        {
+            var dt = this.dataTypeService.GetDataType(id);
+
+            if (dt == null)
+            {
+                return new ServerResponse($"No datatype with Id of {id} was found", ServerResponseType.Error);
+            }
+
+            try
+            {
+                var copy = new DataType(dt.Editor, dt.ParentId)
+                {
+                    Configuration = dt.Configuration,
+                    CreateDate = DateTime.Now,
+                    UpdateDate = DateTime.Now,
+                    DatabaseType = dt.DatabaseType,
+                    Name = dt.Name + " (Copy)"
+                };
+
+                this.dataTypeService.Save(copy);
+
+                return new ServerResponse($"Created '{copy.Name}' successfully", ServerResponseType.Success);
+            }
+            catch (Exception ex)
+            {
+                return new ServerResponse(ex.Message, ServerResponseType.Error);
+            }
+        }
     }
 }

@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Diplo.GodMode</id>
-    <version>2.4.1</version>
+    <version>2.5.0</version>
     <title>God Mode (Developer tools for Umbraco 8)</title>
     <authors>Dan Booth</authors>
     <owners>Dan Booth</owners>
@@ -34,9 +34,9 @@
       * Plus lots more
     </description>
     <releaseNotes>
-      This release (2.4.0) adds a new tag browser that allows you to view tags and their associated content.
+      This release (2.5.0) adds a copy datatype feature to the DataType tree menu
 
-      Note: This version is for Umbraco 8.3 and above. Please use the latest 1.x version for Umbraco 7 sites and 9.x version for Umbraco 9.
+      Note: This version is for Umbraco 8.3 and above. Please use the latest 1.x version for Umbraco 7 sites and 9.x version for Umbraco 9 and v10.x for Umbraco 10.
     </releaseNotes>
     <summary>
       God Mode is a custom Umbraco 8 tree aimed at developers to make it easy to locate, search and query your Umbraco 8 assets (doctypes, templates, property editors, media, content, members, controllers, models etc)

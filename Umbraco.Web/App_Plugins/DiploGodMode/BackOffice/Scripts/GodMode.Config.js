@@ -4,7 +4,7 @@
         .constant("godModeConfig", {
             "baseApiUrl": "BackOffice/Api/GodModeApi/",
             "config": {
-                "version": "2.3.0",
+                "version": "2.5.0",
                 "editTemplateUrl": "#/settings/templates/edit/",
                 "editDataTypeUrl": "#/settings/datatypes/edit/",
                 "editDocTypeUrl": "#settings/documentTypes/edit/",

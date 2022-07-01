@@ -377,6 +377,12 @@ namespace Diplo.GodMode.Controllers
             return this.dataBaseService.GetOrphanedTags();
         }
 
+        [HttpPost]
+        public ServerResponse CopyDataType(int id)
+        {
+            return this.dataService.CopyDataType(id);
+        }
+
         private ServerResponse ClearCacheFor(string cache)
         {
             try

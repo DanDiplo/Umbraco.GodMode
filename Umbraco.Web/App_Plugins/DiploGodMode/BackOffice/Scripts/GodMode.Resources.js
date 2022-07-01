@@ -203,6 +203,11 @@
                             params: { id: id }
                         })
                 );
+            },
+            copyDataType: function (id) {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(godModeConfig.baseApiUrl + "CopyDataType?id=" + id)
+                );
             }
         };
     });

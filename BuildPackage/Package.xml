@@ -3,7 +3,7 @@
   <info>
     <package>
       <name>Diplo God Mode</name>
-      <version>2.4.1</version>
+      <version>2.5.0</version>
       <iconUrl>https://www.diplo.co.uk/media/1184/godmodeicon.png</iconUrl>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>https://github.com/DanDiplo/Umbraco.GodMode/</url>
@@ -23,7 +23,7 @@
       <![CDATA[
             Diplo God Mode makes Umbraco developers invincible! This custom tree in the Settings section of Umbraco 8 allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers and models.
             
-      This release (2.4.0) adds a new tag browser that allows you to view tags and their associated content
+      This release (2.5.0) adds a copy datatype feature
 ]]>
     </readme>
   </info>
