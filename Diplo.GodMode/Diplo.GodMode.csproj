@@ -8,7 +8,7 @@
     <Description>Diplo God Mode makes Umbraco 10 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool</PackageTags>
     <Version>$(VersionPrefix)</Version>
-	  <VersionPrefix>10.1.0</VersionPrefix>
+	  <VersionPrefix>10.2.0</VersionPrefix>
 	  <Company>$(Authors)</Company>
 	  <Copyright>Dan 'Diplo' Booth</Copyright>
 	  <Authors>DanDiplo</Authors>
@@ -18,7 +18,7 @@
 	  <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <PackageReleaseNotes>Adds copy dialog to the DataTypes tree to allow you to quickly clone any datatype</PackageReleaseNotes>
+	  <PackageReleaseNotes>Add DI services browser; content finders and URL providers and improved partial detection</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
