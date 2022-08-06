@@ -13,9 +13,9 @@ using System.Reflection;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
-using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Web.BackOffice.Controllers;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Cms.Web.Common.Controllers;
@@ -36,8 +36,9 @@ namespace Diplo.GodMode.Controllers
         private readonly AppCaches caches;
         private readonly IHostApplicationLifetime applicationLifetime;
         private readonly NuCacheSettings nuCacheSettings;
+        private readonly RegisteredServiceCollection registeredServiceCollection;
 
-        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, AppCaches caches, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings)
+        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, AppCaches caches, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings, RegisteredServiceCollection registeredServiceCollection)
         {
             this.dataService = dataService;
             this.dataBaseService = dataBaseService;
@@ -45,6 +46,7 @@ namespace Diplo.GodMode.Controllers
             this.caches = caches;
             this.applicationLifetime = applicationLifetime;
             this.nuCacheSettings = nuCacheSettings.Value;
+            this.registeredServiceCollection = registeredServiceCollection;
         }
 
         /// <summary>
@@ -214,6 +216,22 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<TypeMap> GetViewComponents()
         {
             return ReflectionHelper.GetTypeMapFrom(typeof(ViewComponent));
+        }
+
+        /// <summary>
+        /// Gets all Content Finders
+        /// </summary>
+        public IEnumerable<TypeMap> GetContentFinders()
+        {
+            return ReflectionHelper.GetTypeMapFrom(typeof(IContentFinder));
+        }
+
+        /// <summary>
+        /// Gets registered services
+        /// </summary>
+        public IEnumerable<RegisteredService> GetRegisteredServices()
+        {
+            return this.registeredServiceCollection.Services.Value;
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 ﻿{
   "name": "Diplo GodMode",
-  "version": "10.1.0",
+  "version": "10.2.0",
   "allowPackageTelemetry": true,
   "javascript": [
     "~/App_Plugins/DiploGodMode/backoffice/Scripts/GodMode.Config.js",
@@ -21,6 +21,7 @@
     "~/App_Plugins/DiploGodMode/backoffice/Scripts/GodMode.TypesIntro.Controller.js",
     "~/App_Plugins/DiploGodMode/backoffice/Scripts/GodMode.nuCacheViewer.Controller.js",
     "~/App_Plugins/DiploGodMode/backoffice/Scripts/GodMode.TagBrowser.Controller.js",
+    "~/App_Plugins/DiploGodMode/backoffice/Scripts/GodMode.ServiceBrowser.Controller.js",
     "~/App_Plugins/DiploGodMode/backoffice/actions/GodMode.CopyDataType.Controller.js"
   ],
   "css": [

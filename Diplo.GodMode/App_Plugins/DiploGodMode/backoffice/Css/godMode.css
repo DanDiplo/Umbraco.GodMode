@@ -50,6 +50,11 @@
     font-size: smaller;
 }
 
+.god-mode table tbody td {
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
 .god-mode .true-false {
     color: #bbbabf;
 }

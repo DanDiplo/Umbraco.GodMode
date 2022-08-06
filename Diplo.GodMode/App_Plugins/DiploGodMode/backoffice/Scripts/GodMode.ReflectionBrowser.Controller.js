@@ -52,6 +52,10 @@
                     getControllersFunction = godModeResources.getViewComponents();
                     vm.heading = "View Component";
                 }
+                else if ($routeParams.id === "finders") {
+                    getControllersFunction = godModeResources.getContentFinders();
+                    vm.heading = "Content Finders";
+                }
 
                 getControllersFunction.then(function (data) {
                     vm.controllers = data;

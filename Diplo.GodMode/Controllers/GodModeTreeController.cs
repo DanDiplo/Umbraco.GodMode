@@ -115,6 +115,8 @@ namespace Diplo.GodMode.Controllers
 
                 CreateTreeNode(ReflectionTree, parentId, qs, "Types", "icon-folder", true, baseUrl + "typesIntro"),
 
+                CreateTreeNode("serviceBrowser", parentId, qs, "Services", "icon-console", false, baseUrl + "serviceBrowser/browse"),
+
                 CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"),
 
                 CreateTreeNode("utilityBrowser", parentId, qs, "Utilities", "icon-wrench", false, baseUrl + "utilityBrowser/umbraco")
@@ -140,6 +142,8 @@ namespace Diplo.GodMode.Controllers
                 CreateTreeNode("reflectionBrowserConverters", parentId, qs, "Value Converters", "icon-wand", false, baseUrl + "reflectionBrowser/converters"),
 
                 CreateTreeNode("reflectionBrowserViewComponents", parentId, qs, "View Components", "icon-code", false, baseUrl + "reflectionBrowser/components"),
+
+                CreateTreeNode("reflectionBrowserContentFinders", parentId, qs, "Content Finders", "icon-box", false, baseUrl + "reflectionBrowser/finders"),
 
                 CreateTreeNode("typeBrowser", parentId, qs, "Interface Browser", "icon-molecular-network", false, baseUrl + "typeBrowser/browse")
             };

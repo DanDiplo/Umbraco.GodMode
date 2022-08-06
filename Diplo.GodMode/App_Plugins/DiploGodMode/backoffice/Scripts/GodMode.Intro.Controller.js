@@ -19,6 +19,7 @@
                 { name: "Member Browser", url: "memberBrowser", desc: "Search members and see what groups they have been assigned to" },
                 { name: "Tag Browser", url: "tagBrowser", desc: "View all tags and see what content they are assigned to" },
                 { name: "Type Browser", url: "typesIntro", desc: "See how controllers, composers and models are made up and browse interfaces" },
+                { name: "Services", url: "serviceBrowser", desc: "Browse injected services registered with the IOC container." },
                 { name: "Diagnostics", url: "diagnosticBrowser", desc: "View Umbraco settings and configuration, Server settings and much more..." },
                 { name: "Utlities", url: "utilityBrowser", desc: "Clear caches, restart application pool and warm-up your little templates" }
             ];

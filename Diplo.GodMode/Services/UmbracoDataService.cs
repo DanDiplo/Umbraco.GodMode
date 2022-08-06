@@ -53,6 +53,7 @@ namespace Diplo.GodMode.Services
         /// </summary>
         public IEnumerable<ContentTypeMap> GetContentTypeMap()
         {
+
             var allContentTypes = this.contentTypeService.GetAll() ?? Enumerable.Empty<IContentType>();
 
             var mapping = new List<ContentTypeMap>();

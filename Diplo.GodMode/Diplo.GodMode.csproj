@@ -40,6 +40,8 @@
   <ItemGroup>
     <None Remove="App_Plugins\DiploGodMode\backoffice\actions\CopyDataType.html" />
     <None Remove="App_Plugins\DiploGodMode\backoffice\actions\GodMode.CopyDataType.Controller.js" />
+    <None Remove="App_Plugins\DiploGodMode\backoffice\godModeTree\serviceBrowser.html" />
+    <None Remove="App_Plugins\DiploGodMode\backoffice\Scripts\GodMode.ServiceBrowser.Controller.js" />
   </ItemGroup>
 
   <ItemGroup>

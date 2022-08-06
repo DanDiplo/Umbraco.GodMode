@@ -116,6 +116,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetComposers")
                 );
             },
+            getContentFinders: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetContentFinders")
+                );
+            },
             getViewComponents: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetViewComponents")
@@ -154,6 +159,11 @@
             getAssemblies: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetAssembliesWithInterfaces")
+                );
+            },
+            getRegisteredServices: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetRegisteredServices")
                 );
             },
             clearUmbracoCache: function (cache) {
