@@ -17,7 +17,7 @@ namespace Diplo.GodMode.Controllers
         /// </summary>
         private static readonly Regex HtmlPartialRegex = new(@"Html.(Cached)?Partial(Async)?\(\""(.+?)\"".*\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private static readonly Regex PartialTagRegex = new(@"<partial name=\""(.*)\"".*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex PartialTagRegex = new(@"<partial name=\""(.*?)\"".*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly string[] replaceables = new string[] { "~/Views/Partials/", "/Views/Partials/", "/Partials/", "Partials/" };
 
