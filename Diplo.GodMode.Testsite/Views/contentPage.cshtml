@@ -5,7 +5,7 @@
     Layout = "master.cshtml";
 }
 
-@Html.Partial("~/Views/Partials/SectionHeader.cshtml")
+<partial name="/Views/Partials/SectionHeader.cshtml" />
 
 <section class="section">
 
@@ -13,9 +13,14 @@
 
         <div class="col-md-3">
             <nav class="nav-bar nav-bar--list">
-                @await Html.PartialAsync("~/Views/Partials/Navigation/SubNavigation.cshtml")
 
-                    @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
+                <partial name="Navigation/SubNavigation"></partial>
+
+                @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
+
+                <vc:bananas-list></vc:bananas-list>
+
+
 
             </nav>
         </div>

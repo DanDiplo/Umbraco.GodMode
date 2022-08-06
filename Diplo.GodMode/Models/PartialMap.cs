@@ -23,16 +23,6 @@ namespace Diplo.GodMode.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets whether the partial is cached or not
-        /// </summary>
-        public bool IsCached { get; set; }
-
-        /// <summary>
-        /// Is it invoked async?
-        /// </summary>
-        public bool IsAsync {  get; set; }
-
-        /// <summary>
         /// Gets the filepath to the file
         /// </summary>
         public string Path { get; set; }

@@ -14,7 +14,6 @@
             vm.sort.column = "Name";
             vm.sort.reverse = false;
             vm.triStateOptions = godModeResources.getTriStateOptions();
-            vm.search.isAsync = vm.triStateOptions[0];
 
             vm.init = function () {
                 vm.isLoading = true;
@@ -48,10 +47,6 @@
 
                 if (vm.search.template) {
                     return p.TemplateId === vm.search.template.Id;
-                }
-
-                if (!p.IsAsync === vm.search.isAsync.value) {
-                    return;
                 }
 
                 return p;

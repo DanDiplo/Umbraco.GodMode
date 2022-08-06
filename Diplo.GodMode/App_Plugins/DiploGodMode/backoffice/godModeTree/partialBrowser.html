@@ -10,26 +10,19 @@
                 <umb-box-content>
                     <div class="row">
 
-                        <div class="span4">
+                        <div class="span6">
                             <label class="control-label" for="search-partial">Search:</label>
                             <br />
                             <input id="search-partial" type="search" ng-model="vm.search.partial" placeholder="Filter partial names" class="input-large">
                         </div>
 
-                        <div class="span4">
+                        <div class="span6">
                             <label class="control-label" for="search-template">In Template:</label>
                             <br />
                             <select id="search-template" ng-model="vm.search.template" ng-options="item.Name for item in vm.templates" class="input-large">
                                 <option value="">Any</option>
                             </select>
                         </div>
-
-                        <div class="span4">
-                            <label class="control-label" for="search-isAsync">Is Async?</label>
-                            <br />
-                            <select id="search-isAsync" ng-model="vm.search.isAsync" ng-options="opt.label for opt in vm.triStateOptions" class="input-medium"></select>
-                        </div>
-
                     </div>
                 </umb-box-content>
             </umb-box>
@@ -43,14 +36,12 @@
                     <tr>
                         <th><godmode-sortable sort-by="vm.sortBy('Name')" column="Name" sort="vm.sort">Partial Name</godmode-sortable></th>
                         <th><godmode-sortable sort-by="vm.sortBy('TemplateAlias')" column="TemplateAlias" sort="vm.sort">Template Name</godmode-sortable></th>
-                        <th><godmode-sortable sort-by="vm.sortBy('IsAsync')" column="Isasync" sort="vm.sort">Async?</godmode-sortable></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr ng-repeat="p in vm.partials | filter: vm.filterPartials | orderBy: vm.sort.column : vm.sort.reverse as results">
                         <td><button type="button" ng-click="vm.openPartial(p.Path)" title="Edit Partial">{{ p.Name }}</button></td>
                         <td><button type="button" ng-click="vm.openTemplate(p.TemplateId)" title="Edit Template">{{ p.TemplateAlias }}</button></td>
-                        <td><godmode-True-False value="p.IsAsync"></godmode-True-False></td>
                     </tr>
                 </tbody>
             </table>

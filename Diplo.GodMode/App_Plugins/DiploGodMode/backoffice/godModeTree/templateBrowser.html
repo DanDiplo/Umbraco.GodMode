@@ -86,13 +86,11 @@
                             <thead>
                                 <tr>
                                     <th width="50%">Partial Name</th>
-                                    <th width="50%">Async?</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr ng-repeat="p in temp.Partials">
                                     <td><button type="button" ng-click="vm.openPartial(p.Path)" title="Edit Partial">{{ p.Name }}</button></td>
-                                    <td><godmode-True-False value="p.IsAsync"></godmode-True-False></td>
                                 </tr>
                             </tbody>
                         </table>

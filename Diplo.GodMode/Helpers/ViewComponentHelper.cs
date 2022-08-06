@@ -15,7 +15,7 @@ namespace Diplo.GodMode.Controllers
         /// </summary>
         private static readonly Regex ViewComponentRegex = new Regex(@"Component.InvokeAsync\((.\S+)(.*)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private static readonly Regex ViewComponentTagRegex = new Regex(@"<vc:(.\S+)(.+?)>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex ViewComponentTagRegex = new Regex(@"<vc:(.\S*)(.*?)>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Gets the partials from the given template content
@@ -38,7 +38,7 @@ namespace Diplo.GodMode.Controllers
                     {
                         TemplateId = id,
                         TemplateAlias = alias,
-                        Name = match.Groups[1]?.Value?.Replace("\"", string.Empty)?.Replace(",", string.Empty),
+                        Name = match.Groups[1]?.Value?.Replace("\"", string.Empty)?.Replace(",", string.Empty)?.Trim(),
                         Parameters = match.Groups[2]?.Value,
                         TagHelper = false
                     };
@@ -57,8 +57,8 @@ namespace Diplo.GodMode.Controllers
                     {
                         TemplateId = id,
                         TemplateAlias = alias,
-                        Name = match.Groups[1].Value,
-                        Parameters = match.Groups[2]?.Value,
+                        Name = match.Groups[1].Value?.Trim(),
+                        Parameters = match.Groups[2]?.Value?.Trim(),
                         TagHelper = true
                     };
 
