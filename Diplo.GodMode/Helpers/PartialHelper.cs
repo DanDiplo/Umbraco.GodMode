@@ -28,7 +28,7 @@ namespace Diplo.GodMode.Controllers
         /// <param name="id">The template Id</param>
         /// <param name="alias">The template Alias</param>
         /// <returns>Any partials in the template</returns>
-        internal static IEnumerable<PartialMap> GetPartialInfo(string content, int id, string alias, bool distinct = true)
+        internal static IEnumerable<PartialMap> GetPartialInfo(string content, int id, string alias)
         {
             var partials = new List<PartialMap>();
 

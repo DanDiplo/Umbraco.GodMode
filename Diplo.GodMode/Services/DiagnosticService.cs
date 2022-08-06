@@ -209,10 +209,11 @@ namespace Diplo.GodMode.Services
             if (context != null)
             {
                 group = new DiagnosticGroup(id++, "HTTP Context");
-                sections = new List<DiagnosticSection>();
-
-                sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("HTTP Connection", context.Connection));
-                sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("HTTP Features", context.Features));
+                sections = new List<DiagnosticSection>
+                {
+                    DiagnosticSection.AddDiagnosticSectionFrom("HTTP Connection", context.Connection),
+                    DiagnosticSection.AddDiagnosticSectionFrom("HTTP Features", context.Features)
+                };
 
                 if (context.Items != null)
                 {
