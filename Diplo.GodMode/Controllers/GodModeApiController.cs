@@ -227,6 +227,14 @@ namespace Diplo.GodMode.Controllers
         }
 
         /// <summary>
+        /// Gets all URL Providers
+        /// </summary>
+        public IEnumerable<TypeMap> GetUrlProviders()
+        {
+            return ReflectionHelper.GetTypeMapFrom(typeof(IUrlProvider));
+        }
+
+        /// <summary>
         /// Gets registered services
         /// </summary>
         public IEnumerable<RegisteredService> GetRegisteredServices()

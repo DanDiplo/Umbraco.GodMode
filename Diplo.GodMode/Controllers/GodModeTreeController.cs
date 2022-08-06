@@ -145,6 +145,8 @@ namespace Diplo.GodMode.Controllers
 
                 CreateTreeNode("reflectionBrowserContentFinders", parentId, qs, "Content Finders", "icon-box", false, baseUrl + "reflectionBrowser/finders"),
 
+                CreateTreeNode("reflectionBrowserUrlProviders", parentId, qs, "URL Providers", "icon-link", false, baseUrl + "reflectionBrowser/urlproviders"),
+
                 CreateTreeNode("typeBrowser", parentId, qs, "Interface Browser", "icon-molecular-network", false, baseUrl + "typeBrowser/browse")
             };
 

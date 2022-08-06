@@ -56,6 +56,10 @@
                     getControllersFunction = godModeResources.getContentFinders();
                     vm.heading = "Content Finders";
                 }
+                else if ($routeParams.id === "urlproviders") {
+                    getControllersFunction = godModeResources.getUrlProviders();
+                    vm.heading = "URL Providers";
+                }
 
                 getControllersFunction.then(function (data) {
                     vm.controllers = data;

@@ -121,6 +121,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetContentFinders")
                 );
             },
+            getUrlProviders: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetUrlProviders")
+                );
+            },
             getViewComponents: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetViewComponents")
