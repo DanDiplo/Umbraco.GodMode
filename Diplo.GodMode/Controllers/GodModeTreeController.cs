@@ -145,7 +145,7 @@ namespace Diplo.GodMode.Controllers
 
                 CreateTreeNode("reflectionBrowserTagHelpers", parentId, qs, "Tag Helpers", "icon-tags", false, baseUrl + "reflectionBrowser/taghelpers"),
 
-                CreateTreeNode("reflectionBrowserContentFinders", parentId, qs, "Content Finders", "icon-box", false, baseUrl + "reflectionBrowser/finders"),
+                CreateTreeNode("reflectionBrowserContentFinders", parentId, qs, "Content Finders", "icon-directions-alt", false, baseUrl + "reflectionBrowser/finders"),
 
                 CreateTreeNode("reflectionBrowserUrlProviders", parentId, qs, "URL Providers", "icon-link", false, baseUrl + "reflectionBrowser/urlproviders"),
 
