@@ -58,7 +58,7 @@
                         <td>{{ m.Alias }}</td>
                         <td title="{{ m.Ext }}">{{ m.Type }}</td>
                         <td>{{ m.Size | godModeFileSize }}</td>
-                        <td>{{ m. UpdateDate }}</td>
+                        <td><small>{{ m.UpdateDate | limitTo:22 }}</small></td>
                         <td><div><strong>{{ m.Id }}</strong> <small class="muted">({{m.Path}})</small></div> <code>{{m.Udi}}</code></td>
                     </tr>
                 </tbody>
