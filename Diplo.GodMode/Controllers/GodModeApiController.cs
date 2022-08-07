@@ -3,6 +3,7 @@ using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NPoco;
@@ -232,6 +233,14 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<TypeMap> GetUrlProviders()
         {
             return ReflectionHelper.GetTypeMapFrom(typeof(IUrlProvider));
+        }
+
+        /// <summary>
+        /// Gets all Tag Helpers
+        /// </summary>
+        public IEnumerable<TypeMap> GetTagHelpers()
+        {
+            return ReflectionHelper.GetTypeMapFrom(typeof(ITagHelper));
         }
 
         /// <summary>

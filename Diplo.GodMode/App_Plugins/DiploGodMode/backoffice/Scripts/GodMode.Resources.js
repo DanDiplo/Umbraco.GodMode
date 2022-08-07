@@ -131,6 +131,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetViewComponents")
                 );
             },
+            getTagHelpers: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetTagHelpers")
+                );
+            },
             getEnvironmentDiagnostics: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetEnvironmentDiagnostics")

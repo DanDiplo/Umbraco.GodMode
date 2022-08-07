@@ -16,6 +16,7 @@
                 { name: "Composers", url: "reflectionBrowser/composers", desc: "Browse Umbraco Composers (DI)" },
                 { name: "Value Converters", url: "reflectionBrowser/converters", desc: "View configured Property Value Converters" },
                 { name: "View Components", url: "reflectionBrowser/components", desc: "List all View Components used on your site" },
+                { name: "Tag Helpers", url: "reflectionBrowser/taghelpers", desc: "All Tag Helpers that you can use" },
                 { name: "Content Finders", url: "reflectionBrowser/finders", desc: "View the registered Content Finders" },
                 { name: "URL Providers", url: "reflectionBrowser/urlproviders", desc: "List all URL Providers that are available" },
                 { name: "Interface Browser", url: "typeBrowser", desc: "Interogate C# Interfaces and derived types in your site" }

@@ -52,6 +52,10 @@
                     getControllersFunction = godModeResources.getViewComponents();
                     vm.heading = "View Component";
                 }
+                else if ($routeParams.id === "taghelpers") {
+                    getControllersFunction = godModeResources.getTagHelpers();
+                    vm.heading = "Tag Helpers";
+                }
                 else if ($routeParams.id === "finders") {
                     getControllersFunction = godModeResources.getContentFinders();
                     vm.heading = "Content Finders";
