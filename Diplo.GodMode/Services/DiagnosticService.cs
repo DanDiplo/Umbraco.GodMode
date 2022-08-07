@@ -21,6 +21,13 @@ using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Features;
+using Microsoft.Extensions.Configuration;
+using System.Configuration;
+using Umbraco.Cms.Web.Common.AspNetCore;
+using Umbraco.Cms.Infrastructure.Runtime;
+using Umbraco.Cms.Core.Models.ContentEditing;
+using Umbraco.Cms.Web.Common.Routing;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Diplo.GodMode.Services
 {
@@ -81,6 +88,7 @@ namespace Diplo.GodMode.Services
                 section.Diagnostics.Add(new Diagnostic("Version Comment", version.Comment));
             }
 
+            section.Diagnostics.Add(new Diagnostic("Runtime Level", runtimeState.Level));
             section.Diagnostics.Add(new Diagnostic("Current Migration State", runtimeState.CurrentMigrationState));
             section.Diagnostics.Add(new Diagnostic("Final Migration State", runtimeState.FinalMigrationState));
 
@@ -147,7 +155,37 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<BasicAuthSettings>("Basic Auth Settings", factory));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionPropertiesFrom("Disabled Features", features.Disabled, new string[] { "Controllers"}));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionPropertiesFrom("Disabled Features", features.Disabled, new string[] { "Controllers" }));
+
+            group.Add(sections);
+            groups.Add(group);
+
+            group = new DiagnosticGroup(id++, "Umbraco Infrastructure");
+            sections = new List<DiagnosticSection>();
+
+            section = new DiagnosticSection("Background Tasks");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Infrastructure.HostedServices.RecurringHostedServiceBase));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Sections");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Sections.ISection));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Dashboards");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Dashboards.IDashboard));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Middleware");
+            section.AddDiagnosticsFrom(typeof(IMiddleware));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Notifications");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Notifications.INotification));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Telemetry");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Telemetry.ITelemetryService));
+            sections.Add(section);
 
             group.Add(sections);
             groups.Add(group);
