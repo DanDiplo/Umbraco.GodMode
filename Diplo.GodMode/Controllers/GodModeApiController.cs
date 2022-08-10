@@ -240,7 +240,7 @@ namespace Diplo.GodMode.Controllers
         /// </summary>
         public IEnumerable<TypeMap> GetTagHelpers()
         {
-            return ReflectionHelper.GetTypeMapFrom(typeof(ITagHelper));
+            return ReflectionHelper.GetTypeMapFrom(typeof(ITagHelper)).Where(x => !x.Name.StartsWith("__Generated"));
         }
 
         /// <summary>
