@@ -18,7 +18,8 @@
 	  <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <PackageReleaseNotes>Add DI services browser; content finders and URL providers and improved partial detection</PackageReleaseNotes>
+	  <PackageReleaseNotes>Add DI services browser; content finders and URL providers; more diagnostics and improved partial detection</PackageReleaseNotes>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

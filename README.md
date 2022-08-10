@@ -17,6 +17,7 @@ For instance, you can:
 * List all tags and the content associated with the tag. Find orphaned tags
 * See which controllers (Surface, API and RenderMvc) are being used and in what namespaces and DLLs
 * View all generated models (that inherit from `PublishedContentModel`)
+* View services injected into the IOC container, registered Content and URL Finders
 * Clear internal Umbraco caches and even restart App Pool
 * View diagnostics and configuration settings about your Umbraco site and hosting environment
 * Warm up compilation of all templates ("views") in a single bound... erm, click.
