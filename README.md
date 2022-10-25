@@ -22,10 +22,6 @@ For instance, you can:
 * View diagnostics and configuration settings about your Umbraco site and hosting environment
 * Warm up compilation of all templates ("views") in a single bound... erm, click.
 
-## Other Features
-
-* Adds a "Copy" function to the `DataTypes` tree in `Settings` to allow you to clone any existing datatype
-
 ## Screenshots
 
 ![Doc Type Browser](https://www.diplo.co.uk/media/1189/doctypebrowser.png)

@@ -1,11 +1,9 @@
-﻿using Diplo.GodMode.Menus;
-using Diplo.GodMode.Models;
+﻿using Diplo.GodMode.Models;
 using Diplo.GodMode.Services;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
-using Umbraco.Cms.Core.Notifications;
 
 namespace Diplo.GodMode.Composers
 {
@@ -19,8 +17,6 @@ namespace Diplo.GodMode.Composers
             builder.Services.AddScoped<IDiagnosticService, DiagnosticService>();
             builder.Services.AddScoped<IUmbracoDatabaseService, UmbracoDatabaseService>();
             builder.Services.AddScoped<IUmbracoDataService, UmbracoDataService>();
-
-            builder.AddNotificationHandler<MenuRenderingNotification, DataTypeTreeNotificationHandler>();
 
             RegisteredServiceCollection registeredServiceCollection = new RegisteredServiceCollection(builder.Services);
             builder.Services.AddSingleton<RegisteredServiceCollection>(services => registeredServiceCollection);
