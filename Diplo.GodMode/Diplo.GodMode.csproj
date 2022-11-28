@@ -6,19 +6,19 @@
     <PackageId>Diplo.GodMode</PackageId>
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 10 developers invincible!</Description>
-    <PackageTags>umbraco plugin package developer-tool</PackageTags>
+    <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
     <Version>$(VersionPrefix)</Version>
-	  <VersionPrefix>10.2.1</VersionPrefix>
+	  <VersionPrefix>10.2.2</VersionPrefix>
 	  <Company>$(Authors)</Company>
 	  <Copyright>Dan 'Diplo' Booth</Copyright>
 	  <Authors>DanDiplo</Authors>
-	  <PackageProjectUrl>https://www.diplo.co.uk/blog/web-development/god-mode-comes-to-umbraco-9/</PackageProjectUrl>
+	  <PackageProjectUrl>https://github.com/DanDiplo/Umbraco.GodMode/</PackageProjectUrl>
 	  <PackageIcon>GodModeIcon.png</PackageIcon>
 	  <PackageReadmeFile>NuGet.md</PackageReadmeFile>
 	  <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <PackageReleaseNotes>Removed copy datatype function as now native to Umbraco. I'm not saying they copied it (but they did :p)</PackageReleaseNotes>
+	  <PackageReleaseNotes>Compatability with Umbraco marketplace</PackageReleaseNotes>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
@@ -52,6 +52,7 @@
   <ItemGroup>
     <None Remove="App_Plugins\DiploGodMode\backoffice\godModeTree\serviceBrowser.html" />
     <None Remove="App_Plugins\DiploGodMode\backoffice\Scripts\GodMode.ServiceBrowser.Controller.js" />
+    <None Remove="umbraco-marketplace.json" />
   </ItemGroup>
 
   <ItemGroup>
