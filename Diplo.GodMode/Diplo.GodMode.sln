@@ -8,7 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Info", "Info", "{497B432F-0FB8-4DEF-B083-2A8C6CE0B47A}"
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
-		umbraco-marketplace.json = umbraco-marketplace.json
+		..\umbraco-marketplace.json = ..\umbraco-marketplace.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diplo.GodMode.Testsite", "..\Diplo.GodMode.Testsite\Diplo.GodMode.Testsite.csproj", "{487CFA02-2D6C-4D5A-BF0D-689B671E0B8F}"
