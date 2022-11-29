@@ -36,23 +36,23 @@
   ],
   "Screenshots": [
     {
-      "ImageUrl": "https://camo.githubusercontent.com/ce7661ab43d50956621ec25ed2bf9d51cc208b9c0a3c45e2e8b6bd847935bb66/68747470733a2f2f7777772e6469706c6f2e636f2e756b2f6d656469612f313138392f646f637479706562726f777365722e706e67",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/document-type-browser.png",
       "Caption": "Document Type Browser"
     },
     {
-      "ImageUrl": "https://camo.githubusercontent.com/25f8fd85a47edf8668f9f3246f1c3c9446f3c93cf085d5f07a30f8fc8ac8f182/68747470733a2f2f7777772e6469706c6f2e636f2e756b2f6d656469612f313139302f646f637479706564657461696c2e706e67",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/document-type-browser-detail.png",
       "Caption": "Document Type Browser - Properties"
     },
     {
-      "ImageUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v10/Screenshots/diagnostics-umbraco.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/diagnostics-umbraco.png",
       "Caption": "Umbraco and Server Diagnostics"
     },
     {
-      "ImageUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v10/Screenshots/tag-browser.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/tag-browser.png",
       "Caption": "Tag Browser"
     },
     {
-      "ImageUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v10/Screenshots/service-browser.PNG",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/service-browser.PNG",
       "Caption": "IOC (DI) Services Browser"
     }
   ],
