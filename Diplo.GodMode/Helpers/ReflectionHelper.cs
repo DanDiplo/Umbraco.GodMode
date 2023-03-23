@@ -39,6 +39,21 @@ namespace Diplo.GodMode.Helpers
             return predicate != null ? AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic).Where(predicate) : AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic);
         }
 
+        public static IEnumerable<Type> GetAllTypesImplementingOpenGenericType(Type openGenericType, IEnumerable<Type> types)
+        {
+            return from x in types
+                   from z in x.GetInterfaces()
+                   let y = x.BaseType
+                   where
+                   (y != null && y.IsGenericType &&
+                   openGenericType.IsAssignableFrom(y.GetGenericTypeDefinition())) ||
+                   (z.IsGenericType &&
+                   openGenericType.IsAssignableFrom(z.GetGenericTypeDefinition()))
+                   select x;
+        }
+
+        public static IEnumerable<Type> GetAllTypesImplementingOpenGenericType(Type openGenericType) => GetAllTypesImplementingOpenGenericType(openGenericType, GetLoadableTypes());
+
         public static IEnumerable<Type> GetLoadableTypes(Func<Assembly, bool> assemblyPredicate = null)
         {
             return GetAssemblies(assemblyPredicate).SelectMany(s => GetTypesThatCanBeLoaded(s));

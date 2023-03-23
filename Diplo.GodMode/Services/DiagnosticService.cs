@@ -1,33 +1,28 @@
-﻿using Diplo.GodMode.Models;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Diplo.GodMode.Helpers;
+using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Features;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
-using Umbraco.Cms.Core.Cache;
-using Umbraco.Cms.Core.Features;
-using Microsoft.Extensions.Configuration;
-using System.Configuration;
-using Umbraco.Cms.Web.Common.AspNetCore;
-using Umbraco.Cms.Infrastructure.Runtime;
-using Umbraco.Cms.Core.Models.ContentEditing;
-using Umbraco.Cms.Web.Common.Routing;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Diplo.GodMode.Services
 {
@@ -48,10 +43,10 @@ namespace Diplo.GodMode.Services
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment;
         private readonly Smidge.ISmidgeConfig smidgeConfig;
         private readonly UmbracoFeatures features;
-
+        private readonly IConfiguration configuration;
         private HttpContext httpContext;
 
-        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, UmbracoFeatures features)
+        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, UmbracoFeatures features, IConfiguration configuration)
         {
             this.runtimeState = runtimeState;
             this.version = umbracoVersion;
@@ -65,6 +60,7 @@ namespace Diplo.GodMode.Services
             this.webHostEnvironment = webHostEnvironment;
             this.smidgeConfig = smidgeConfig;
             this.features = features;
+            this.configuration = configuration;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
@@ -72,6 +68,8 @@ namespace Diplo.GodMode.Services
             var groups = new List<DiagnosticGroup>();
 
             int id = 0;
+
+            /* Umbraco Config */
 
             var group = new DiagnosticGroup(id++, "Umbraco Configuration");
             var sections = new List<DiagnosticSection>();
@@ -132,6 +130,16 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UserPasswordConfigurationSettings>("User Password Settings", factory));
 
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<ContentVersionCleanupPolicySettings>("Content Version Cleanup Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<CoreDebugSettings>("Core Debug Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<DataTypesSettings>("Data Type Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<HelpPageSettings>("Help Page Settings", factory));
+
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<InstallDefaultDataSettings>("Install Default Data Settings", factory));
+
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<MemberPasswordConfigurationSettings>("Member Password Settings", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<UnattendedSettings>("Unattended Settings", factory));
@@ -160,35 +168,7 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
-            group = new DiagnosticGroup(id++, "Umbraco Infrastructure");
-            sections = new List<DiagnosticSection>();
-
-            section = new DiagnosticSection("Background Tasks");
-            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Infrastructure.HostedServices.RecurringHostedServiceBase));
-            sections.Add(section);
-
-            section = new DiagnosticSection("Sections");
-            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Sections.ISection));
-            sections.Add(section);
-
-            section = new DiagnosticSection("Dashboards");
-            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Dashboards.IDashboard));
-            sections.Add(section);
-
-            section = new DiagnosticSection("Middleware");
-            section.AddDiagnosticsFrom(typeof(IMiddleware));
-            sections.Add(section);
-
-            section = new DiagnosticSection("Notifications");
-            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Notifications.INotification));
-            sections.Add(section);
-
-            section = new DiagnosticSection("Telemetry");
-            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Telemetry.ITelemetryService));
-            sections.Add(section);
-
-            group.Add(sections);
-            groups.Add(group);
+            /* Server Config */
 
             group = new DiagnosticGroup(id++, "Server Configuration");
             sections = new List<DiagnosticSection>();
@@ -242,6 +222,16 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
+            // Environment
+
+            group = new DiagnosticGroup(id++, "Environment Config");
+            sections = EnvironmentConfigHelper.GetEnvironmentDiagnostics(configuration);
+            group.Add(sections);
+            groups.Add(group);
+
+
+            // HTTP Context
+
             var context = this.httpContext ?? httpContextAccessor.HttpContext;
 
             if (context != null)
@@ -271,6 +261,8 @@ namespace Diplo.GodMode.Services
                 groups.Add(group);
             }
 
+            // Constants
+
             group = new DiagnosticGroup(id++, "Umbraco Constants");
             sections = new List<DiagnosticSection>
             {
@@ -294,6 +286,8 @@ namespace Diplo.GodMode.Services
 
             group.Add(sections);
             groups.Add(group);
+
+            // Database
 
             group = new DiagnosticGroup(id++, "Database Values");
             sections = new List<DiagnosticSection>();
@@ -347,6 +341,41 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
+
+            // Infrastructure
+
+            group = new DiagnosticGroup(id++, "Umbraco Infrastructure");
+            sections = new List<DiagnosticSection>();
+
+            section = new DiagnosticSection("Background Tasks");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Infrastructure.HostedServices.RecurringHostedServiceBase));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Sections");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Sections.ISection));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Dashboards");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Dashboards.IDashboard));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Middleware");
+            section.AddDiagnosticsFrom(typeof(IMiddleware));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Notifications");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Notifications.INotification));
+            sections.Add(section);
+
+            section = new DiagnosticSection("Telemetry");
+            section.AddDiagnosticsFrom(typeof(Umbraco.Cms.Core.Telemetry.ITelemetryService));
+            sections.Add(section);
+
+            group.Add(sections);
+            groups.Add(group);
+
+            // MVC Config
+
             group = new DiagnosticGroup(id++, "MVC Configuration");
             sections = new List<DiagnosticSection>();
 
@@ -388,6 +417,8 @@ namespace Diplo.GodMode.Services
 
             group.Add(sections);
             groups.Add(group);
+
+            /* Return! */
 
             return groups;
         }
