@@ -216,6 +216,11 @@
                     $http.get(godModeConfig.baseApiUrl + "GetTemplateUrlsToPing")
                 );
             },
+            getUrlsToPing: function (culture) {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(godModeConfig.baseApiUrl + "GetUrlsToPing?culture=" + culture)
+                );
+            },
             getTagMapping: function () {
                 return umbRequestHelper.resourcePromise(
                     $http.get(godModeConfig.baseApiUrl + "GetTagMapping")

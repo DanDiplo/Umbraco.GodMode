@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
@@ -10,6 +13,9 @@ using Smidge.Options;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Extensions;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services
@@ -20,13 +26,17 @@ namespace Diplo.GodMode.Services
         private readonly IOptions<ImagingCacheSettings> imageCacheSettings;
         private readonly AppCaches caches;
         private readonly ILogger<UtilitiesService> logger;
+        private readonly ILocalizationService localizationService;
+        private readonly IUmbracoContextFactory umbracoContextFactory;
 
-        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger)
+        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, ILocalizationService localizationService, IUmbracoContextFactory umbracoContextFactory)
         {
             this.env = env;
             this.imageCacheSettings = imageCacheSettings;
             this.caches = caches;
             this.logger = logger;
+            this.localizationService = localizationService;
+            this.umbracoContextFactory = umbracoContextFactory;
         }
 
         public ServerResponse ClearUmbracoCacheFor(string cache)
@@ -99,6 +109,14 @@ namespace Diplo.GodMode.Services
             else
             {
                 return new ServerResponse($"Unable to delete media cache folder {cacheFolder}", ServerResponseType.Error);
+            }
+        }
+
+        public IEnumerable<string> GetAllUrls(string culture)
+        {
+            using (var ctx = umbracoContextFactory.EnsureUmbracoContext())
+            {
+                return ctx.UmbracoContext.Content.GetAtRoot(culture).SelectMany(x => x.DescendantsOrSelf(culture)).Where(p => p.TemplateId > 0).Select(p => p.Url(culture: culture, mode: UrlMode.Absolute));
             }
         }
     }

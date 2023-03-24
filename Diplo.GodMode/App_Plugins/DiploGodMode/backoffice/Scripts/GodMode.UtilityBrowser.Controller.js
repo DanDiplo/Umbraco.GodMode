@@ -4,6 +4,15 @@
         function ($routeParams, $http, navigationService, notificationsService, godModeResources, godModeConfig) {
 
             const vm = this;
+            vm.languages = [];
+
+            const noLang = {
+                Id: -1,
+                Name: "No Culture",
+                Culture: null
+            };
+
+            vm.lang = noLang;
 
             navigationService.syncTree({ tree: $routeParams.tree, path: [-1, $routeParams.method], forceReload: false });
 
@@ -13,6 +22,11 @@
                 count: 0,
                 url: null
             };
+
+            godModeResources.getLanguages().then(function (data) {
+                data.push(noLang);
+                vm.languages = data;
+            });
 
             vm.loading = false;
 
@@ -32,6 +46,33 @@
                     notificationsService.error("No response was sent back from the server. Something didn't quite work out.");
                 }
             };
+
+            const pingUrls = function (response) {
+
+                if (response.length === 0) {
+                    notificationsService.warning("There URL list was empty");
+                }
+
+                vm.warmup.current = 0;
+                vm.warmup.url = "[waiting...]";
+
+                if (!response) {
+                    console.log("Error fetching URLs....");
+                }
+
+                vm.warmup.count = response.length;
+
+                angular.forEach(response, function (url) {
+                    $http.get(url).then(function (res) {
+                        vm.warmup.current++;
+                        vm.warmup.url = url;
+                        console.log("Warmed up page: " + url);
+                    }, function (err) {
+                        vm.warmup.current++;
+                        vm.warmup.url = url;
+                    });
+                });
+            }
 
             vm.clearCache = function (cache) {
                 godModeResources.clearUmbracoCache(cache).then(function (response) {
@@ -60,25 +101,20 @@
 
             vm.warmUpTemplates = function () {
                 godModeResources.getTemplateUrls().then(function (response) {
-                    vm.warmup.current = 0;
-                    vm.warmup.url = "[waiting...]";
+                    pingUrls(response);
+                });
+            };
 
-                    if (!response) {
-                        console.log("Error fetching URLs....");
-                    }
+            vm.pingUrls = function () {
 
-                    vm.warmup.count = response.length;
+                let culture = null;
 
-                    angular.forEach(response, function (url) {
-                        $http.get(url).then(function (res) {
-                            vm.warmup.current++;
-                            vm.warmup.url = url;
-                            console.log("Warmed up page: " + url);
-                        }, function (err) {
-                            vm.warmup.current++;
-                            vm.warmup.url = url;
-                        });
-                    });
+                if (vm.lang) {
+                    culture = vm.lang.Culture;
+                }
+
+                godModeResources.getUrlsToPing(culture).then(function (response) {
+                    pingUrls(response);
                 });
             };
         });

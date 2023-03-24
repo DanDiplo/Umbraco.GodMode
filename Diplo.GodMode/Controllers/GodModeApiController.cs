@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NPoco;
-using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -328,6 +327,15 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<string> GetTemplateUrlsToPing()
         {
             return dataBaseService.GetTemplateUrlsToPing();
+        }
+
+        /// <summary>
+        /// Gets all site URLs for a given culture
+        /// </summary>
+        /// <returns>A list of URLs</returns>
+        public IEnumerable<string> GetUrlsToPing(string culture)
+        {
+            return utilitiesService.GetAllUrls(culture);
         }
 
         /// <summary>

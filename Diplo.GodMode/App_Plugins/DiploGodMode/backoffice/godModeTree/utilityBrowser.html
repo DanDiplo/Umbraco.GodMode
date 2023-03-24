@@ -60,14 +60,22 @@
 
                         <div class="span4">
                             <button class="btn btn-primary" title="Hits a single URL for every distinct template in the site to 'warm-up' compilation of views" ng-click="vm.warmUpTemplates()"><i class="icon-server"></i> Warm-Up Templates</button>
+                        </div>
 
-                            <p ng-show="vm.warmup.current < vm.warmup.count">
-                                <umb-load-indicator ng-show="vm.warmup.current < vm.warmup.count"></umb-load-indicator>
-                                <br />
-                                Warming up template {{ vm.warmup.current }} of {{ vm.warmup.count }} - pinging URL: <a href="{{vm.warmup.url}}" target="_blank">{{vm.warmup.url}}</a>
-                            </p>
+                        <div class="span4">
+                            <button class="btn btn-primary" title="Sends an HTTP request to ALL URLs in the site for the selected culture" ng-click="vm.pingUrls()"><i class="icon-server"></i> Ping ALL URLs</button>
+
+                            <select ng-model="vm.lang" ng-options="item.Name for item in vm.languages" class="input-medium"></select>
                         </div>
                     </div>
+
+                    <div class="row" ng-show="vm.warmup.current < vm.warmup.count">
+                        <umb-load-indicator ng-show="vm.warmup.current < vm.warmup.count"></umb-load-indicator>
+                        <br />
+                        Warming up {{ vm.warmup.current }} of {{ vm.warmup.count }} - pinging URL: <a href="{{vm.warmup.url}}" target="_blank">{{vm.warmup.url}}</a>
+                        <hr />
+                    </div>
+
                 </umb-box-content>
             </umb-box>
         </umb-editor-container>
