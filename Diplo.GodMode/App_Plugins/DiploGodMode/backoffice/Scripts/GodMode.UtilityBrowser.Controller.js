@@ -50,7 +50,7 @@
             const pingUrls = function (response) {
 
                 if (response.length === 0) {
-                    notificationsService.warning("There URL list was empty");
+                    notificationsService.warning("The URL list was empty...");
                 }
 
                 vm.warmup.current = 0;
