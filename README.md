@@ -48,6 +48,10 @@ See more in https://github.com/DanDiplo/Umbraco.GodMode/tree/v9/Screenshots
 
 **Our Umbraco:** https://our.umbraco.org/projects/developer-tools/diplo-god-mode/
 
+## Thanks
+
+This code is indebted to a lot of people in the Umbraco Community. But a particular thanks to Søren Kottal for his help and to Sebastiaan "Cultiv" Janssen for some code I borrowed for the environment diagnostics. Also thanks to everyone who maintains Umbraco docs.
+
 ### Usage
 
 After installation you should see an new **God Mode** tree in the **Settings** (Third Party) section within Umbraco.
