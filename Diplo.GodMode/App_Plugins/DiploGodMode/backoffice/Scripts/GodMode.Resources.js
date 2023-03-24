@@ -181,6 +181,11 @@
                     $http.post(godModeConfig.baseApiUrl + "ClearUmbracoCache?cache=" + cache)
                 );
             },
+            prugeMediaCache: function () {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(godModeConfig.baseApiUrl + "PurgeMediaCache")
+                );
+            },
             deleteTag: function (id) {
                 return umbRequestHelper.resourcePromise(
                     $http.post(godModeConfig.baseApiUrl + "DeleteTag?id=" + id)

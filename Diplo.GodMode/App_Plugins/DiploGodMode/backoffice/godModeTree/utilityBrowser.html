@@ -4,10 +4,12 @@
 
         <godmode-header heading="Utilities" title="Do some stuff and feel enpowered!"></godmode-header>
 
+        <umb-load-indicator ng-show="vm.loading"></umb-load-indicator>
+
         <umb-editor-container>
 
             <umb-box>
-                <umb-box-header title="Caches" description="Clear out the internal Umbraco caches"></umb-box-header>
+                <umb-box-header title="Caches" description="Clear out the internal Umbraco in-memory caches"></umb-box-header>
                 <umb-box-content>
                     <div class="row">
 
@@ -37,6 +39,17 @@
             </umb-box>
 
             <umb-box>
+                <umb-box-header title="TEMP Files" description="Purge temporary / cached files"></umb-box-header>
+                <umb-box-content>
+                    <div class="row">
+                        <div class="span4">
+                            <button class="btn btn-warning" title="Attempts to delete ALL the cached image crops on disk" ng-click="vm.purgeMediaCache()"><i class="icon-hard-drive"></i> Purge Media Cache</button>
+                        </div>
+                    </div>
+                </umb-box-content>
+            </umb-box>
+
+            <umb-box>
                 <umb-box-header title="Application" description="Here be dragons"></umb-box-header>
                 <umb-box-content>
                     <div class="row">
@@ -46,7 +59,7 @@
                         </div>
 
                         <div class="span4">
-                            <button class="btn btn-primary" title="Hits a single URL for every template in the site to 'warm-up' compilation of views" ng-click="vm.warmUpTemplates()"><i class="icon-server"></i> Warm-Up Templates</button>
+                            <button class="btn btn-primary" title="Hits a single URL for every distinct template in the site to 'warm-up' compilation of views" ng-click="vm.warmUpTemplates()"><i class="icon-server"></i> Warm-Up Templates</button>
 
                             <p ng-show="vm.warmup.current < vm.warmup.count">
                                 <umb-load-indicator ng-show="vm.warmup.current < vm.warmup.count"></umb-load-indicator>

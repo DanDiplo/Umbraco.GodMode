@@ -14,7 +14,9 @@
                 url: null
             };
 
-            var handleResponse = function (response) {
+            vm.loading = false;
+
+            const handleResponse = function (response) {
                 if (response) {
                     if (response.Response === "Error") {
                         notificationsService.error(response.Message);
@@ -35,6 +37,16 @@
                 godModeResources.clearUmbracoCache(cache).then(function (response) {
                     handleResponse(response);
                 });
+            };
+
+            vm.purgeMediaCache = function () {
+                if (window.confirm("This will attempt to delete all the cached image crops on disk in the TEMP/MediaCache. IO operations can sometimes fail. Are you sure?")) {
+                    vm.loading = true;
+                    godModeResources.prugeMediaCache().then(function (response) {
+                        vm.loading = false;
+                        handleResponse(response);
+                    });
+                }
             };
 
             vm.restartAppPool = function () {
