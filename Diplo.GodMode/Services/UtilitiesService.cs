@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,36 +8,39 @@ using Diplo.GodMode.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Smidge.Options;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Extensions;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services
 {
+    /// <summary>
+    /// Some general functions used in the Utilities page
+    /// </summary>
     public class UtilitiesService : IUtilitiesService
     {
         private readonly IWebHostEnvironment env;
         private readonly IOptions<ImagingCacheSettings> imageCacheSettings;
         private readonly AppCaches caches;
         private readonly ILogger<UtilitiesService> logger;
-        private readonly ILocalizationService localizationService;
         private readonly IUmbracoContextFactory umbracoContextFactory;
 
-        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, ILocalizationService localizationService, IUmbracoContextFactory umbracoContextFactory)
+        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory)
         {
             this.env = env;
             this.imageCacheSettings = imageCacheSettings;
             this.caches = caches;
             this.logger = logger;
-            this.localizationService = localizationService;
             this.umbracoContextFactory = umbracoContextFactory;
         }
 
+        /// <summary>
+        /// Clears one or all of the Umbraco caches
+        /// </summary>
+        /// <param name="cache">The cache to clear</param>
         public ServerResponse ClearUmbracoCacheFor(string cache)
         {
             try
@@ -80,6 +82,9 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        /// <summary>
+        /// Delets the media cache folder and all cached image crops
+        /// </summary>
         public async Task<ServerResponse> ClearMediaFileCacheAsync()
         {
             var cacheFolder = imageCacheSettings.Value.CacheFolder;
@@ -112,6 +117,11 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        /// <summary>
+        /// Fetches all the URLs on the site for a given culture
+        /// </summary>
+        /// <param name="culture">The culture</param>
+        /// <returns></returns>
         public IEnumerable<string> GetAllUrls(string culture)
         {
             using (var ctx = umbracoContextFactory.EnsureUmbracoContext())

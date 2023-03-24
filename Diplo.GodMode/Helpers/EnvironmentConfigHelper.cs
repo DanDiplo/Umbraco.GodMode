@@ -35,21 +35,21 @@ namespace Diplo.GodMode.Helpers
 
                 foreach (var child in children.Where(x => !string.IsNullOrEmpty(x.Path)))
                 {
-                    var valueAndProvider = GetValueAndProvider(configurationRoot, child.Path);
+                    var (Value, Provider) = GetValueAndProvider(configurationRoot, child.Path);
 
-                    if (valueAndProvider.Provider != null)
+                    if (Provider != null)
                     {
-                        string provider = valueAndProvider.Provider.ToString();
+                        string provider = Provider.ToString();
 
                         if (diagnosticMap.TryGetValue(provider, out var diagnostics))
                         {
-                            diagnostics.Add(new Diagnostic(child.Path, valueAndProvider.Value));
+                            diagnostics.Add(new Diagnostic(child.Path, Value));
                         }
                         else
                         {
                             diagnosticMap.Add(provider, new List<Diagnostic>()
                             {
-                                new Diagnostic(child.Path, valueAndProvider.Value)
+                                new Diagnostic(child.Path, Value)
                             });
                         }
                     }

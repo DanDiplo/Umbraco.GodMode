@@ -11,6 +11,9 @@ using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services
 {
+    /// <summary>
+    /// Some old-fashioned SQL to get stuff in an efficient way that you can't easily get through APIs
+    /// </summary>
     public class UmbracoDatabaseService : IUmbracoDatabaseService
     {
         private readonly IScopeProvider scopeProvider;

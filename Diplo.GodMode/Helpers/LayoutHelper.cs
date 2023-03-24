@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 using Umbraco.Cms.Core.Models;
 
 namespace Diplo.GodMode.Helpers
@@ -19,7 +20,7 @@ namespace Diplo.GodMode.Helpers
         {
             MatchCollection matches = LayoutRegex.Matches(template.Content);
 
-            foreach (Match match in matches)
+            foreach (Match match in matches.Cast<Match>())
             {
                 if (match.Success && match.Groups.Count > 4)
                 {

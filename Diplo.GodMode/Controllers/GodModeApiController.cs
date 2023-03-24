@@ -395,10 +395,7 @@ namespace Diplo.GodMode.Controllers
         {
             try
             {
-                if (applicationLifetime != null)
-                {
-                    applicationLifetime.StopApplication();
-                }
+                applicationLifetime?.StopApplication();
 
                 return new ServerResponse("Restarting the application - hold tight...", ServerResponseType.Success);
             }
