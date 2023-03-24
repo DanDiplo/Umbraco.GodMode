@@ -6,6 +6,7 @@ using System.Linq;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -41,12 +42,12 @@ namespace Diplo.GodMode.Services
         private readonly IHostingEnvironment hostingEnvironment;
         private readonly IUmbracoDatabaseService databaseService;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment;
-        private readonly Smidge.ISmidgeConfig smidgeConfig;
         private readonly UmbracoFeatures features;
         private readonly IConfiguration configuration;
+        private readonly IServer webServer;
         private HttpContext httpContext;
 
-        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, UmbracoFeatures features, IConfiguration configuration)
+        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, UmbracoFeatures features, IConfiguration configuration, IServer webServer)
         {
             this.runtimeState = runtimeState;
             this.version = umbracoVersion;
@@ -58,9 +59,9 @@ namespace Diplo.GodMode.Services
             this.hostingEnvironment = hostingEnvironment;
             this.databaseService = databaseService;
             this.webHostEnvironment = webHostEnvironment;
-            this.smidgeConfig = smidgeConfig;
             this.features = features;
             this.configuration = configuration;
+            this.webServer = webServer;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
@@ -159,7 +160,7 @@ namespace Diplo.GodMode.Services
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<KeepAliveSettings>("Keep Alive Settings", factory));
 
-            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Smidge Config", smidgeConfig, false));
+            sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<Smidge.Options.CacheControlOptions>("Smidge Cache Control", factory));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<BasicAuthSettings>("Basic Auth Settings", factory));
 
@@ -209,6 +210,8 @@ namespace Diplo.GodMode.Services
             sections.Add(section);
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Web Host Environment", webHostEnvironment));
+
+            sections.Add(new DiagnosticSection($"Web Server ({webServer.GetType().FullName}) Features", webServer.Features.Select(x => new Diagnostic(x.Key.ToString(), x.Value.ToString()))));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom<CookieOptions>("Cookie Options", factory));
 
@@ -337,6 +340,14 @@ namespace Diplo.GodMode.Services
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Messenger Settings", globalSettings.Value.DatabaseServerMessenger, false));
 
             sections.Add(DiagnosticSection.AddDiagnosticSectionFrom("Database Registrar Settings", globalSettings.Value.DatabaseServerRegistrar, false));
+
+            sections.Add(new DiagnosticSection("Distributed Services", new List<Diagnostic>()
+            {
+                new Diagnostic("Disable Election For Single Server?", globalSettings.Value.DisableElectionForSingleServer),
+                new Diagnostic("Distribted Locking Mechanism", globalSettings.Value.DistributedLockingMechanism),
+                new Diagnostic("Distribted Read Lock Timeout", globalSettings.Value.DistributedLockingReadLockDefaultTimeout),
+                new Diagnostic("Distribted Write Lock Timeout", globalSettings.Value.DistributedLockingWriteLockDefaultTimeout)
+            }));
 
             group.Add(sections);
             groups.Add(group);

@@ -1,5 +1,11 @@
-﻿using Diplo.GodMode.Helpers;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
+using Diplo.GodMode.Services;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +13,6 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NPoco;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
@@ -34,17 +36,17 @@ namespace Diplo.GodMode.Controllers
         private readonly IUmbracoDataService dataService;
         private readonly IUmbracoDatabaseService dataBaseService;
         private readonly IDiagnosticService diagnosticService;
-        private readonly AppCaches caches;
+        private readonly IUtilitiesService utilitiesService;
         private readonly IHostApplicationLifetime applicationLifetime;
         private readonly NuCacheSettings nuCacheSettings;
         private readonly RegisteredServiceCollection registeredServiceCollection;
 
-        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, AppCaches caches, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings, RegisteredServiceCollection registeredServiceCollection)
+        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, IUtilitiesService utilitiesService, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings, RegisteredServiceCollection registeredServiceCollection)
         {
             this.dataService = dataService;
             this.dataBaseService = dataBaseService;
             this.diagnosticService = diagnosticService;
-            this.caches = caches;
+            this.utilitiesService = utilitiesService;
             this.applicationLifetime = applicationLifetime;
             this.nuCacheSettings = nuCacheSettings.Value;
             this.registeredServiceCollection = registeredServiceCollection;
@@ -365,7 +367,16 @@ namespace Diplo.GodMode.Controllers
         [HttpPost]
         public ServerResponse ClearUmbracoCache(string cache)
         {
-            return ClearCacheFor(cache);
+            return utilitiesService.ClearUmbracoCacheFor(cache);
+        }
+
+        /// <summary>
+        /// Clears the Media Cache
+        /// </summary>
+        [HttpPost]
+        public async Task<ServerResponse> PurgeMediaCache()
+        {
+            return await utilitiesService.ClearMediaFileCacheAsync();
         }
 
         /// <summary>
@@ -426,44 +437,6 @@ namespace Diplo.GodMode.Controllers
             return this.dataService.CopyDataType(id);
         }
 
-        private ServerResponse ClearCacheFor(string cache)
-        {
-            try
-            {
-                if (cache == "Request" || cache == "all")
-                {
-                    caches.RequestCache.Clear();
-                }
-                else if (cache == "Runtime" || cache == "all")
-                {
-                    caches.RuntimeCache.Clear();
-                }
-                else if (cache == "Isolated" || cache == "all")
-                {
-                    caches.IsolatedCaches.ClearAllCaches();
-                }
-                else if (cache == "Partial" || cache == "all")
-                {
-                    caches.ClearPartialViewCache();
-                }
-                else
-                {
-                    return new ServerResponse(cache + " Is not a valid cache type", ServerResponseType.Warning);
-                }
 
-                if (cache == "all")
-                {
-                    return new ServerResponse("All Caches were successfully cleared", ServerResponseType.Success);
-                }
-                else
-                {
-                    return new ServerResponse("The " + cache + " Cache was successfully cleared", ServerResponseType.Success);
-                }
-            }
-            catch (Exception ex)
-            {
-                return new ServerResponse("Error clearing cache: " + ex.Message, ServerResponseType.Error);
-            }
-        }
     }
 }

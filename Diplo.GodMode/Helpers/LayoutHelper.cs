@@ -1,5 +1,4 @@
-﻿using Diplo.GodMode.Models;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Umbraco.Cms.Core.Models;
 
 namespace Diplo.GodMode.Helpers
