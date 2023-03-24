@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
@@ -393,11 +394,13 @@ namespace Diplo.GodMode.Services
             var mvcAssembly = typeof(Controller).Assembly;
 
             if (mvcAssembly != null)
-            {
+            { 
                 section = new DiagnosticSection("MVC Version");
+                section.Diagnostics.Add(new Diagnostic("Assembly", mvcAssembly.GetName().Version));
+                section.Diagnostics.Add(new Diagnostic("Version", mvcAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion));
+                section.Diagnostics.Add(new Diagnostic("File Version", mvcAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version));
                 section.Diagnostics.Add(new Diagnostic("Full Name", mvcAssembly.FullName));
                 section.Diagnostics.Add(new Diagnostic("Location", mvcAssembly.Location));
-                section.Diagnostics.Add(new Diagnostic("Version", mvcAssembly.GetName().Version));
                 section.Diagnostics.Add(new Diagnostic("Compatibility", mvcAssembly.GetName().VersionCompatibility));
                 sections.Add(section);
             }
