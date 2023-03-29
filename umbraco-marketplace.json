@@ -1,6 +1,6 @@
 {
   "Title": "Diplo God Mode",
-  "AlternatePackageNames": [ "God Mode", "Umbraco.GodMode", "DiploGodMode" ],
+  "AlternatePackageNames": [ "God Mode", "Umbraco.GodMode", "DiploGodMode", "Diplo GodMode", "GodMode" ],
   "AuthorDetails": {
     "Name": "Dan 'Diplo' Booth",
     "Description": "Dan is an Umbraco MVP and has been releasing packages for Umbraco since Umbraco 6",
