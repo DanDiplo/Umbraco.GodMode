@@ -238,8 +238,8 @@ namespace Diplo.GodMode.Services
         {
             const string sql = @"SELECT COUNT(N.id) as NodeCount, COALESCE(CT.description,'') as Description, CT.alias as Alias, CT.icon as Icon, CT.pk As Id, N.nodeObjectType As GuidType
             FROM cmsContentType CT
-            LEFT JOIN umbracoContent C ON C.contentTypeId = CT.nodeId
-            LEFT JOIN umbracoNode N ON C.nodeId = N.id  ";
+            JOIN umbracoContent C ON C.contentTypeId = CT.nodeId
+            JOIN umbracoNode N ON C.nodeId = N.id  ";
 
             var query = new Sql(sql);
 
