@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Cache;
@@ -27,14 +30,16 @@ namespace Diplo.GodMode.Services
         private readonly AppCaches caches;
         private readonly ILogger<UtilitiesService> logger;
         private readonly IUmbracoContextFactory umbracoContextFactory;
+        private readonly IMemoryCache memoryCache;
 
-        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory)
+        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache)
         {
             this.env = env;
             this.imageCacheSettings = imageCacheSettings;
             this.caches = caches;
             this.logger = logger;
             this.umbracoContextFactory = umbracoContextFactory;
+            this.memoryCache = memoryCache;
         }
 
         /// <summary>
@@ -60,6 +65,13 @@ namespace Diplo.GodMode.Services
                 else if (cache == "Partial" || cache == "all")
                 {
                     caches.ClearPartialViewCache();
+                }
+                else if (cache == "Other" || cache == "all")
+                {
+                    if (this.memoryCache != null)
+                    {
+                        ClearMemoryCache(this.memoryCache);
+                    }
                 }
                 else
                 {
@@ -127,6 +139,29 @@ namespace Diplo.GodMode.Services
             using (var ctx = umbracoContextFactory.EnsureUmbracoContext())
             {
                 return ctx.UmbracoContext.Content.GetAtRoot(culture).SelectMany(x => x.DescendantsOrSelf(culture)).Where(p => p.TemplateId > 0).Select(p => p.Url(culture: culture, mode: UrlMode.Absolute));
+            }
+        }
+
+        private  void ClearMemoryCache(IMemoryCache memoryCache)
+        {
+            PropertyInfo prop = memoryCache.GetType().GetProperty("EntriesCollection", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.NonPublic | BindingFlags.Public);
+
+            if (prop is null)
+                return;
+
+            try
+            {
+                object innerCache = prop.GetValue(memoryCache);
+
+                if (innerCache != null)
+                {
+                    MethodInfo clearMethod = innerCache.GetType().GetMethod("Clear", BindingFlags.Instance | BindingFlags.Public);
+                    clearMethod.Invoke(innerCache, null);
+                }
+            }
+            catch (Exception ex) 
+            {
+                logger.LogError(ex, "Couldn't clear IMemoryCache in GodMode");
             }
         }
     }

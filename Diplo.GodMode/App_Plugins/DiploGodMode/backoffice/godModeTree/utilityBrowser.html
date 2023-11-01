@@ -30,7 +30,9 @@
                         <div class="span4">
                             <button class="btn btn-warning" title="Clears the Umbraco partial view cache" ng-click="vm.clearCache('Partial')"><i class="icon-delete-key"></i> Clear Partial Cache</button>
                         </div>
-
+                        <div class="span4">
+                            <button class="btn btn-warning" title="Clears anything in IMemoryCache" ng-click="vm.clearCache('Other')"><i class="icon-delete-key"></i> Clear Other Cache</button>
+                        </div>
                         <div class="span4">
                             <button class="btn btn-danger" title="Clears ALL Umbraco caches" ng-click="vm.clearCache('all')"><i class="icon-delete-key"></i> Clear All Caches</button>
                         </div>

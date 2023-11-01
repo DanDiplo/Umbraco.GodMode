@@ -8,7 +8,7 @@
     <Description>Diplo God Mode makes Umbraco 10 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
     <Version>$(VersionPrefix)</Version>
-	  <VersionPrefix>10.3.0</VersionPrefix>
+	  <VersionPrefix>10.3.1</VersionPrefix>
 	  <Company>$(Authors)</Company>
 	  <Copyright>Dan 'Diplo' Booth</Copyright>
 	  <Authors>DanDiplo</Authors>
