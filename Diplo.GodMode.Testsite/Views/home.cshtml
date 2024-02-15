@@ -1,6 +1,9 @@
-﻿@using Umbraco.Extensions
+﻿@using Diplo.GodMode
+@using Microsoft.Extensions.Options
+@using Umbraco.Extensions
 @using Umbraco.Cms.Web.Common.PublishedModels;
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Home>
+@inject IOptions<GodModeConfig> godeModeConfig
 @{
     Layout = "master.cshtml";
     var backgroundImage = Model.HeroBackgroundImage != null ? Model.HeroBackgroundImage.Url() : String.Empty;
@@ -25,6 +28,12 @@
         </p>
 
         <partial name="Testies" />
+
+        <h3>God Mode Config</h3>
+
+        <p><strong>Groups To Hide</strong>: <code>@string.Join(", ", godeModeConfig.Value.GroupsToHide)</code></p>
+        <p><strong>Sections To Hide</strong>: <code>@string.Join(", ", godeModeConfig.Value.SectionsToHide)</code></p>
+        <p><strong>Keys To Redact</strong>: <code>@string.Join(", ", godeModeConfig.Value.KeysToRedact)</code></p>
 
     </div>
 </section>

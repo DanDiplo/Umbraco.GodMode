@@ -14,12 +14,14 @@ namespace Diplo.GodMode.Composers
     {
         public void Compose(IUmbracoBuilder builder)
         {
+            builder.Services.Configure<GodModeConfig>(builder.Config.GetSection(GodModeConfig.ConfigSectionName));
+
             builder.Services.AddScoped<IDiagnosticService, DiagnosticService>();
             builder.Services.AddScoped<IUmbracoDatabaseService, UmbracoDatabaseService>();
             builder.Services.AddScoped<IUmbracoDataService, UmbracoDataService>();
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
 
-            RegisteredServiceCollection registeredServiceCollection = new RegisteredServiceCollection(builder.Services);
+            RegisteredServiceCollection registeredServiceCollection = new(builder.Services);
             builder.Services.AddSingleton<RegisteredServiceCollection>(services => registeredServiceCollection);
         }
     }
