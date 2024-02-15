@@ -12,19 +12,29 @@ namespace Diplo.GodMode
         /// </summary>
         public const string ConfigSectionName = "GodMode";
 
-        /// <summary>
-        /// Get or set the groups that should be hidden in diganostics
-        /// </summary>
-        public string[] GroupsToHide { get; set; } = Array.Empty<string>();
+        public string[] FeaturesToHide { get; set; } = Array.Empty<string>();
+
+        public DiagnosticsConfig Diagnostics { get; set; } = new DiagnosticsConfig();
 
         /// <summary>
-        /// Get or set the sub-sections that should be hidden in diganostics
+        /// Config for the diagnostics section
         /// </summary>
-        public string[] SectionsToHide { get; set; } = Array.Empty<string>();
+        public class DiagnosticsConfig
+        {
+            /// <summary>
+            /// Get or set the groups that should be hidden in diganostics
+            /// </summary>
+            public string[] GroupsToHide { get; set; } = Array.Empty<string>();
 
-        /// <summary>
-        /// Get or set the keys to redact the values from
-        /// </summary>
-        public string[] KeysToRedact { get; set; } = Array.Empty<string>();
+            /// <summary>
+            /// Get or set the sub-sections that should be hidden in diganostics
+            /// </summary>
+            public string[] SectionsToHide { get; set; } = Array.Empty<string>();
+
+            /// <summary>
+            /// Get or set the keys to redact the values from
+            /// </summary>
+            public string[] KeysToRedact { get; set; } = Array.Empty<string>();
+        }
     }
 }

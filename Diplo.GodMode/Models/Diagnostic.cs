@@ -35,7 +35,7 @@ namespace Diplo.GodMode.Models
 
         public string Key { get; private set; }
 
-        public string Value { get; private set; }
+        public string Value { get; set; }
 
         public override string ToString()
         {

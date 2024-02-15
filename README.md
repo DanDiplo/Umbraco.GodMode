@@ -58,6 +58,63 @@ After installation you should see an new **God Mode** tree in the **Settings** (
 
 If you don't, try clearing your browser cache.
 
+### Hiding Features and Diagnostics
+
+You can now hide features and diagnostics via optional configuration. You will need to add a new section into `appSettings.json` in this format:
+```
+  "GodMode": {
+    "FeaturesToHide": [
+    ],
+    "Diagnostics": {
+      "GroupsToHide": [
+      ],
+      "SectionsToHide": [
+      ],
+      "KeysToRedact": [
+      ]
+    }
+```
+
+`FeaturesToHide`: These are the main sections you see in the tree in Umbraco. So you could hide the entire `DocType Browser` or the `Diagnostics` section here. The value you put in can either be the name of the section or the alias.
+
+`Diagnostics`: The three arrays in here are used to hide areas within the **Diagnostics** tree that might reveal sensitive data. You can hide an entire **Group**, a **Section** or a particular **Key**. 
+
+This is best illustrated with an example config from `appSettings.json`:
+
+```
+  "GodMode": {
+    "FeaturesToHide": [
+      "Services",
+      "Content Browser"
+    ],
+    "Diagnostics": {
+      "GroupsToHide": [
+        "Server Configuration",
+        "Umbraco Configuration"
+      ],
+      "SectionsToHide": [
+        "MVC Version"
+      ],
+      "KeysToRedact": [
+        "Database Settings:ConnectionString",
+        "ConnectionStrings:umbracoDbDSN",
+        "Server Settings:Current Directory",
+        "Environment Settings:LocalTempPath"
+      ]
+    }
+  }
+```
+
+In the example above the `Services` and `Content Browser` tree are hidden from the UI.
+
+Then, in the `Diagnostics` tree we are hiding the entire `Service Configuration` group as well as the entire `Umbraco Configuration` group. 
+
+Following this we are hiding just the `MVC Version` (which appears within the `MVC Configuration` group).
+
+Then, finally, we are redacting specific keys. These are based on the Section name and the key name combined with a colon. For example, `Database Settings:ConnectionString` means the key `ConnectionString` within the `Database Settings` section. It will have it's value replaced with `xxxxxxxxxxxx` to redact the value. The only exception to this rule is within the `Environment Config` group where you just need to add the key name (without the section prefix). For instance, `ConnectionStrings:umbracoDbDSN` will hide the database connection string within the `Environment Config` group.
+
+**Note**: When you change these values you will need to restart your site for the configuration to be applied.
+
 ### Building / Developing
 
 The v10 repository comes with two solutions:

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Smidge;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration;
@@ -25,6 +26,7 @@ using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Web.Common.Authorization;
+using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services
 {
@@ -43,12 +45,18 @@ namespace Diplo.GodMode.Services
         private readonly IHostingEnvironment hostingEnvironment;
         private readonly IUmbracoDatabaseService databaseService;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment;
+        private readonly ISmidgeConfig smidgeConfig;
         private readonly UmbracoFeatures features;
         private readonly IConfiguration configuration;
         private readonly IServer webServer;
+        private readonly IOptions<GodModeConfig> godModeConfig;
         private HttpContext httpContext;
 
-        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, UmbracoFeatures features, IConfiguration configuration, IServer webServer)
+        public DiagnosticService(IRuntimeState runtimeState, IUmbracoVersion umbracoVersion, IUmbracoDatabaseService databaseService, 
+            IServiceProvider factory, IOptions<NuCacheSettings> nuCacheSettings, IOptions<IndexCreatorSettings> indexSettings, 
+            IHttpContextAccessor httpContextAccessor, IUmbracoDatabaseFactory databaseFactory, IHostingEnvironment hostingEnvironment, 
+            Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment, Smidge.ISmidgeConfig smidgeConfig, 
+            UmbracoFeatures features, IConfiguration configuration, IServer webServer, IOptions<GodModeConfig> godModeConfig)
         {
             this.runtimeState = runtimeState;
             this.version = umbracoVersion;
@@ -60,9 +68,11 @@ namespace Diplo.GodMode.Services
             this.hostingEnvironment = hostingEnvironment;
             this.databaseService = databaseService;
             this.webHostEnvironment = webHostEnvironment;
+            this.smidgeConfig = smidgeConfig;
             this.features = features;
             this.configuration = configuration;
             this.webServer = webServer;
+            this.godModeConfig = godModeConfig;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups()
@@ -394,7 +404,7 @@ namespace Diplo.GodMode.Services
             var mvcAssembly = typeof(Controller).Assembly;
 
             if (mvcAssembly != null)
-            { 
+            {
                 section = new DiagnosticSection("MVC Version");
                 section.Diagnostics.Add(new Diagnostic("Assembly", mvcAssembly.GetName().Version));
                 section.Diagnostics.Add(new Diagnostic("Version", mvcAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion));
@@ -432,11 +442,51 @@ namespace Diplo.GodMode.Services
             group.Add(sections);
             groups.Add(group);
 
+            /* Redact & Remove */
+
+            RedactGroups(groups);
+
             /* Return! */
 
             return groups;
         }
 
         public void SetContext(HttpContext httpContext) => this.httpContext = httpContext;
+
+        private void RedactGroups(List<DiagnosticGroup> groups)
+        {
+            groups.RemoveAll(g => godModeConfig.Value.Diagnostics.GroupsToHide.InvariantContains(g.Title));
+
+            foreach (var g in groups)
+            {
+                g.Sections.RemoveAll(s => godModeConfig.Value.Diagnostics.SectionsToHide.InvariantContains(s.Heading));
+
+                foreach (var s in g.Sections)
+                {
+                    if (g.Title == "Environment Config")
+                    {
+                        foreach (var d in s.Diagnostics)
+                        {
+                            if (godModeConfig.Value.Diagnostics.KeysToRedact.InvariantContains(d.Key))
+                            {
+                                d.Value = StringHelper.RedactString(d.Value);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var d in s.Diagnostics)
+                        {
+                            var keyName = s.Heading + ":" + d.Key;
+
+                            if (godModeConfig.Value.Diagnostics.KeysToRedact.InvariantContains(keyName))
+                            {
+                                d.Value = StringHelper.RedactString(d.Value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -39,8 +39,9 @@ namespace Diplo.GodMode.Controllers
         private readonly IHostApplicationLifetime applicationLifetime;
         private readonly NuCacheSettings nuCacheSettings;
         private readonly RegisteredServiceCollection registeredServiceCollection;
+        private readonly IOptions<GodModeConfig> godModeConfig;
 
-        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, IUtilitiesService utilitiesService, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings, RegisteredServiceCollection registeredServiceCollection)
+        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, IUtilitiesService utilitiesService, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings, RegisteredServiceCollection registeredServiceCollection, IOptions<GodModeConfig> godModeConfig)
         {
             this.dataService = dataService;
             this.dataBaseService = dataBaseService;
@@ -49,6 +50,7 @@ namespace Diplo.GodMode.Controllers
             this.applicationLifetime = applicationLifetime;
             this.nuCacheSettings = nuCacheSettings.Value;
             this.registeredServiceCollection = registeredServiceCollection;
+            this.godModeConfig = godModeConfig;
         }
 
         /// <summary>
@@ -336,6 +338,15 @@ namespace Diplo.GodMode.Controllers
         public IEnumerable<string> GetUrlsToPing(string culture)
         {
             return utilitiesService.GetAllUrls(culture);
+        }
+
+        /// <summary>
+        /// Gets the GodMode configuration
+        /// </summary>
+        /// <returns></returns>
+        public GodModeConfig GetConfig()
+        {
+            return godModeConfig.Value;
         }
 
         /// <summary>

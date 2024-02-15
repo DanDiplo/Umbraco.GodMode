@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models.Trees;
@@ -21,15 +22,16 @@ namespace Diplo.GodMode.Controllers
     public class GodModeTreeController : TreeController
     {
         private readonly IMenuItemCollectionFactory _menuItemCollectionFactory;
-
+        private readonly IOptions<GodModeConfig> godModeConfig;
         private static readonly string baseUrl = $"{Constants.Applications.Settings}/{GodModeSettings.TreeAlias}/";
 
         public const string ReflectionTree = "reflectionTree";
 
 
-        public GodModeTreeController(ILocalizedTextService localizedTextService, UmbracoApiControllerTypeCollection umbracoApiControllerTypeCollection, IMenuItemCollectionFactory menuItemCollectionFactory, IEventAggregator eventAggregator) : base(localizedTextService, umbracoApiControllerTypeCollection, eventAggregator)
+        public GodModeTreeController(ILocalizedTextService localizedTextService, UmbracoApiControllerTypeCollection umbracoApiControllerTypeCollection, IMenuItemCollectionFactory menuItemCollectionFactory, IEventAggregator eventAggregator, IOptions<GodModeConfig> godModeConfig) : base(localizedTextService, umbracoApiControllerTypeCollection, eventAggregator)
         {
             this._menuItemCollectionFactory = menuItemCollectionFactory;
+            this.godModeConfig = godModeConfig;
         }
 
         protected override ActionResult<TreeNodeCollection> GetTreeNodes(string id, [ModelBinder(typeof(HttpQueryStringModelBinder))] FormCollection queryStrings)
@@ -93,41 +95,40 @@ namespace Diplo.GodMode.Controllers
             // path is PluginController name + area name + template name eg. /App_Plugins/DiploGodMode/GodModeTree/
             // The first part of the name eg. docTypeBrowser is the Id - this is used by Angular navigationService to identify the node
 
-            var tree = new TreeNodeCollection
-            {
-                CreateTreeNode("docTypeBrowser", parentId, qs, "DocType Browser", "icon-item-arrangement", false, baseUrl + "docTypeBrowser/browse"),
+            var tree = new TreeNodeCollection();
 
-                CreateTreeNode("templateBrowser", parentId, qs, "Template Browser", "icon-newspaper-alt", false, baseUrl + "templateBrowser/browse"),
+            TryAndCreateTreeNode(tree, "docTypeBrowser", parentId, qs, "DocType Browser", "icon-item-arrangement", false, baseUrl + "docTypeBrowser/browse");
 
-                CreateTreeNode("partialBrowser", parentId, qs, "Partial Browser", "icon-article", false, baseUrl + "partialBrowser/browse"),
+            TryAndCreateTreeNode(tree, "templateBrowser", parentId, qs, "Template Browser", "icon-newspaper-alt", false, baseUrl + "templateBrowser/browse");
 
-                CreateTreeNode("dataTypeBrowser", parentId, qs, "DataType Browser", "icon-autofill", false, baseUrl + "dataTypeBrowser/browse"),
+            TryAndCreateTreeNode(tree, "partialBrowser", parentId, qs, "Partial Browser", "icon-article", false, baseUrl + "partialBrowser/browse");
 
-                CreateTreeNode("contentBrowser", parentId, qs, "Content Browser", "icon-umb-content", false, baseUrl + "contentBrowser/browse"),
+            TryAndCreateTreeNode(tree, "dataTypeBrowser", parentId, qs, "DataType Browser", "icon-autofill", false, baseUrl + "dataTypeBrowser/browse");
 
-                CreateTreeNode("usageBrowser", parentId, qs, "Usage Browser", "icon-chart-curve", false, baseUrl + "usageBrowser/browse"),
+            TryAndCreateTreeNode(tree, "contentBrowser", parentId, qs, "Content Browser", "icon-umb-content", false, baseUrl + "contentBrowser/browse");
 
-                CreateTreeNode("mediaBrowser", parentId, qs, "Media Browser", "icon-picture", false, baseUrl + "mediaBrowser/browse"),
+            TryAndCreateTreeNode(tree, "usageBrowser", parentId, qs, "Usage Browser", "icon-chart-curve", false, baseUrl + "usageBrowser/browse");
 
-                CreateTreeNode("memberBrowser", parentId, qs, "Member Browser", "icon-umb-members", false, baseUrl + "memberBrowser/browse"),
+            TryAndCreateTreeNode(tree, "mediaBrowser", parentId, qs, "Media Browser", "icon-picture", false, baseUrl + "mediaBrowser/browse");
 
-                CreateTreeNode("tagBrowser", parentId, qs, "Tag Browser", "icon-tags", false, baseUrl + "tagBrowser/browse"),
+            TryAndCreateTreeNode(tree, "memberBrowser", parentId, qs, "Member Browser", "icon-umb-members", false, baseUrl + "memberBrowser/browse");
 
-                CreateTreeNode(ReflectionTree, parentId, qs, "Types", "icon-folder", true, baseUrl + "typesIntro"),
+            TryAndCreateTreeNode(tree, "tagBrowser", parentId, qs, "Tag Browser", "icon-tags", false, baseUrl + "tagBrowser/browse");
 
-                CreateTreeNode("serviceBrowser", parentId, qs, "Services", "icon-console", false, baseUrl + "serviceBrowser/browse"),
+            TryAndCreateTreeNode(tree, ReflectionTree, parentId, qs, "Types", "icon-folder", true, baseUrl + "typesIntro");
 
-                CreateTreeNode("diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco"),
+            TryAndCreateTreeNode(tree, "serviceBrowser", parentId, qs, "Services", "icon-console", false, baseUrl + "serviceBrowser/browse");
 
-                CreateTreeNode("utilityBrowser", parentId, qs, "Utilities", "icon-wrench", false, baseUrl + "utilityBrowser/umbraco")
-            };
+            TryAndCreateTreeNode(tree, "diagnosticBrowser", parentId, qs, "Diagnostics", "icon-settings", false, baseUrl + "diagnosticBrowser/umbraco");
+
+            TryAndCreateTreeNode(tree, "utilityBrowser", parentId, qs, "Utilities", "icon-wrench", false, baseUrl + "utilityBrowser/umbraco");
 
             return tree;
         }
 
         private TreeNodeCollection PopulateReflectionTree(string parentId, FormCollection qs)
         {
-            var tree = new TreeNodeCollection
+            var tree = new TreeNodeCollection()
             {
                 CreateTreeNode("reflectionBrowserSurface", parentId, qs, "Surface Controllers", "icon-planet", false, baseUrl + "reflectionBrowser/surface"),
 
@@ -153,6 +154,16 @@ namespace Diplo.GodMode.Controllers
             };
 
             return tree;
+        }
+
+        private void TryAndCreateTreeNode(TreeNodeCollection tree, string id, string parentId, FormCollection qs, string title, string icon, bool hasChildren, string routePath)
+        {
+            if (godModeConfig.Value.FeaturesToHide.InvariantContains(id) || godModeConfig.Value.FeaturesToHide.InvariantContains(title))
+            {
+                return;
+            }
+
+            tree.Add(CreateTreeNode(id, parentId, qs, title, icon, hasChildren, routePath));
         }
     }
 }
