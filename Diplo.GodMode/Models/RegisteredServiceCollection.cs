@@ -20,14 +20,19 @@ namespace Diplo.GodMode.Models
     {
         public RegisteredService(ServiceDescriptor service)
         {
-            this.Name = service.ServiceType?.ToGenericTypeString();
-            this.Namespace = service.ServiceType?.Namespace;
-            this.FullName = service.ServiceType?.AssemblyQualifiedName;
-            this.ImplementFullName = service.ImplementationType?.AssemblyQualifiedName;
-            this.ImplementName = service.ImplementationType?.ToGenericTypeString();
-            this.ImplementNamespace = service.ImplementationType?.Namespace;
+            var serviceType = service.ServiceType;
+            var implementationType = service.IsKeyedService
+                ? service.KeyedImplementationType
+                : service.ImplementationType;
+
+            this.Name = serviceType?.ToGenericTypeString();
+            this.Namespace = serviceType?.Namespace;
+            this.FullName = serviceType?.AssemblyQualifiedName;
+            this.ImplementFullName = implementationType?.AssemblyQualifiedName;
+            this.ImplementName = implementationType?.ToGenericTypeString();
+            this.ImplementNamespace = implementationType?.Namespace;
             this.Lifetime = service.Lifetime.ToString();
-            this.IsPublic = (service.ServiceType?.IsPublic ?? false) && (service.ImplementationType?.IsPublic ?? false);
+            this.IsPublic = (serviceType?.IsPublic ?? false) && (implementationType?.IsPublic ?? false);
         }
 
         public string Name { get; set; }
