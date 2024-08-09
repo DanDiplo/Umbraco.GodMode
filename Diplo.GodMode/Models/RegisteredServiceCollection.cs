@@ -26,12 +26,13 @@ namespace Diplo.GodMode.Models
                 : service.ImplementationType;
 
             this.Name = serviceType?.ToGenericTypeString();
-            this.Namespace = serviceType?.Namespace;
             this.FullName = serviceType?.AssemblyQualifiedName;
-            this.ImplementFullName = implementationType?.AssemblyQualifiedName;
+            this.Namespace = serviceType?.Namespace;
             this.ImplementName = implementationType?.ToGenericTypeString();
+            this.ImplementFullName = implementationType?.AssemblyQualifiedName;
             this.ImplementNamespace = implementationType?.Namespace;
             this.Lifetime = service.Lifetime.ToString();
+            this.Key = service.IsKeyedService ? service.ServiceKey?.ToString() : string.Empty;
             this.IsPublic = (serviceType?.IsPublic ?? false) && (implementationType?.IsPublic ?? false);
         }
 
@@ -50,5 +51,7 @@ namespace Diplo.GodMode.Models
         public string ImplementFullName { get; set; }
 
         public string Lifetime { get; set; }
+
+        public string Key { get; set; }
     }
 }
