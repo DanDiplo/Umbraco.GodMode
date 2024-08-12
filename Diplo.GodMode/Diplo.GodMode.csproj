@@ -8,7 +8,7 @@
     <Description>Diplo God Mode makes Umbraco developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
     <Version>$(VersionPrefix)</Version>
-    <VersionPrefix>13.0.0</VersionPrefix>
+    <VersionPrefix>13.1.0</VersionPrefix>
     <Company>$(Authors)</Company>
     <Copyright>Dan 'Diplo' Booth</Copyright>
     <Authors>DanDiplo</Authors>
@@ -18,7 +18,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Fixed a path issue in the intro browser and minor updates.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add ability to view key of keyed DI services - thanks Luke Fisher!</PackageReleaseNotes>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
