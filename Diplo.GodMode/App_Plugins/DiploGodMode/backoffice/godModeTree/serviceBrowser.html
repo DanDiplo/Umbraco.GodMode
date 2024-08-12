@@ -75,11 +75,12 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th style="width:25%"><godmode-sortable sort-by="vm.sortBy('Name')" column="Name" sort="vm.sort">Name</godmode-sortable></th>
+                        <th style="width:20%"><godmode-sortable sort-by="vm.sortBy('Name')" column="Name" sort="vm.sort">Name</godmode-sortable></th>
                         <th style="width:20%"><godmode-sortable sort-by="vm.sortBy('Namespace')" column="Namespace" sort="vm.sort">Namespace</godmode-sortable></th>
-                        <th style="width:25%"><godmode-sortable sort-by="vm.sortBy('ImplementName')" column="ImplementName" sort="vm.sort">Implemented By</godmode-sortable></th>
+                        <th style="width:20%"><godmode-sortable sort-by="vm.sortBy('ImplementName')" column="ImplementName" sort="vm.sort">Implemented By</godmode-sortable></th>
                         <th style="width:20%"><godmode-sortable sort-by="vm.sortBy('ImplementNamespace')" column="ImplementNamespace" sort="vm.sort">Implemented Namespace</godmode-sortable></th>
                         <th style="width:10%"><godmode-sortable sort-by="vm.sortBy('Lifetime')" column="Lifetime" sort="vm.sort">Lifetime</godmode-sortable></th>
+                        <th style="width:10%"><godmode-sortable sort-by="vm.sortBy('Key')" column="Key" sort="vm.sort">Key</godmode-sortable></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,6 +90,7 @@
                         <td title="{{c.ImplementFullName}}"><strong>{{ c.ImplementName }}</strong></td>
                         <td><small>{{ c.ImplementNamespace }}</small></td>
                         <td>{{ c.Lifetime }}</td>
+                        <td>{{ c.Key }}</td>
                     </tr>
                 </tbody>
             </table>

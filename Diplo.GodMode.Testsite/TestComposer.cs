@@ -9,6 +9,7 @@ namespace Diplo.GodMode.Testsite
         public void Compose(IUmbracoBuilder builder)
         {
             builder.Services.AddScoped<IDiploFoo, DiploFoo>();
+            builder.Services.AddKeyedScoped<IDiploFoo, DiploFoo>("keyed");
         }
     }
 
