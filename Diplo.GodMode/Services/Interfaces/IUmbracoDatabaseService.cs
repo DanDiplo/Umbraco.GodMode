@@ -40,6 +40,10 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<UmbracoKeyValue> GetKeyValues();
 
+        bool UpdateKeyValue(string key, string value);
+
+        bool DeleteKeyValue(string key);
+
         NuCacheItem GetNuCacheItem(int id);
 
         bool DeleteTag(int id);
@@ -53,5 +57,7 @@ namespace Diplo.GodMode.Services.Interfaces
         long GetContentVersionCount();
 
         long GetContentWithExcessiveVersionsCount(int versionThreshold);
+
+        IEnumerable<DatabaseHealthRow> GetDatabaseHealthRows();
     }
 }

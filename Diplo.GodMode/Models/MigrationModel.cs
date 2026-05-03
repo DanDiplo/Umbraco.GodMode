@@ -18,4 +18,9 @@ namespace Diplo.GodMode.Models
             return string.Format("{0}: {1} - {2}", this.Key, this.Value, this.Updated);
         }
     }
+
+    public class UpdateKeyValueRequest
+    {
+        public string Value { get; set; }
+    }
 }

@@ -10,6 +10,8 @@ namespace Diplo.GodMode.Services
 
         ServerResponse ClearUmbracoCacheFor(string cache);
 
+        UtilityDiagnostics GetDiagnostics();
+
         IEnumerable<string> GetAllUrls(string culture);
     }
 }

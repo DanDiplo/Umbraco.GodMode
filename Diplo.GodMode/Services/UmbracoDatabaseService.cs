@@ -487,6 +487,28 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        public bool UpdateKeyValue(string key, string value)
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                var affected = scope.Database.Execute(
+                    "UPDATE umbracoKeyValue SET [value] = @0, Updated = @1 WHERE [key] = @2",
+                    value,
+                    DateTime.UtcNow,
+                    key);
+
+                return affected > 0;
+            }
+        }
+
+        public bool DeleteKeyValue(string key)
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.Execute("DELETE FROM umbracoKeyValue WHERE [key] = @0", key) > 0;
+            }
+        }
+
         /// <summary>
         /// Gets a single nu cache item by Node Id
         /// </summary>
@@ -579,6 +601,49 @@ namespace Diplo.GodMode.Services
                     ) VersionedContent",
                     versionThreshold);
             }
+        }
+
+        public IEnumerable<DatabaseHealthRow> GetDatabaseHealthRows()
+        {
+            return
+            [
+                CountTableRows("Logs", "umbracoLog", "umbLog"),
+                CountTableRows("Content versions", "umbracoContentVersion"),
+                CountTableRows("Audit", "umbracoAudit", "umbracoAuditEntry"),
+                CountTableRows("Key/value", "umbracoKeyValue"),
+                CountTableRows("Locks", "umbracoLock")
+            ];
+        }
+
+        private DatabaseHealthRow CountTableRows(string label, params string[] tableNames)
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                foreach (var tableName in tableNames)
+                {
+                    try
+                    {
+                        return new DatabaseHealthRow
+                        {
+                            Label = label,
+                            Table = tableName,
+                            Count = scope.Database.ExecuteScalar<long>($"SELECT COUNT(*) FROM {tableName}"),
+                            Exists = true
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogDebug(ex, "Could not count rows in {TableName}", tableName);
+                    }
+                }
+            }
+
+            return new DatabaseHealthRow
+            {
+                Label = label,
+                Table = string.Join(" / ", tableNames),
+                Exists = false
+            };
         }
     }
 }

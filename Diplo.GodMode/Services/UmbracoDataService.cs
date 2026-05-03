@@ -3,6 +3,7 @@ using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
+using Microsoft.Extensions.Options;
 using NPoco;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
@@ -34,8 +35,9 @@ namespace Diplo.GodMode.Services
         private readonly ILanguageService languageService;
         private readonly IIdKeyMap idKeyMap;
         private readonly IConfigurationEditorJsonSerializer serializer;
+        private readonly GodModeConfig godModeConfig;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -49,6 +51,7 @@ namespace Diplo.GodMode.Services
             this.languageService = languageService;
             this.idKeyMap = idKeyMap;
             this.serializer = serializer;
+            this.godModeConfig = godModeConfig.Value;
         }
 
         /// <summary>
@@ -467,6 +470,7 @@ namespace Diplo.GodMode.Services
             var rows = contentTypes
                 .SelectMany(ct => ct.PropertyTypes.Concat(ct.CompositionPropertyTypes).Select(p => new { ContentType = ct, Property = p }))
                 .Where(x => !string.IsNullOrWhiteSpace(x.Property.Alias))
+                .Where(x => !this.IsIgnoredAlias(x.Property.Alias))
                 .ToList();
 
             foreach (var group in rows.GroupBy(x => x.Property.Alias).Where(x => x.Count() > 1))
@@ -496,14 +500,16 @@ namespace Diplo.GodMode.Services
 
         private void AddContentTypeDriftFindings(ICollection<ConfigurationDriftFinding> findings, IEnumerable<IContentTypeComposition> contentTypes, IReadOnlyDictionary<int, IDataType> dataTypesById)
         {
-            var comparable = contentTypes.Where(x => x.PropertyTypes.Any()).ToList();
+            var comparable = contentTypes
+                .Where(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes).Any(p => !this.IsIgnoredAlias(p.Alias)))
+                .ToList();
             foreach (var group in comparable.GroupBy(x => this.NameStem(x.Name)).Where(x => x.Count() > 1))
             {
                 var propertySets = group
                     .Select(x => new
                     {
                         ContentType = x,
-                        Signature = string.Join("|", x.PropertyTypes.Concat(x.CompositionPropertyTypes).Select(p => this.PropertySignature(p, dataTypesById)).OrderBy(x => x))
+                        Signature = string.Join("|", x.PropertyTypes.Concat(x.CompositionPropertyTypes).Where(p => !this.IsIgnoredAlias(p.Alias)).Select(p => this.PropertySignature(p, dataTypesById)).OrderBy(x => x))
                     })
                     .ToList();
 
@@ -533,6 +539,12 @@ namespace Diplo.GodMode.Services
         {
             dataTypesById.TryGetValue(propertyType.DataTypeId, out var dataType);
             return string.Join(":", propertyType.Alias, propertyType.Name, propertyType.DataTypeId, dataType?.EditorAlias, propertyType.Mandatory, propertyType.ValidationRegExp, propertyType.Variations, propertyType.ValueStorageType);
+        }
+
+        private bool IsIgnoredAlias(string alias)
+        {
+            return !string.IsNullOrWhiteSpace(alias)
+                && this.godModeConfig.AliasesToIgnore.Any(x => alias.InvariantEquals(x));
         }
 
         private IEnumerable<string> DiffPropertyFields(IPropertyType propertyType, IEnumerable<IPropertyType> properties, IReadOnlyDictionary<int, IDataType> dataTypesById)

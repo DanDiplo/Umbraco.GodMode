@@ -87,30 +87,24 @@ namespace Diplo.GodMode.Services
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups(bool revealRedactedValues = false)
         {
-            var groups = new List<DiagnosticGroup>
+            var groups = new[]
             {
                 CreateUmbracoConfigurationGroup(),
                 CreateServerConfigurationGroup(),
                 CreateEnvironmentConfigurationGroup(),
+                CreateRuntimeGroup(),
+                CreateHttpContextGroup(),
+                CreateDatabaseValuesGroup(),
+                CreateApplicationGroup(),
+                CreateUmbracoConstantsGroup(),
+                CreateMvcConfigurationGroup(),
+                CreateInfrastructureGroup(),
+                CreateConfigurationSourcesGroup(),
                 CreateUmbracoPluginTypesGroup(),
-                CreateMappingGroup()
-            };
-
-            var httpContextGroup = CreateHttpContextGroup();
-
-            if (httpContextGroup != null)
-            {
-                groups.Add(httpContextGroup);
+                CreateMappingGroup(),
             }
-
-            groups.Add(CreateUmbracoConstantsGroup());
-            groups.Add(CreateDatabaseValuesGroup());
-            groups.Add(CreateInfrastructureGroup());
-            groups.Add(CreateMvcConfigurationGroup());
-            groups.Add(CreateApplicationGroup());
-            groups.Add(CreateRuntimeGroup());
-            groups.Add(CreateConfigurationSourcesGroup());
-            groups.Add(CreateUmbracoPluginTypesGroup());
+            .Where(group => group is not null)
+            .ToList();
 
             AssignGroupIds(groups);
             RedactGroups(groups, revealRedactedValues);

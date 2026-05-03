@@ -2,7 +2,14 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet, godmodePost } from "../api/client";
 import "../shared";
-import type { Lang, ServerResponse } from "../shared/types";
+import type { Lang, ServerResponse, UtilityDiagnostics } from "../shared/types";
+
+interface WarmupResult {
+    url: string;
+    status: number | null;
+    duration: number;
+    ok: boolean;
+}
 
 function responseKind(r: ServerResponse): { color: string; label: string } {
     // C# enum order is Success=0, Error=1, Warning=2 (see ServerResponseType.cs)
@@ -19,10 +26,13 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _warmupCurrent = 0;
     @state() private _warmupTotal = 0;
     @state() private _warmupCurrentUrl = "";
+    @state() private _diagnostics: UtilityDiagnostics | null = null;
+    @state() private _warmupResults: WarmupResult[] = [];
 
     override connectedCallback(): void {
         super.connectedCallback();
         void this._loadLanguages();
+        void this._loadDiagnostics();
     }
 
     private async _loadLanguages() {
@@ -30,6 +40,14 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
             this._languages = await godmodeGet<Lang[]>("languages");
         } catch {
             // non-fatal
+        }
+    }
+
+    private async _loadDiagnostics() {
+        try {
+            this._diagnostics = await godmodeGet<UtilityDiagnostics>("utilities/diagnostics");
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -97,21 +115,56 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         this._warmupTotal = urls.length;
         this._warmupCurrent = 0;
         this._warmupCurrentUrl = "[waiting…]";
+        this._warmupResults = [];
         for (const url of urls) {
             this._warmupCurrentUrl = url;
+            const started = performance.now();
+            let result: WarmupResult;
             try {
-                await fetch(url);
-            } catch {
-                /* noop — count progress regardless */
+                const response = await fetch(url, { cache: "no-store" });
+                result = {
+                    url,
+                    status: response.status,
+                    duration: Math.round(performance.now() - started),
+                    ok: response.ok
+                };
+            } catch (e) {
+                result = {
+                    url,
+                    status: null,
+                    duration: Math.round(performance.now() - started),
+                    ok: false
+                };
             }
+            this._warmupResults = [...this._warmupResults, result];
             this._warmupCurrent++;
         }
         this._warmupCurrentUrl = "Done.";
     }
 
+    private _formatBytes(bytes: number): string {
+        if (!bytes) return "0 B";
+        const units = ["B", "KB", "MB", "GB"];
+        let value = bytes;
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+            value /= 1024;
+            unit++;
+        }
+        return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
+    }
+
+    private _formatDate(value: string | null): string {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    }
+
     override render() {
         return html`
             <godmode-page heading="Utilities" description="Clear caches, restart the application, warm up templates.">
+                ${this._renderDiagnostics()}
+
                 <uui-box headline="Caches">
                     <div class="row">
                         <uui-button look="primary" ?disabled=${this._busy} @click=${() => void this._clearCache("All")}>Clear all caches</uui-button>
@@ -139,8 +192,124 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
                     ${this._warmupTotal
                         ? html`<p class="progress">${this._warmupCurrent} / ${this._warmupTotal} — <code>${this._warmupCurrentUrl}</code></p>`
                         : ""}
+                    ${this._warmupResults.length ? this._renderWarmupResults() : ""}
                 </uui-box>
             </godmode-page>
+        `;
+    }
+
+    private _renderDiagnostics() {
+        const d = this._diagnostics;
+        if (!d) {
+            return html`<uui-box headline="System" class="section"><uui-loader></uui-loader></uui-box>`;
+        }
+
+        return html`
+            <uui-box headline="System" class="section">
+                <div class="grid">
+                    <div>
+                        <h4>App</h4>
+                        <dl>
+                            <dt>Environment</dt>
+                            <dd>${d.app.environmentName}</dd>
+                            <dt>Uptime</dt>
+                            <dd>${d.app.uptime}</dd>
+                            <dt>Process</dt>
+                            <dd>${d.app.processId}</dd>
+                            <dt>GodMode</dt>
+                            <dd>${d.app.godModeVersion}</dd>
+                        </dl>
+                    </div>
+                    <div>
+                        <h4>Package Assets</h4>
+                        <ul class="plain">
+                            ${d.assets.map(
+                                (asset) => html`
+                                    <li>
+                                        <uui-tag color=${asset.exists ? "positive" : "danger"}>${asset.exists ? "Found" : "Missing"}</uui-tag>
+                                        <a href=${asset.url} target="_blank" rel="noopener">${asset.label}</a>
+                                        <span>${this._formatBytes(asset.size)}</span>
+                                    </li>
+                                `
+                            )}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Folder Sizes</h4>
+                        <ul class="plain">
+                            ${d.folders.map(
+                                (folder) => html`
+                                    <li title=${folder.path}>
+                                        <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
+                                        <span>${folder.label}</span>
+                                        ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
+                                    </li>
+                                `
+                            )}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Cache</h4>
+                        <ul class="plain offset">
+                            ${d.cache.settings.map(
+                                (setting) => html`
+                                    <li title=${setting.path}>
+                                        <uui-tag>${setting.value}</uui-tag>
+                                        <span>${setting.label}</span>
+                                    </li>
+                                `
+                            )}
+                            ${d.cache.folders.map(
+                                (folder) => html`
+                                    <li title=${folder.path}>
+                                        <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
+                                        <span>${folder.label}</span>
+                                        ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
+                                    </li>
+                                `
+                            )}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Database</h4>
+                        <ul class="plain">
+                            ${d.database.map(
+                                (row) => html`
+                                    <li title=${row.table}>
+                                        <uui-tag color=${row.exists ? "default" : "warning"}>${row.exists ? row.count.toLocaleString() : "Missing"}</uui-tag>
+                                        <span>${row.label}</span>
+                                        <small>${row.table}</small>
+                                    </li>
+                                `
+                            )}
+                        </ul>
+                    </div>
+                </div>
+            </uui-box>
+        `;
+    }
+
+    private _renderWarmupResults() {
+        const failures = this._warmupResults.filter((result) => !result.ok).length;
+        const average = Math.round(this._warmupResults.reduce((sum, result) => sum + result.duration, 0) / this._warmupResults.length);
+
+        return html`
+            <div class="warmup-results">
+                <p><strong>${this._warmupResults.length}</strong> URLs pinged, <strong>${failures}</strong> failed, <strong>${average}ms</strong> average.</p>
+                <uui-table>
+                    ${this._warmupResults.slice(-20).map(
+                        (result) => html`
+                            <uui-table-row>
+                                <uui-table-cell>
+                                    <uui-tag color=${result.ok ? "positive" : "danger"}>${result.status ?? "Error"}</uui-tag>
+                                </uui-table-cell>
+                                <uui-table-cell><code>${result.duration}ms</code></uui-table-cell>
+                                <uui-table-cell><a href=${result.url} target="_blank" rel="noopener">${result.url}</a></uui-table-cell>
+                            </uui-table-row>
+                        `
+                    )}
+                </uui-table>
+            </div>
         `;
     }
 
@@ -150,6 +319,63 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
             gap: var(--uui-size-space-3);
             flex-wrap: wrap;
             align-items: center;
+        }
+        .section {
+            margin-bottom: var(--uui-size-space-3);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--uui-size-space-5);
+        }
+        h4 {
+            margin: 0 0 var(--uui-size-space-2);
+        }
+        dl {
+            display: grid;
+            grid-template-columns: max-content minmax(0, 1fr);
+            gap: var(--uui-size-space-1) var(--uui-size-space-3);
+            margin: 0;
+        }
+        dt {
+            color: var(--uui-color-text-alt);
+        }
+        dd {
+            margin: 0;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .plain {
+            display: grid;
+            gap: var(--uui-size-space-2);
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .offset {
+            margin-top: var(--uui-size-space-2);
+        }
+        .plain li {
+            display: flex;
+            align-items: center;
+            gap: var(--uui-size-space-2);
+            min-width: 0;
+        }
+        .plain span,
+        .plain a {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .plain small {
+            color: var(--uui-color-text-alt);
+            white-space: nowrap;
+        }
+        a {
+            color: var(--uui-color-interactive);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
         select {
             padding: var(--uui-size-space-2);
@@ -161,6 +387,23 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         .progress {
             margin-top: var(--uui-size-space-3);
             color: var(--uui-color-text-alt);
+        }
+        .warmup-results {
+            margin-top: var(--uui-size-space-4);
+        }
+        .warmup-results p {
+            color: var(--uui-color-text-alt);
+        }
+        .warmup-results uui-table-cell:first-child {
+            width: 5rem;
+        }
+        .warmup-results uui-table-cell:nth-child(2) {
+            width: 5rem;
+        }
+        @media (max-width: 1100px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
         }
     `;
 }

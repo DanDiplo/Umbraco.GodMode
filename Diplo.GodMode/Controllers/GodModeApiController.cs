@@ -309,6 +309,21 @@ public class GodModeApiController : ManagementApiControllerBase
         return Ok(diagnosticService.GetDiagnosticGroups(revealRedactedValues: true));
     }
 
+    [HttpGet("key-values")]
+    [ProducesResponseType<IEnumerable<UmbracoKeyValue>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<UmbracoKeyValue>> GetKeyValues()
+        => Ok(dataBaseService.GetKeyValues());
+
+    [HttpPut("key-values")]
+    [ProducesResponseType<bool>(StatusCodes.Status200OK)]
+    public ActionResult<bool> UpdateKeyValue([FromQuery] string key, [FromBody] UpdateKeyValueRequest request)
+        => Ok(dataBaseService.UpdateKeyValue(key, request.Value ?? string.Empty));
+
+    [HttpDelete("key-values")]
+    [ProducesResponseType<bool>(StatusCodes.Status200OK)]
+    public ActionResult<bool> DeleteKeyValue([FromQuery] string key)
+        => Ok(dataBaseService.DeleteKeyValue(key));
+
     // ─── Assemblies ──────────────────────────────────────────────────
 
     [HttpGet("assemblies/umbraco")]
@@ -361,6 +376,11 @@ public class GodModeApiController : ManagementApiControllerBase
     [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<string>> GetUrlsToPing([FromQuery] string culture = "")
         => Ok(utilitiesService.GetAllUrls(culture));
+
+    [HttpGet("utilities/diagnostics")]
+    [ProducesResponseType<UtilityDiagnostics>(StatusCodes.Status200OK)]
+    public ActionResult<UtilityDiagnostics> GetUtilityDiagnostics()
+        => Ok(utilitiesService.GetDiagnostics());
 
     // ─── Config / usage / tags ───────────────────────────────────────
 
@@ -672,10 +692,17 @@ public class GodModeApiController : ManagementApiControllerBase
         }
 
         return findings
+            .Where(x => !IsIgnoredAlias(x.EntityAlias))
             .OrderByDescending(x => x.Score)
             .ThenBy(x => x.Category)
             .ThenBy(x => x.Title)
             .ThenBy(x => x.EntityName);
+    }
+
+    private bool IsIgnoredAlias(string alias)
+    {
+        return !string.IsNullOrWhiteSpace(alias)
+            && godModeConfig.Value.AliasesToIgnore.Any(x => alias.InvariantEquals(x));
     }
 
     private static HealthRiskFinding CreateFinding(string severity, string category, string title, string detail, string entityType, string entityName, string entityAlias, string entityKey, string recommendation)

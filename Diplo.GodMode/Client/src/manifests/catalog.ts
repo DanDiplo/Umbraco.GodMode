@@ -268,6 +268,14 @@ export const browsers: BrowserDef[] = [
         element: () => import("../elements/godmode-diagnostic-browser.element")
     },
     {
+        id: "keyValueBrowser",
+        label: "Key Values",
+        icon: "icon-key",
+        description: "Edit and delete rows in the umbracoKeyValue table",
+        weight: 550,
+        element: () => import("../elements/godmode-key-value-browser.element")
+    },
+    {
         id: "utilityBrowser",
         label: "Utilities",
         icon: "icon-wrench",

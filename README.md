@@ -138,4 +138,4 @@ The package ships the compiled assembly and static web assets under `App_Plugins
 
 ## Thanks
 
-This code is indebted to a lot of people in the Umbraco community. Particular thanks to Soren Kottal for his help, to Sebastiaan "Cultiv" Janssen for diagnostic code borrowed in earlier versions, Andy Butler for his cleverness and to everyone who maintains Umbraco docs and package examples.
+This code is indebted to a lot of people in the Umbraco community. Particular thanks to Soren Kottal for his help, to Sebastiaan "Cultiv" Janssen for diagnostic code borrowed in earlier versions, Andy Butland for his cleverness and to everyone who maintains Umbraco docs and package examples.

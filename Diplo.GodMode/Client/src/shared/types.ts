@@ -275,12 +275,64 @@ export interface Diagnostic {
     value: string | null;
 }
 
+export interface UmbracoKeyValue {
+    key: string;
+    value: string | null;
+    updated: string;
+}
+
 export interface ServerResponse {
     message: string;
     /** Server emits the enum value as a string ("Success" | "Error" | "Warning")
      *  via the public `response` getter — keep both shapes available. */
     response?: "Success" | "Error" | "Warning";
     responseType?: 0 | 1 | 2;
+}
+
+export interface UtilityDiagnostics {
+    app: {
+        environmentName: string;
+        contentRootPath: string;
+        webRootPath: string;
+        processId: number;
+        startedAt: string;
+        uptime: string;
+        godModeVersion: string;
+    };
+    assets: Array<{
+        label: string;
+        url: string;
+        path: string;
+        exists: boolean;
+        size: number;
+    }>;
+    folders: Array<{
+        label: string;
+        path: string;
+        exists: boolean;
+        size: number;
+        fileCount: number;
+    }>;
+    cache: {
+        settings: Array<{
+            label: string;
+            path: string;
+            value: string;
+        }>;
+        folders: Array<{
+            label: string;
+            path: string;
+            exists: boolean;
+            size: number;
+            fileCount: number;
+        }>;
+    };
+    database: Array<{
+        label: string;
+        table: string;
+        count: number;
+        exists: boolean;
+    }>;
 }
 
 export interface Page<T> {
@@ -293,6 +345,7 @@ export interface Page<T> {
 
 export interface GodModeConfigResponse {
     featuresToHide: string[];
+    aliasesToIgnore: string[];
     diagnostics: {
         groupsToHide: string[];
         sectionsToHide: string[];

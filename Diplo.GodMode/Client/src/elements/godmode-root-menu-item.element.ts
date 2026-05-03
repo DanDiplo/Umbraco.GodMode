@@ -2,6 +2,7 @@ import { LitElement, css, customElement, html, property, state } from "@umbraco-
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_SECTION_CONTEXT } from "@umbraco-cms/backoffice/section";
 import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
+import { browsers } from "../manifests/catalog";
 
 interface ChildEntry {
     id: string;
@@ -10,42 +11,26 @@ interface ChildEntry {
     children?: ReadonlyArray<ChildEntry>;
 }
 
-const CHILDREN: ReadonlyArray<ChildEntry> = [
-    { id: "docTypeBrowser", label: "DocType Browser", icon: "icon-item-arrangement" },
-    { id: "templateBrowser", label: "Template Browser", icon: "icon-newspaper-alt" },
-    { id: "partialBrowser", label: "Partial Browser", icon: "icon-article" },
-    { id: "dataTypeBrowser", label: "DataType Browser", icon: "icon-autofill" },
-    { id: "contentBrowser", label: "Content Browser", icon: "icon-umb-content" },
-    { id: "usageBrowser", label: "Usage Browser", icon: "icon-chart-curve" },
-    { id: "mediaBrowser", label: "Media Browser", icon: "icon-picture" },
-    { id: "memberBrowser", label: "Member Browser", icon: "icon-umb-members" },
-    { id: "tagBrowser", label: "Tag Browser", icon: "icon-tags" },
-    { id: "referenceGraph", label: "Reference Graph", icon: "icon-link" },
-    { id: "healthRisk", label: "Health & Risk", icon: "icon-alert" },
-    { id: "configurationDrift", label: "Configuration Drift", icon: "icon-merge" },
-    { id: "extensionExplorer", label: "Extension Explorer", icon: "icon-code" },
-    {
-        id: "typesIntro",
-        label: "Types",
-        icon: "icon-folder",
-        children: [
-            { id: "surfaceControllers", label: "Surface Controllers", icon: "icon-planet" },
-            { id: "apiControllers", label: "API Controllers", icon: "icon-rocket" },
-            { id: "renderControllers", label: "Render Controllers", icon: "icon-satellite-dish" },
-            { id: "publishedContentModels", label: "Content Models", icon: "icon-binarycode" },
-            { id: "composers", label: "Composers", icon: "icon-music" },
-            { id: "valueConverters", label: "Value Converters", icon: "icon-wand" },
-            { id: "viewComponents", label: "View Components", icon: "icon-code" },
-            { id: "tagHelpers", label: "Tag Helpers", icon: "icon-tags" },
-            { id: "contentFinders", label: "Content Finders", icon: "icon-directions-alt" },
-            { id: "urlProviders", label: "URL Providers", icon: "icon-link" },
-            { id: "typeBrowser", label: "Interface Browser", icon: "icon-molecular-network" }
-        ]
-    },
-    { id: "serviceBrowser", label: "Services", icon: "icon-console" },
-    { id: "diagnosticBrowser", label: "Diagnostics", icon: "icon-settings" },
-    { id: "utilityBrowser", label: "Utilities", icon: "icon-wrench" }
-];
+const TYPES_BROWSER_ID = "typesIntro";
+
+const TYPE_CHILDREN: ReadonlyArray<ChildEntry> = browsers
+    .filter((browser) => browser.skipMenuItem)
+    .sort((a, b) => b.weight - a.weight)
+    .map((browser) => ({
+        id: browser.id,
+        label: browser.label,
+        icon: browser.icon
+    }));
+
+const CHILDREN: ReadonlyArray<ChildEntry> = browsers
+    .filter((browser) => browser.id !== "intro" && !browser.skipMenuItem)
+    .sort((a, b) => b.weight - a.weight)
+    .map((browser) => ({
+        id: browser.id,
+        label: browser.label,
+        icon: browser.icon,
+        children: browser.id === TYPES_BROWSER_ID ? TYPE_CHILDREN : undefined
+    }));
 
 @customElement("godmode-root-menu-item")
 export class GodModeRootMenuItemElement extends UmbElementMixin(LitElement) {

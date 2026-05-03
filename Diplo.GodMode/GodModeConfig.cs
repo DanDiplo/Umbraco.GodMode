@@ -12,6 +12,8 @@
 
         public string[] FeaturesToHide { get; set; } = [];
 
+        public string[] AliasesToIgnore { get; set; } = ["umbracoFile"];
+
         public DiagnosticsConfig Diagnostics { get; set; } = new DiagnosticsConfig();
 
         /// <summary>

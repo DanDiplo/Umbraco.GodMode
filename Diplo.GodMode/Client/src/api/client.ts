@@ -47,6 +47,20 @@ export async function godmodePost<T>(path: string, query?: Record<string, unknow
     return data as T;
 }
 
+export async function godmodePut<T>(path: string, body?: unknown, query?: Record<string, unknown>): Promise<T> {
+    const { data, error } = await umbHttpClient.put<T>({
+        url: `${GODMODE_API_BASE}/${path}${buildQuery(query)}`,
+        body,
+        security: BEARER_SECURITY
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    return data as T;
+}
+
 export async function godmodeDelete<T>(path: string): Promise<T> {
     const { data, error } = await umbHttpClient.delete<T>({
         url: `${GODMODE_API_BASE}/${path}`,
