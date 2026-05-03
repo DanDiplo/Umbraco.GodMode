@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Diplo.GodMode.Helpers
+﻿namespace Diplo.GodMode.Helpers
 {
     public static class TypeExtensions
     {
@@ -32,7 +26,7 @@ namespace Diplo.GodMode.Helpers
                 pos = 0;
             }
 
-            genericTypeName = genericTypeName.Substring(0, pos);
+            genericTypeName = genericTypeName[..pos];
 
             string genericArgs = string.Join(", ", t.GetGenericArguments().Select(ta => ToGenericTypeString(ta)).ToArray());
 

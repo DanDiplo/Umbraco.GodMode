@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Umbraco.Cms.Core.Models;
+﻿using Umbraco.Cms.Core.Models;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Helpers

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Info/">
+    <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+    <File Path="umbraco-marketplace.json" />
+  </Folder>
+  <Project Path="Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj" />
+  <Project Path="Diplo.GodMode/Diplo.GodMode.csproj" />
+</Solution>

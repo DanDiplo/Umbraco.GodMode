@@ -8,6 +8,8 @@ namespace Diplo.GodMode.Models
 
         public bool IsUsed { get; set; }
 
+        public bool IsNestedUsed { get; set; }
+
         public DateTime UpdateDate { get; set; }
     }
 }

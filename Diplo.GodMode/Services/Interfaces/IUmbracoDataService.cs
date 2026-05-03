@@ -1,6 +1,7 @@
 ﻿using Diplo.GodMode.Models;
 using NPoco;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Umbraco.Cms.Core.Models;
 
 namespace Diplo.GodMode.Services.Interfaces
@@ -14,24 +15,32 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<ContentTypeMap> GetContentTypeMap();
 
-        IEnumerable<DataTypeMap> GetDataTypes();
+        Task<IEnumerable<DataTypeMap>> GetDataTypes();
 
-        IEnumerable<DataTypeMap> GetDataTypesStatus();
+        Task<IEnumerable<DataTypeMap>> GetDataTypesStatus();
+
+        Task<IEnumerable<ReferenceEdge>> GetReferenceGraph();
+
+        Task<IEnumerable<ReferenceEdge>> GetUsedBy(string targetType, string targetKey);
+
+        Task<IEnumerable<ReferenceEdge>> GetUses(string sourceType, string sourceKey);
+
+        Task<IEnumerable<ConfigurationDriftFinding>> GetConfigurationDriftFindings();
 
         Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC");
 
         IEnumerable<ItemBase> GetMediaTypes();
 
-        IEnumerable<DataTypeMap> GetPropertyEditors();
+        Task<IEnumerable<DataTypeMap>> GetPropertyEditors();
 
         IEnumerable<string> GetPropertyGroups();
 
-        IEnumerable<TemplateModel> GetTemplates();
+        Task<IEnumerable<TemplateModel>> GetTemplates();
 
-        public int FixTemplateMasters();
+        Task<int> FixTemplateMasters();
 
-        IEnumerable<TagMapping> GetTagMapping();
+        Task<IEnumerable<TagMapping>> GetTagMapping();
 
-        ServerResponse CopyDataType(int id);
+        Task<ServerResponse> CopyDataType(int id);
     }
 }

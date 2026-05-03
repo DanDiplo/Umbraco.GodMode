@@ -1,15 +1,14 @@
-﻿using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Umbraco.Cms.Core.Models;
 
 namespace Diplo.GodMode.Helpers
 {
-    public class LayoutHelper
+    public partial class LayoutHelper
     {
         /// <summary>
         /// Reguar expression to get the layout name from a template
         /// </summary>
-        private static readonly Regex LayoutRegex = new Regex(@"@{(.*?)Layout(\s*)=(\s*)""(.+).cshtml"";(.*?)}", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        private static readonly Regex LayoutRegex = LayoutRegexGenerator();
 
         /// <summary>
         /// Attempts to parse the layout view from the template
@@ -30,5 +29,8 @@ namespace Diplo.GodMode.Helpers
 
             return null;
         }
+
+        [GeneratedRegex(@"@{(.*?)Layout(\s*)=(\s*)""(.+).cshtml"";(.*?)}", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline, "en-GB")]
+        private static partial Regex LayoutRegexGenerator();
     }
 }

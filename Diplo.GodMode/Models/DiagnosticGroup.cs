@@ -1,30 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Diplo.GodMode.Models
+﻿namespace Diplo.GodMode.Models
 {
     public class DiagnosticGroup
     {
-        public DiagnosticGroup()
+        public DiagnosticGroup(string title)
         {
-            this.Sections = new List<DiagnosticSection>();
+            Title = title;
         }
 
-        public DiagnosticGroup(int id, string title) : this()
+        public DiagnosticGroup(int id, string title)
         {
-            this.Id = id;
-            this.Title = title;
+            Id = id;
+            Title = title;
         }
 
-        public int Id { get; set; }
+        public int Id { get; private set; }
 
-        public string Title { get; set; }
+        public string Title { get; }
 
-        public List<DiagnosticSection> Sections { get; set; }
+        public List<DiagnosticSection> Sections { get; } = [];
 
-        public void Add(List<DiagnosticSection> sections)
+        public void SetId(int id) => Id = id;
+
+        public DiagnosticGroup Add(params DiagnosticSection[] sections)
         {
-            this.Sections.AddRange(sections);
+            Sections.AddRange(sections);
+            return this;
+        }
+
+        public DiagnosticGroup Add(IEnumerable<DiagnosticSection> sections)
+        {
+            Sections.AddRange(sections);
+            return this;
+        }
+
+        public DiagnosticGroup AddIfNotNull(DiagnosticSection section)
+        {
+            if (section != null)
+            {
+                Sections.Add(section);
+            }
+
+            return this;
         }
     }
 }

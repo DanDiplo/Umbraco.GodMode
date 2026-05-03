@@ -1,28 +1,44 @@
-﻿@using Umbraco.SampleSite;
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.Contact>
+
+@using Clean.Core.Models.ViewModels
 @using ContentModels = Umbraco.Cms.Web.Common.PublishedModels
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.Contact>
+
 @{
     Layout = "master.cshtml";
+    var submitted = false;
+    if (bool.TryParse(TempData["Success"]?.ToString() ?? "", out var success))
+    {
+        submitted = true;
+    }
 }
-@Html.Partial("~/Views/Partials/SectionHeader.cshtml")
-<section class="section">
-    <div class="container">
 
-        <div class="row">
-            <div class="col-md-6">
-                <h2>@Model.MapHeader</h2>
-                @Model.MapCoordinates
+@await Html.PartialAsync("~/Views/Partials/pageHeader.cshtml", new PageHeaderViewModel(Model.Name, Model.Title, Model.Subtitle, Model.MainImage))
 
-            </div>
+<main class="mb-4">
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                @if(submitted)
+                {
 
-            <div class="col-md-6">
-                <h2>@Model.ContactFormHeader</h2>
-                @Model.ContactIntro
-                @{
-                   await Html.RenderPartialAsync("Partials/ContactForm", new ContactFormViewModel());
+                    @if (success)
+                    {
+                        @Model.SuccessMessage
+                    }
+                    else
+                    {
+                        @Model.ErrorMessage
+                    }
+                }
+                else
+                {
+                    @Model.InstructionMessage
+                    <div class="my-5">
+                        @await Component.InvokeAsync("Contact")
+                    </div>
+
                 }
             </div>
-
         </div>
     </div>
-</section>
+</main>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
+﻿using System.Collections.Specialized;
 using Diplo.GodMode.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -10,152 +7,175 @@ using Umbraco.Extensions;
 namespace Diplo.GodMode.Models
 {
     /// <summary>
-    /// Represents a repeatable diagnostic section
+    /// Represents a repeatable diagnostic section.
     /// </summary>
     public class DiagnosticSection
     {
         public DiagnosticSection(string heading)
         {
-            this.Heading = heading;
-            this.Diagnostics = new List<Diagnostic>();
+            Heading = heading;
         }
 
-        public DiagnosticSection(string heading, IEnumerable<Diagnostic> diagnostics) : this(heading)
+        public DiagnosticSection(string heading, IEnumerable<Diagnostic> diagnostics)
         {
-            this.Diagnostics = diagnostics.ToList();
+            Heading = heading;
+            Diagnostics = diagnostics?.ToList() ?? [];
         }
 
-        public string Heading { get; set; }
+        public string Heading { get; }
 
-        public List<Diagnostic> Diagnostics { get; set; }
+        public List<Diagnostic> Diagnostics { get; } = [];
 
-        public void AddDiagnostics(NameValueCollection nvc, bool skipEmpty = true, Func<string, bool> predicate = null)
+        public DiagnosticSection Add(string key, object value)
         {
-            if (nvc != null)
+            Diagnostics.Add(new Diagnostic(key, value));
+            return this;
+        }
+
+        public DiagnosticSection Add(string key, string value)
+        {
+            Diagnostics.Add(new Diagnostic(key, value));
+            return this;
+        }
+
+        public DiagnosticSection AddRange(IEnumerable<Diagnostic> diagnostics)
+        {
+            if (diagnostics != null)
             {
-                var keys = nvc.AllKeys;
+                Diagnostics.AddRange(diagnostics);
+            }
 
-                if (predicate != null)
+            return this;
+        }
+
+        public DiagnosticSection AddDiagnostics(NameValueCollection nvc, bool skipEmpty = true, Func<string, bool> predicate = null)
+        {
+            if (nvc == null)
+            {
+                return this;
+            }
+
+            var keys = nvc.AllKeys;
+
+            if (predicate != null)
+            {
+                keys = keys.Where(predicate).ToArray();
+            }
+
+            foreach (var key in keys)
+            {
+                if (key == null)
                 {
-                    keys = keys.Where(predicate).ToArray();
+                    continue;
                 }
 
-                foreach (var key in keys)
+                if ((skipEmpty && !string.IsNullOrEmpty(nvc[key])) || !skipEmpty)
                 {
-                    if (skipEmpty && !string.IsNullOrEmpty(nvc[key]) || !skipEmpty)
-                    {
-                        this.Diagnostics.Add(new Diagnostic(key, nvc[key]));
-                    }
+                    Diagnostics.Add(new Diagnostic(key, nvc[key]));
                 }
             }
+
+            return this;
         }
 
-        public void AddDiagnostics(IDictionary<object, object> items)
+        public DiagnosticSection AddDiagnostics(IDictionary<object, object> items)
         {
-            if (items != null)
+            if (items == null)
             {
-                foreach (var key in items.Keys)
-                {
-                    this.Diagnostics.Add(new Diagnostic(key.ToString(), items[key].ToString()));
-                }
+                return this;
             }
+
+            foreach (var key in items.Keys)
+            {
+                Diagnostics.Add(new Diagnostic(key?.ToString() ?? string.Empty, items[key]));
+            }
+
+            return this;
         }
 
-        public static DiagnosticSection AddDiagnosticSectionFrom(string heading, object obj, bool onlyUmbraco = false)
+        public DiagnosticSection AddDiagnosticsFrom(object obj, bool onlyUmbraco = true)
         {
-            var section = new DiagnosticSection(heading);
-
             if (obj != null)
             {
-                section.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(obj, onlyUmbraco));
+                Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(obj, onlyUmbraco));
             }
 
-            return section;
+            return this;
         }
 
-        public static DiagnosticSection AddDiagnosticSectionFrom<T>(string heading, IServiceProvider factory, bool onlyUmbraco = false) where T : class
+        public DiagnosticSection AddDiagnosticsFrom(Type type)
         {
-            var section = new DiagnosticSection(heading);
-
-            var settings = factory.GetRequiredService<IOptions<T>>();
-
-            if (settings != null)
+            if (type == null)
             {
-                section.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(settings.Value, onlyUmbraco));
+                return this;
             }
 
-            return section;
-        }
-
-        public void AddDiagnosticsFrom(object obj, bool onlyUmbraco = true)
-        {
-            if (obj != null)
+            foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
             {
-                this.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFrom(obj, onlyUmbraco));
+                Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
             }
+
+            return this;
         }
 
-        public void AddDiagnosticsFrom(Type type)
+        public DiagnosticSection AddDiagnosticsFromConstant(Type type)
         {
             if (type != null)
             {
-                foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
-                {
-                    this.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
-                }
+                Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFromConstants(type));
             }
+
+            return this;
         }
 
-        public void AddDiagnosticsFromConstant(Type type)
+        public static DiagnosticSection From(string heading, object obj, bool onlyUmbraco = false)
         {
-            if (type != null)
-            {
-                this.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFromConstants(type));
-            }
+            return new DiagnosticSection(heading)
+                .AddDiagnosticsFrom(obj, onlyUmbraco);
         }
 
-        public static DiagnosticSection AddDiagnosticSectionFrom(string heading, Type type)
+        public static DiagnosticSection FromOptions<T>(string heading, IServiceProvider services, bool onlyUmbraco = false)
+            where T : class
         {
-            var section = new DiagnosticSection(heading);
+            var settings = services.GetRequiredService<IOptions<T>>();
 
-            if (type != null)
-            {
-                foreach (var item in ReflectionHelper.GetTypesAssignableFrom(type))
-                {
-                    section.Diagnostics.Add(new Diagnostic(item.Name, item.GetFullNameWithAssembly()));
-                }
-            }
-
-            return section;
+            return From(heading, settings.Value, onlyUmbraco);
         }
 
-        public static DiagnosticSection AddDiagnosticSectionPropertiesFrom(string heading, object obj, string[] ignoreProperties = null)
+        public static DiagnosticSection FromAssignableTypes(string heading, Type type)
         {
-            var section = new DiagnosticSection(heading);
-
-            if (obj != null)
-            {
-                var properties = obj.GetType().GetProperties();
-
-                if (ignoreProperties != null)
-                {
-                    properties = properties.Where(p => !ignoreProperties.Contains(p.Name)).ToArray();
-                }
-
-                foreach (var prop in properties)
-                {
-                    section.Diagnostics.Add(new Diagnostic(prop.Name, prop.GetValue(obj)));
-                }
-            }
-
-            return section;
+            return new DiagnosticSection(heading)
+                .AddDiagnosticsFrom(type);
         }
 
-        public static DiagnosticSection AddDiagnosticSectionFromConstant(string heading, Type type)
+        public static DiagnosticSection FromConstants(string heading, Type type)
+        {
+            return new DiagnosticSection(heading)
+                .AddDiagnosticsFromConstant(type);
+        }
+
+        public static DiagnosticSection FromProperties(string heading, object obj, string[] ignoreProperties = null)
         {
             var section = new DiagnosticSection(heading);
 
-            section.Diagnostics.AddRange(ReflectionHelper.PopulateDiagnosticsFromConstants(type));
+            if (obj == null)
+            {
+                return section;
+            }
+
+            var properties = obj.GetType().GetProperties();
+
+            if (ignoreProperties != null)
+            {
+                properties = properties
+                    .Where(p => !ignoreProperties.Contains(p.Name))
+                    .ToArray();
+            }
+
+            foreach (var prop in properties)
+            {
+                section.Diagnostics.Add(new Diagnostic(prop.Name, prop.GetValue(obj)));
+            }
 
             return section;
         }

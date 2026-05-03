@@ -9,7 +9,7 @@ namespace Diplo.GodMode.Services.Interfaces
     /// </summary>
     public interface IDiagnosticService
     {
-        IEnumerable<DiagnosticGroup> GetDiagnosticGroups();
+        IEnumerable<DiagnosticGroup> GetDiagnosticGroups(bool revealRedactedValues = false);
 
         void SetContext(HttpContext httpContext);
     }

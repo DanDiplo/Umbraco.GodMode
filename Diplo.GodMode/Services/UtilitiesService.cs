@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,6 +9,8 @@ using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Extensions;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PublishedCache;
+using Umbraco.Cms.Core.Services.Navigation;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
@@ -31,8 +27,10 @@ namespace Diplo.GodMode.Services
         private readonly ILogger<UtilitiesService> logger;
         private readonly IUmbracoContextFactory umbracoContextFactory;
         private readonly IMemoryCache memoryCache;
+        private readonly IPublishedContentCache publishedContentCache;
+        private readonly IDocumentNavigationQueryService documentNavigation;
 
-        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache)
+        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache, IPublishedContentCache publishedContentCache, IDocumentNavigationQueryService documentNavigation)
         {
             this.env = env;
             this.imageCacheSettings = imageCacheSettings;
@@ -40,6 +38,8 @@ namespace Diplo.GodMode.Services
             this.logger = logger;
             this.umbracoContextFactory = umbracoContextFactory;
             this.memoryCache = memoryCache;
+            this.publishedContentCache = publishedContentCache;
+            this.documentNavigation = documentNavigation;
         }
 
         /// <summary>
@@ -136,13 +136,37 @@ namespace Diplo.GodMode.Services
         /// <returns></returns>
         public IEnumerable<string> GetAllUrls(string culture)
         {
-            using (var ctx = umbracoContextFactory.EnsureUmbracoContext())
+            using var ctx = umbracoContextFactory.EnsureUmbracoContext();
+
+            if (!documentNavigation.TryGetRootKeys(out var rootKeys))
             {
-                return ctx.UmbracoContext.Content.GetAtRoot(culture).SelectMany(x => x.DescendantsOrSelf(culture)).Where(p => p.TemplateId > 0).Select(p => p.Url(culture: culture, mode: UrlMode.Absolute));
+                return [];
             }
+
+            var results = new List<string>();
+
+            foreach (var rootKey in rootKeys)
+            {
+                if (!documentNavigation.TryGetDescendantsKeysOrSelfKeys(rootKey, out var keys))
+                {
+                    continue;
+                }
+
+                foreach (var key in keys)
+                {
+                    var content = publishedContentCache.GetByIdAsync(key).GetAwaiter().GetResult();
+
+                    if (content?.TemplateId > 0)
+                    {
+                        results.Add(content.Url(culture: culture, mode: UrlMode.Absolute));
+                    }
+                }
+            }
+
+            return results;
         }
 
-        private  void ClearMemoryCache(IMemoryCache memoryCache)
+        private void ClearMemoryCache(IMemoryCache memoryCache)
         {
             PropertyInfo prop = memoryCache.GetType().GetProperty("EntriesCollection", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -159,7 +183,7 @@ namespace Diplo.GodMode.Services
                     clearMethod.Invoke(innerCache, null);
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 logger.LogError(ex, "Couldn't clear IMemoryCache in GodMode");
             }

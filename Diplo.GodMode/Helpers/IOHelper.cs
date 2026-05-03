@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-
-namespace Diplo.GodMode.Helpers
+﻿namespace Diplo.GodMode.Helpers
 {
     internal static class IOHelper
     {

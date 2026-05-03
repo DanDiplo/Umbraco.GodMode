@@ -3,12 +3,11 @@ using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using NPoco;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
+using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence.Querying;
@@ -27,24 +26,28 @@ namespace Diplo.GodMode.Services
         private readonly IContentTypeService contentTypeService;
         private readonly IDataTypeService dataTypeService;
         private readonly IMediaTypeService mediaTypeService;
-        private readonly IFileService fileService;
+        private readonly IMemberTypeService memberTypeService;
+        private readonly ITemplateService templateService;
         private readonly IMediaService mediaService;
         private readonly IScopeProvider scopeProvider;
         private readonly ITagService tagService;
-        private readonly ILocalizationService localizationService;
+        private readonly ILanguageService languageService;
+        private readonly IIdKeyMap idKeyMap;
         private readonly IConfigurationEditorJsonSerializer serializer;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IFileService fileService, IMediaService mediaService, ITagService tagService, ILocalizationService localizationService, IConfigurationEditorJsonSerializer serializer)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
             this.mediaTypeService = mediaTypeService;
-            this.fileService = fileService;
+            this.memberTypeService = memberTypeService;
+            this.templateService = templateService;
             this.mediaService = mediaService;
             this.scopeProvider = scopeProvider;
             this.tagService = tagService;
             this.contentService = contentService;
-            this.localizationService = localizationService;
+            this.languageService = languageService;
+            this.idKeyMap = idKeyMap;
             this.serializer = serializer;
         }
 
@@ -54,7 +57,7 @@ namespace Diplo.GodMode.Services
         public IEnumerable<ContentTypeMap> GetContentTypeMap()
         {
 
-            var allContentTypes = this.contentTypeService.GetAll() ?? Enumerable.Empty<IContentType>();
+            var allContentTypes = this.contentTypeService.GetAll() ?? [];
 
             var mapping = new List<ContentTypeMap>();
 
@@ -69,7 +72,7 @@ namespace Diplo.GodMode.Services
                     Udi = ct.GetUdi().Guid,
                     Description = ct.Description,
                     VariesBy = ct.Variations,
-                    IsListView = ct.IsContainer,
+                    IsListView = ct.ListView is not null,
                     IsElement = ct.IsElement,
                     AllowedAtRoot = ct.AllowedAsRoot,
                     VariesByCulture = ct.VariesByCulture(),
@@ -82,9 +85,9 @@ namespace Diplo.GodMode.Services
                         Name = x.Name,
                         Path = x.VirtualPath,
                         IsDefault = ct.DefaultTemplate != null && ct.DefaultTemplate.Id == x.Id
-                    }) : Enumerable.Empty<TemplateMap>(),
-                    Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : Enumerable.Empty<PropertyTypeMap>(),
-                    CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : Enumerable.Empty<PropertyTypeMap>(),
+                    }) : [],
+                    Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : [],
+                    CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : [],
                     Compositions = ct.ContentTypeComposition != null ? ct.ContentTypeComposition.
                     Select(x => new ContentTypeData()
                     {
@@ -93,13 +96,13 @@ namespace Diplo.GodMode.Services
                         Id = x.Id,
                         Icon = x.Icon,
                         Name = x.Name
-                    }) : Enumerable.Empty<ContentTypeData>()
+                    }) : []
                 };
 
-                map.AllProperties = map.Properties.Concat(map.CompositionProperties ?? Enumerable.Empty<PropertyTypeMap>());
+                map.AllProperties = map.Properties.Concat(map.CompositionProperties ?? []);
                 map.HasCompositions = ct.ContentTypeComposition != null && ct.ContentTypeComposition.Any();
                 map.HasTemplates = ct.AllowedTemplates != null && ct.AllowedTemplates.Any();
-                map.PropertyGroups = ct.PropertyGroups != null ? ct.PropertyGroups.Select(x => x.Name) : Enumerable.Empty<string>();
+                map.PropertyGroups = ct.PropertyGroups != null ? ct.PropertyGroups.Select(x => x.Name) : [];
 
                 mapping.Add(map);
             }
@@ -132,9 +135,9 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all data types
         /// </summary>
-        public IEnumerable<DataTypeMap> GetDataTypes()
+        public async Task<IEnumerable<DataTypeMap>> GetDataTypes()
         {
-            return this.dataTypeService.GetAll().
+            return (await this.dataTypeService.GetAllAsync()).
                 Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Name = x.Name }).
                 OrderBy(x => x.Name);
         }
@@ -142,9 +145,9 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all property editors
         /// </summary>
-        public IEnumerable<DataTypeMap> GetPropertyEditors()
+        public async Task<IEnumerable<DataTypeMap>> GetPropertyEditors()
         {
-            return this.dataTypeService.GetAll().
+            return (await this.dataTypeService.GetAllAsync()).
                 Select(x => new DataTypeMap { Id = x.Id, Udi = x.GetUdi().Guid, Alias = x.EditorAlias }).
                 DistinctBy(p => p.Alias).
                 OrderBy(p => p.Alias);
@@ -153,15 +156,16 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all data types, including the status of whether they are being used
         /// </summary>
-        public IEnumerable<DataTypeMap> GetDataTypesStatus()
+        public async Task<IEnumerable<DataTypeMap>> GetDataTypesStatus()
         {
 
-            var dataTypes = this.dataTypeService.GetAll().ToList();
+            var dataTypes = (await this.dataTypeService.GetAllAsync()).ToList();
             var contentTypes = this.contentTypeService.GetAll();
             var mediaTypes = this.mediaTypeService.GetAll();
 
             var usedPropertyTypes = contentTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)).Union(mediaTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)));
             var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeId).Contains(x.Id)).Select(d => d.Id).ToList();
+            var nestedUsedIds = this.GetNestedDataTypeIds(dataTypes, contentTypes);
 
             return dataTypes.Select(x => new DataTypeMap
             {
@@ -171,18 +175,521 @@ namespace Diplo.GodMode.Services
                 Alias = x.EditorAlias,
                 DbType = x.DatabaseType.ToString(),
                 IsUsed = usedIds.Contains(x.Id),
+                IsNestedUsed = nestedUsedIds.Contains(x.Id),
                 UpdateDate = x.UpdateDate == default ? x.CreateDate : x.UpdateDate
             }).
             OrderBy(x => x.Name);
         }
 
+        private HashSet<int> GetNestedDataTypeIds(IReadOnlyCollection<IDataType> dataTypes, IEnumerable<IContentType> contentTypes)
+        {
+            var nestedDataTypeIds = new HashSet<int>();
+            var dataTypesById = dataTypes.ToDictionary(x => x.Id);
+            var contentTypesByKey = contentTypes.ToDictionary(x => x.Key);
+
+            foreach (var dataType in dataTypes)
+            {
+                this.CollectNestedDataTypeIdsFromDataType(dataType, dataTypesById, contentTypesByKey, nestedDataTypeIds, [], []);
+            }
+
+            return nestedDataTypeIds;
+        }
+
+        public async Task<IEnumerable<ReferenceEdge>> GetReferenceGraph()
+        {
+            var edges = new List<ReferenceEdge>();
+            var dataTypes = (await this.dataTypeService.GetAllAsync()).ToList();
+            var dataTypesById = dataTypes.ToDictionary(x => x.Id);
+            var contentTypes = this.contentTypeService.GetAll().ToList();
+            var contentTypesByKey = contentTypes.ToDictionary(x => x.Key);
+            var templates = (await this.GetTemplates()).ToList();
+            var templateKeysById = templates.ToDictionary(x => x.Id, x => x.Udi);
+
+            foreach (var contentType in contentTypes.OrderBy(x => x.Name))
+            {
+                var sourceType = contentType.IsElement ? "Element Type" : "Document Type";
+
+                foreach (var template in contentType.AllowedTemplates ?? [])
+                {
+                    edges.Add(this.CreateEdge(sourceType, contentType.Name, contentType.Alias, contentType.Key, "allows template", "Template", template.Name, template.Alias, template.Key, template.Id == contentType.DefaultTemplate?.Id ? "Default template" : null));
+                }
+
+                foreach (var composition in contentType.ContentTypeComposition ?? [])
+                {
+                    edges.Add(this.CreateEdge(sourceType, contentType.Name, contentType.Alias, contentType.Key, "composes", composition.IsElement ? "Element Type" : "Document Type", composition.Name, composition.Alias, composition.Key));
+                }
+
+                foreach (var propertyType in contentType.PropertyTypes ?? [])
+                {
+                    this.AddPropertyDataTypeEdge(edges, sourceType, contentType, propertyType, dataTypesById, contentTypesByKey, false);
+                }
+
+                var nativePropertyIds = contentType.PropertyTypes?.Select(x => x.Id).ToHashSet() ?? [];
+                foreach (var propertyType in contentType.CompositionPropertyTypes?.Where(x => !nativePropertyIds.Contains(x.Id)) ?? [])
+                {
+                    this.AddPropertyDataTypeEdge(edges, sourceType, contentType, propertyType, dataTypesById, contentTypesByKey, true);
+                }
+            }
+
+            foreach (var mediaType in this.mediaTypeService.GetAll().OrderBy(x => x.Name))
+            {
+                this.AddContentTypePropertyEdges(edges, "Media Type", mediaType, dataTypesById, contentTypesByKey);
+            }
+
+            foreach (var memberType in this.memberTypeService.GetAll().OrderBy(x => x.Name))
+            {
+                this.AddContentTypePropertyEdges(edges, "Member Type", memberType, dataTypesById, contentTypesByKey);
+            }
+
+            foreach (var template in templates)
+            {
+                foreach (var partial in template.Partials ?? [])
+                {
+                    var partialKey = this.StableKey("Partial", partial.Path ?? partial.Name);
+                    edges.Add(this.CreateEdge("Template", template.Name, template.Alias, template.Udi, "uses partial", "Partial", partial.Name, partial.Path, partialKey, partial.Path));
+                }
+            }
+
+            foreach (var contentType in contentTypes.Where(x => !x.IsElement).OrderBy(x => x.Name))
+            {
+                foreach (var content in this.contentService.GetPagedOfType(contentType.Id, 0, int.MaxValue, out _, null, Ordering.By("Name")))
+                {
+                    if (!content.TemplateId.HasValue || !templateKeysById.TryGetValue(content.TemplateId.Value, out var templateKey))
+                    {
+                        continue;
+                    }
+
+                    var template = templates.FirstOrDefault(x => x.Udi == templateKey);
+                    if (template is null)
+                    {
+                        continue;
+                    }
+
+                    edges.Add(this.CreateEdge("Content Node", content.Name, content.ContentType.Alias, content.Key, "uses template", "Template", template.Name, template.Alias, template.Udi, $"{content.ContentType.Name} ({content.Id})"));
+                }
+            }
+
+            return edges
+                .GroupBy(x => $"{x.SourceType}|{x.SourceKey}|{x.Relation}|{x.TargetType}|{x.TargetKey}|{x.Context}")
+                .Select(x => x.First())
+                .OrderBy(x => x.SourceType)
+                .ThenBy(x => x.SourceName)
+                .ThenBy(x => x.Relation)
+                .ThenBy(x => x.TargetName);
+        }
+
+        public async Task<IEnumerable<ReferenceEdge>> GetUsedBy(string targetType, string targetKey)
+        {
+            return (await this.GetReferenceGraph())
+                .Where(x => x.TargetType.InvariantEquals(targetType) &&
+                    (x.TargetKey.InvariantEquals(targetKey) || x.TargetAlias.InvariantEquals(targetKey) || x.TargetName.InvariantEquals(targetKey)));
+        }
+
+        public async Task<IEnumerable<ReferenceEdge>> GetUses(string sourceType, string sourceKey)
+        {
+            return (await this.GetReferenceGraph())
+                .Where(x => x.SourceType.InvariantEquals(sourceType) &&
+                    (x.SourceKey.InvariantEquals(sourceKey) || x.SourceAlias.InvariantEquals(sourceKey) || x.SourceName.InvariantEquals(sourceKey)));
+        }
+
+        public async Task<IEnumerable<ConfigurationDriftFinding>> GetConfigurationDriftFindings()
+        {
+            var findings = new List<ConfigurationDriftFinding>();
+            var dataTypes = (await this.dataTypeService.GetAllAsync()).ToList();
+            var contentTypes = this.contentTypeService.GetAll().Cast<IContentTypeComposition>().ToList();
+            contentTypes.AddRange(this.mediaTypeService.GetAll());
+            contentTypes.AddRange(this.memberTypeService.GetAll());
+
+            this.AddDataTypeDriftFindings(findings, dataTypes);
+            this.AddPropertyAliasDriftFindings(findings, contentTypes, dataTypes.ToDictionary(x => x.Id));
+            this.AddContentTypeDriftFindings(findings, contentTypes, dataTypes.ToDictionary(x => x.Id));
+
+            return findings
+                .GroupBy(x => $"{x.Category}|{x.EntityType}|{x.EntityKey}|{x.Summary}")
+                .Select(x => x.First())
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Category)
+                .ThenBy(x => x.EntityName);
+        }
+
+        private void AddContentTypePropertyEdges(
+            ICollection<ReferenceEdge> edges,
+            string sourceType,
+            IContentTypeComposition contentType,
+            IReadOnlyDictionary<int, IDataType> dataTypesById,
+            IReadOnlyDictionary<Guid, IContentType> contentTypesByKey)
+        {
+            foreach (var propertyType in contentType.PropertyTypes ?? [])
+            {
+                this.AddPropertyDataTypeEdge(edges, sourceType, contentType, propertyType, dataTypesById, contentTypesByKey, false);
+            }
+
+            var nativePropertyIds = contentType.PropertyTypes?.Select(x => x.Id).ToHashSet() ?? [];
+            foreach (var propertyType in contentType.CompositionPropertyTypes?.Where(x => !nativePropertyIds.Contains(x.Id)) ?? [])
+            {
+                this.AddPropertyDataTypeEdge(edges, sourceType, contentType, propertyType, dataTypesById, contentTypesByKey, true);
+            }
+        }
+
+        private void AddPropertyDataTypeEdge(
+            ICollection<ReferenceEdge> edges,
+            string sourceType,
+            IContentTypeComposition contentType,
+            IPropertyType propertyType,
+            IReadOnlyDictionary<int, IDataType> dataTypesById,
+            IReadOnlyDictionary<Guid, IContentType> contentTypesByKey,
+            bool inherited)
+        {
+            if (!dataTypesById.TryGetValue(propertyType.DataTypeId, out var dataType))
+            {
+                return;
+            }
+
+            var context = $"{propertyType.Name} ({propertyType.Alias})" + (inherited ? " inherited" : string.Empty);
+            edges.Add(this.CreateEdge(sourceType, contentType.Name, contentType.Alias, contentType.Key, "uses data type", "Data Type", dataType.Name, dataType.EditorAlias, dataType.Key, context));
+            this.AddBlockConfigurationEdges(edges, dataType, dataTypesById, contentTypesByKey, context, [], []);
+        }
+
+        private void AddBlockConfigurationEdges(
+            ICollection<ReferenceEdge> edges,
+            IDataType dataType,
+            IReadOnlyDictionary<int, IDataType> dataTypesById,
+            IReadOnlyDictionary<Guid, IContentType> contentTypesByKey,
+            string context,
+            HashSet<int> visitedDataTypeIds,
+            HashSet<Guid> visitedContentTypeKeys)
+        {
+            if (!visitedDataTypeIds.Add(dataType.Id))
+            {
+                return;
+            }
+
+            foreach (var elementTypeKey in this.GetConfiguredBlockElementTypeKeys(dataType.ConfigurationObject))
+            {
+                if (!contentTypesByKey.TryGetValue(elementTypeKey, out var elementType))
+                {
+                    edges.Add(this.CreateEdge("Data Type", dataType.Name, dataType.EditorAlias, dataType.Key, "configures missing block type", "Element Type", "Missing element type", elementTypeKey.ToString(), elementTypeKey, context));
+                    continue;
+                }
+
+                edges.Add(this.CreateEdge("Data Type", dataType.Name, dataType.EditorAlias, dataType.Key, "configures block type", elementType.IsElement ? "Element Type" : "Document Type", elementType.Name, elementType.Alias, elementType.Key, context));
+
+                if (!visitedContentTypeKeys.Add(elementTypeKey))
+                {
+                    continue;
+                }
+
+                foreach (var propertyType in elementType.PropertyTypes.Concat(elementType.CompositionPropertyTypes))
+                {
+                    if (!dataTypesById.TryGetValue(propertyType.DataTypeId, out var nestedDataType))
+                    {
+                        continue;
+                    }
+
+                    var nestedContext = $"{elementType.Name}.{propertyType.Name} ({propertyType.Alias})";
+                    edges.Add(this.CreateEdge(elementType.IsElement ? "Element Type" : "Document Type", elementType.Name, elementType.Alias, elementType.Key, "uses nested data type", "Data Type", nestedDataType.Name, nestedDataType.EditorAlias, nestedDataType.Key, nestedContext));
+                    this.AddBlockConfigurationEdges(edges, nestedDataType, dataTypesById, contentTypesByKey, nestedContext, visitedDataTypeIds, visitedContentTypeKeys);
+                }
+            }
+        }
+
+        private ReferenceEdge CreateEdge(string sourceType, string sourceName, string sourceAlias, Guid sourceKey, string relation, string targetType, string targetName, string targetAlias, Guid targetKey, string context = null)
+        {
+            return new ReferenceEdge
+            {
+                SourceType = sourceType,
+                SourceName = sourceName,
+                SourceAlias = sourceAlias,
+                SourceKey = sourceKey.ToString(),
+                Relation = relation,
+                TargetType = targetType,
+                TargetName = targetName,
+                TargetAlias = targetAlias,
+                TargetKey = targetKey.ToString(),
+                Context = context
+            };
+        }
+
+        private Guid StableKey(string type, string value)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes($"{type}:{value}".ToLowerInvariant());
+            return new Guid(System.Security.Cryptography.MD5.HashData(bytes));
+        }
+
+        private void AddDataTypeDriftFindings(ICollection<ConfigurationDriftFinding> findings, IEnumerable<IDataType> dataTypes)
+        {
+            foreach (var group in dataTypes.Where(x => !string.IsNullOrWhiteSpace(x.EditorAlias)).GroupBy(x => x.EditorAlias).Where(x => x.Count() > 1))
+            {
+                foreach (var nameGroup in group.GroupBy(x => this.NameStem(x.Name)).Where(x => x.Count() > 1))
+                {
+                    var configs = nameGroup
+                        .Select(x => new { DataType = x, Config = this.NormalizeConfiguration(x.ConfigurationData), Database = x.DatabaseType.ToString() })
+                        .ToList();
+
+                    if (configs.Select(x => x.Config).Distinct().Count() <= 1 && configs.Select(x => x.Database).Distinct().Count() <= 1)
+                    {
+                        continue;
+                    }
+
+                    foreach (var item in configs)
+                    {
+                        findings.Add(this.CreateDriftFinding(
+                            "Medium",
+                            "Data Type Configuration",
+                            "Data Type",
+                            item.DataType.Name,
+                            item.DataType.EditorAlias,
+                            item.DataType.Key.ToString(),
+                            configs.Where(x => x.DataType.Key != item.DataType.Key).Select(x => x.DataType.Name),
+                            $"Similar {item.DataType.EditorAlias} data types use different configuration.",
+                            this.DiffDataTypeFields(item, configs),
+                            "Review whether these data types should share the same editor settings, validation, storage and block configuration."));
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<string> DiffDataTypeFields(dynamic item, IEnumerable<dynamic> group)
+        {
+            if (group.Select(x => (string)x.Config).Distinct().Count() > 1)
+            {
+                yield return "Configuration";
+            }
+
+            if (group.Select(x => (string)x.Database).Distinct().Count() > 1)
+            {
+                yield return "Database type";
+            }
+        }
+
+        private void AddPropertyAliasDriftFindings(ICollection<ConfigurationDriftFinding> findings, IEnumerable<IContentTypeComposition> contentTypes, IReadOnlyDictionary<int, IDataType> dataTypesById)
+        {
+            var rows = contentTypes
+                .SelectMany(ct => ct.PropertyTypes.Concat(ct.CompositionPropertyTypes).Select(p => new { ContentType = ct, Property = p }))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Property.Alias))
+                .ToList();
+
+            foreach (var group in rows.GroupBy(x => x.Property.Alias).Where(x => x.Count() > 1))
+            {
+                var signatures = group.Select(x => this.PropertySignature(x.Property, dataTypesById)).Distinct().ToList();
+                if (signatures.Count <= 1)
+                {
+                    continue;
+                }
+
+                foreach (var row in group)
+                {
+                    findings.Add(this.CreateDriftFinding(
+                        "High",
+                        "Property Alias Drift",
+                        this.GetCompositionTypeName(row.ContentType),
+                        row.ContentType.Name,
+                        row.ContentType.Alias,
+                        row.ContentType.Key.ToString(),
+                        group.Where(x => x.ContentType.Key != row.ContentType.Key).Select(x => $"{x.ContentType.Name}.{x.Property.Alias}"),
+                        $"Property alias '{row.Property.Alias}' is configured differently across content models.",
+                        this.DiffPropertyFields(row.Property, group.Select(x => x.Property), dataTypesById),
+                        "Align the property configuration or rename aliases that intentionally mean different things."));
+                }
+            }
+        }
+
+        private void AddContentTypeDriftFindings(ICollection<ConfigurationDriftFinding> findings, IEnumerable<IContentTypeComposition> contentTypes, IReadOnlyDictionary<int, IDataType> dataTypesById)
+        {
+            var comparable = contentTypes.Where(x => x.PropertyTypes.Any()).ToList();
+            foreach (var group in comparable.GroupBy(x => this.NameStem(x.Name)).Where(x => x.Count() > 1))
+            {
+                var propertySets = group
+                    .Select(x => new
+                    {
+                        ContentType = x,
+                        Signature = string.Join("|", x.PropertyTypes.Concat(x.CompositionPropertyTypes).Select(p => this.PropertySignature(p, dataTypesById)).OrderBy(x => x))
+                    })
+                    .ToList();
+
+                if (propertySets.Select(x => x.Signature).Distinct().Count() <= 1)
+                {
+                    continue;
+                }
+
+                foreach (var item in propertySets)
+                {
+                    findings.Add(this.CreateDriftFinding(
+                        "Low",
+                        "Content Type Drift",
+                        this.GetCompositionTypeName(item.ContentType),
+                        item.ContentType.Name,
+                        item.ContentType.Alias,
+                        item.ContentType.Key.ToString(),
+                        propertySets.Where(x => x.ContentType.Key != item.ContentType.Key).Select(x => x.ContentType.Name),
+                        "Similarly named content models have different property sets or property configuration.",
+                        ["Properties", "Compositions"],
+                        "Confirm the schema drift is intentional or align shared properties and compositions."));
+                }
+            }
+        }
+
+        private string PropertySignature(IPropertyType propertyType, IReadOnlyDictionary<int, IDataType> dataTypesById)
+        {
+            dataTypesById.TryGetValue(propertyType.DataTypeId, out var dataType);
+            return string.Join(":", propertyType.Alias, propertyType.Name, propertyType.DataTypeId, dataType?.EditorAlias, propertyType.Mandatory, propertyType.ValidationRegExp, propertyType.Variations, propertyType.ValueStorageType);
+        }
+
+        private IEnumerable<string> DiffPropertyFields(IPropertyType propertyType, IEnumerable<IPropertyType> properties, IReadOnlyDictionary<int, IDataType> dataTypesById)
+        {
+            if (properties.Select(x => x.DataTypeId).Distinct().Count() > 1)
+            {
+                yield return "Data type";
+            }
+
+            if (properties.Select(x => dataTypesById.TryGetValue(x.DataTypeId, out var dataType) ? dataType.EditorAlias : string.Empty).Distinct().Count() > 1)
+            {
+                yield return "Editor";
+            }
+
+            if (properties.Select(x => x.Mandatory).Distinct().Count() > 1)
+            {
+                yield return "Mandatory";
+            }
+
+            if (properties.Select(x => x.ValidationRegExp ?? string.Empty).Distinct().Count() > 1)
+            {
+                yield return "Validation";
+            }
+
+            if (properties.Select(x => x.Variations).Distinct().Count() > 1)
+            {
+                yield return "Variations";
+            }
+
+            if (properties.Select(x => x.ValueStorageType).Distinct().Count() > 1)
+            {
+                yield return "Storage";
+            }
+        }
+
+        private ConfigurationDriftFinding CreateDriftFinding(string severity, string category, string entityType, string entityName, string entityAlias, string entityKey, IEnumerable<string> comparedWith, string summary, IEnumerable<string> differingFields, string recommendation)
+        {
+            return new ConfigurationDriftFinding
+            {
+                Severity = severity,
+                Score = severity switch
+                {
+                    "High" => 80,
+                    "Medium" => 50,
+                    "Low" => 20,
+                    _ => 10
+                },
+                Category = category,
+                EntityType = entityType,
+                EntityName = entityName,
+                EntityAlias = entityAlias,
+                EntityKey = entityKey,
+                ComparedWith = comparedWith.Distinct().OrderBy(x => x).ToList(),
+                Summary = summary,
+                DifferingFields = differingFields.Distinct().OrderBy(x => x).ToList(),
+                Recommendation = recommendation
+            };
+        }
+
+        private string NormalizeConfiguration(object value)
+        {
+            return value is null
+                ? string.Empty
+                : JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = false });
+        }
+
+        private string NameStem(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var chars = value
+                .ToLowerInvariant()
+                .Where(char.IsLetterOrDigit)
+                .ToArray();
+
+            return new string(chars).TrimEnd("copy".ToCharArray());
+        }
+
+        private string GetCompositionTypeName(IContentTypeComposition contentType)
+        {
+            return contentType switch
+            {
+                IMediaType => "Media Type",
+                IMemberType => "Member Type",
+                IContentType ct when ct.IsElement => "Element Type",
+                IContentType => "Document Type",
+                _ => "Content Type"
+            };
+        }
+
+        private void CollectNestedDataTypeIdsFromDataType(
+            IDataType dataType,
+            IReadOnlyDictionary<int, IDataType> dataTypesById,
+            IReadOnlyDictionary<Guid, IContentType> contentTypesByKey,
+            HashSet<int> nestedDataTypeIds,
+            HashSet<int> visitedDataTypeIds,
+            HashSet<Guid> visitedContentTypeKeys)
+        {
+            if (!visitedDataTypeIds.Add(dataType.Id))
+            {
+                return;
+            }
+
+            foreach (var elementTypeKey in this.GetConfiguredBlockElementTypeKeys(dataType.ConfigurationObject))
+            {
+                if (!contentTypesByKey.TryGetValue(elementTypeKey, out var elementType) || !visitedContentTypeKeys.Add(elementTypeKey))
+                {
+                    continue;
+                }
+
+                foreach (var propertyType in elementType.PropertyTypes.Concat(elementType.CompositionPropertyTypes))
+                {
+                    nestedDataTypeIds.Add(propertyType.DataTypeId);
+
+                    if (dataTypesById.TryGetValue(propertyType.DataTypeId, out var nestedDataType))
+                    {
+                        this.CollectNestedDataTypeIdsFromDataType(nestedDataType, dataTypesById, contentTypesByKey, nestedDataTypeIds, visitedDataTypeIds, visitedContentTypeKeys);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<Guid> GetConfiguredBlockElementTypeKeys(object configuration)
+        {
+            return configuration switch
+            {
+                BlockListConfiguration blockList => blockList.Blocks?.SelectMany(x => this.GetElementTypeKeys(x.ContentElementTypeKey, x.SettingsElementTypeKey)) ?? [],
+                BlockGridConfiguration blockGrid => blockGrid.Blocks?.SelectMany(x => this.GetElementTypeKeys(x.ContentElementTypeKey, x.SettingsElementTypeKey)) ?? [],
+                RichTextConfiguration richText => richText.Blocks?.SelectMany(x => this.GetElementTypeKeys(x.ContentElementTypeKey, x.SettingsElementTypeKey)) ?? [],
+                SingleBlockConfiguration singleBlock => singleBlock.Blocks?.SelectMany(x => this.GetElementTypeKeys(x.ContentElementTypeKey, x.SettingsElementTypeKey)) ?? [],
+                _ => []
+            };
+        }
+
+        private IEnumerable<Guid> GetElementTypeKeys(Guid? contentElementTypeKey, Guid? settingsElementTypeKey)
+        {
+            if (contentElementTypeKey.HasValue)
+            {
+                yield return contentElementTypeKey.Value;
+            }
+
+            if (settingsElementTypeKey.HasValue)
+            {
+                yield return settingsElementTypeKey.Value;
+            }
+        }
+
         /// <summary>
         /// Gets all templates
         /// </summary>
-        public IEnumerable<TemplateModel> GetTemplates()
+        public async Task<IEnumerable<TemplateModel>> GetTemplates()
         {
             var templateModels = new List<TemplateModel>();
-            var templates = this.fileService.GetTemplates();
+            var templates = await this.templateService.GetAllAsync();
 
             foreach (var template in templates)
             {
@@ -217,33 +724,9 @@ namespace Diplo.GodMode.Services
         /// Attemps to set the correct master template for templates that have a layout but this isn't set in the DB
         /// </summary>
         /// <returns>A count of those that are fixed</returns>
-        public int FixTemplateMasters()
+        public Task<int> FixTemplateMasters()
         {
-            int fixedCount = 0;
-
-            var templates = this.fileService.GetTemplates().ToList();
-
-            foreach (var template in templates)
-            {
-                string layout = LayoutHelper.GetTemplateInfo(template);
-
-                if (!string.IsNullOrEmpty(layout) && layout != "null")
-                {
-                    if (!layout.InvariantEquals(template.MasterTemplateAlias))
-                    {
-                        var masterTemplate = templates.FirstOrDefault(t => t.Alias.InvariantEquals(layout));
-
-                        if (masterTemplate != null)
-                        {
-                            template.SetMasterTemplate(masterTemplate);
-                            this.fileService.SaveTemplate(template);
-                            fixedCount++;
-                        }
-                    }
-                }
-            }
-
-            return fixedCount;
+            return Task.FromResult(0);
         }
 
         /// <summary>
@@ -313,9 +796,9 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all tags for all cultures and maps them to their related content
         /// </summary>
-        public IEnumerable<TagMapping> GetTagMapping()
+        public async Task<IEnumerable<TagMapping>> GetTagMapping()
         {
-            var cultures = this.localizationService.GetAllLanguages().Select(x => x.IsoCode).ToList(); // get all cultures
+            var cultures = (await this.languageService.GetAllAsync()).Select(x => x.IsoCode).ToList(); // get all cultures
 
             cultures.Add(null); // plus invariant
 
@@ -408,9 +891,10 @@ namespace Diplo.GodMode.Services
         /// </summary>
         /// <param name="id">The ID of the datatype being copied</param>
         /// <returns>A response</returns>
-        public ServerResponse CopyDataType(int id)
+        public async Task<ServerResponse> CopyDataType(int id)
         {
-            var dt = this.dataTypeService.GetDataType(id);
+            var dataTypeKey = this.idKeyMap.GetKeyForId(id, UmbracoObjectTypes.DataType);
+            var dt = dataTypeKey.Success ? await this.dataTypeService.GetAsync(dataTypeKey.Result) : null;
 
             if (dt == null)
             {
@@ -421,14 +905,19 @@ namespace Diplo.GodMode.Services
             {
                 var copy = new DataType(dt.Editor, this.serializer, dt.ParentId)
                 {
-                    Configuration = dt.Configuration,
-                    CreateDate = DateTime.Now,
-                    UpdateDate = DateTime.Now,
+                    ConfigurationData = dt.ConfigurationData,
+                    CreateDate = DateTime.UtcNow,
+                    UpdateDate = DateTime.UtcNow,
                     DatabaseType = dt.DatabaseType,
                     Name = dt.Name + " (Copy)"
                 };
 
-                this.dataTypeService.Save(copy);
+                var result = await this.dataTypeService.CreateAsync(copy, Constants.Security.SuperUserKey);
+
+                if (result.Success is false)
+                {
+                    return new ServerResponse($"Could not create '{copy.Name}'", ServerResponseType.Error);
+                }
 
                 return new ServerResponse($"Created '{copy.Name}' successfully", ServerResponseType.Success);
             }

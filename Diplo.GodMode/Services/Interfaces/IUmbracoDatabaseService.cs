@@ -21,7 +21,18 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<MemberGroupModel> GetMemberGroups();
 
-        Page<MemberModel> GetMembers(long page, long itemsPerPage, int? groupId = null, string search = null, string orderBy = "MN.text");
+        IEnumerable<MemberGroupModel> GetMemberTypes();
+
+        Page<MemberModel> GetMembers(
+            long page,
+            long itemsPerPage,
+            int? groupId = null,
+            int? memberTypeId = null,
+            bool? isApproved = null,
+            bool? isLockedOut = null,
+            bool? usesTwoFactor = null,
+            string search = null,
+            string orderBy = "MN.text");
 
         IEnumerable<string> GetTemplateUrlsToPing();
 
@@ -34,5 +45,13 @@ namespace Diplo.GodMode.Services.Interfaces
         bool DeleteTag(int id);
 
         List<Tag> GetOrphanedTags();
+
+        long GetOrphanedMediaCount();
+
+        long GetLogRowCount();
+
+        long GetContentVersionCount();
+
+        long GetContentWithExcessiveVersionsCount(int versionThreshold);
     }
 }

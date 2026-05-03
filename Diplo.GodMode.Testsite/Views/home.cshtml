@@ -1,72 +1,23 @@
-﻿@using Diplo.GodMode
-@using Microsoft.Extensions.Options
-@using Umbraco.Extensions
-@using Umbraco.Cms.Web.Common.PublishedModels;
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Home>
-@inject IOptions<GodModeConfig> godeModeConfig
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.Home>
+
+@using Clean.Core.Models.ViewModels
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels
+
 @{
     Layout = "master.cshtml";
-    var backgroundImage = Model.HeroBackgroundImage != null ? Model.HeroBackgroundImage.Url() : String.Empty;
 }
 
-<section class="section section--full-height background-image-full overlay overlay--dark section--content-center section--thick-border"
-         style="background-image: url('@backgroundImage')">
-    <div class="section__hero-content">
-        <h1>Diplo God Mode (Test Starter Kit)</h1>
-        <p class="section__description">@Model.HeroDescription</p>
+@await Html.PartialAsync("~/Views/Partials/pageHeader.cshtml", new PageHeaderViewModel(Model.Name, Model.Title, Model.Subtitle, Model.MainImage))
 
-        <a class="button button--border--solid" href="/Umbraco/#/settings/godModeTree/intro">
-            Access God Mode
-        </a>
-
-        <p>
-            <strong>Username: </strong> <code>test@example.com</code>
-        </p>
-        
-        <p>
-            <strong>Password: </strong> <code>DiploGodMode!</code>
-        </p>
-
-        <partial name="Testies" />
-
-        <h3>God Mode Config</h3>
-
-        <p><strong>Groups To Hide</strong>: <code>@string.Join(", ", godeModeConfig.Value.Diagnostics.GroupsToHide)</code></p>
-        <p><strong>Sections To Hide</strong>: <code>@string.Join(", ", godeModeConfig.Value.Diagnostics.SectionsToHide)</code></p>
-        <p><strong>Keys To Redact</strong>: <code>@string.Join(", ", godeModeConfig.Value.Diagnostics.KeysToRedact)</code></p>
-
-    </div>
-</section>
-
-<section class="section section">
-
-    @await Component.InvokeAsync("BananasList", new { maxItems = 3 })
-
-    @Html.GetGridHtml(Model, "bodyText", "bootstrap3-fluid")
-</section>
-
-<section class="section section">
-
-    @await Component.InvokeAsync("RootContentList", new { maxItems = 3 })
-
-</section>
-
-<section class="section section--themed">
-
-    <div class="container">
-        <div class="row">
-
-            <div class="ta-center">
-                <h2>@Model.FooterHeader</h2>
-                <p class="section__description mw-640 ma-h-auto">@Model.FooterDescription</p>
-
-                <a class="button button--border--light_solid" href="@Model.FooterCtalink.Url()">
-                    @Model.FooterCtacaption
-                </a>
-
+@if (Model.ContentRows != null)
+{
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-10 mx-auto">
+                    @Html.GetBlockListHtml(Model.ContentRows)
+                </div>
             </div>
-
         </div>
-    </div>
-
-</section>
+    </article>
+}

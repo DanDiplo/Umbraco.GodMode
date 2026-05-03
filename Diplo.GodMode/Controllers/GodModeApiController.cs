@@ -1,458 +1,706 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
+using Asp.Versioning;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NPoco;
+using Umbraco.Cms.Api.Management.Controllers;
+using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
-using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Routing;
-using Umbraco.Cms.Web.BackOffice.Controllers;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Cms.Web.Website.Controllers;
 using Umbraco.Extensions;
 
-namespace Diplo.GodMode.Controllers
+namespace Diplo.GodMode.Controllers;
+
+/// <summary>
+/// Management API for GodMode. Replaces the v13 UmbracoAuthorizedJsonController.
+/// All endpoints sit under /umbraco/management/api/v1/godmode/...
+/// </summary>
+[ApiVersion("1.0")]
+[VersionedApiBackOfficeRoute("godmode")]
+[ApiExplorerSettings(GroupName = "GodMode")]
+[Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
+public class GodModeApiController : ManagementApiControllerBase
 {
-    /// <summary>
-    /// API Controller for returning JSON to the GodMode views in /App_Plugins/
-    /// </summary>
-    [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
-    public class GodModeApiController : UmbracoAuthorizedJsonController
+    private readonly IUmbracoDataService dataService;
+    private readonly IUmbracoDatabaseService dataBaseService;
+    private readonly IDiagnosticService diagnosticService;
+    private readonly IUtilitiesService utilitiesService;
+    private readonly IHostApplicationLifetime applicationLifetime;
+    private readonly NuCacheSettings nuCacheSettings;
+    private readonly RegisteredServiceCollection registeredServiceCollection;
+    private readonly IOptions<GodModeConfig> godModeConfig;
+
+    public GodModeApiController(
+        IUmbracoDataService dataService,
+        IUmbracoDatabaseService dataBaseService,
+        IDiagnosticService diagnosticService,
+        IUtilitiesService utilitiesService,
+        IHostApplicationLifetime applicationLifetime,
+        IOptions<NuCacheSettings> nuCacheSettings,
+        RegisteredServiceCollection registeredServiceCollection,
+        IOptions<GodModeConfig> godModeConfig)
     {
-        private readonly IUmbracoDataService dataService;
-        private readonly IUmbracoDatabaseService dataBaseService;
-        private readonly IDiagnosticService diagnosticService;
-        private readonly IUtilitiesService utilitiesService;
-        private readonly IHostApplicationLifetime applicationLifetime;
-        private readonly NuCacheSettings nuCacheSettings;
-        private readonly RegisteredServiceCollection registeredServiceCollection;
-        private readonly IOptions<GodModeConfig> godModeConfig;
-
-        public GodModeApiController(IUmbracoDataService dataService, IUmbracoDatabaseService dataBaseService, IDiagnosticService diagnosticService, IUtilitiesService utilitiesService, IHostApplicationLifetime applicationLifetime, IOptions<NuCacheSettings> nuCacheSettings, RegisteredServiceCollection registeredServiceCollection, IOptions<GodModeConfig> godModeConfig)
-        {
-            this.dataService = dataService;
-            this.dataBaseService = dataBaseService;
-            this.diagnosticService = diagnosticService;
-            this.utilitiesService = utilitiesService;
-            this.applicationLifetime = applicationLifetime;
-            this.nuCacheSettings = nuCacheSettings.Value;
-            this.registeredServiceCollection = registeredServiceCollection;
-            this.godModeConfig = godModeConfig;
-        }
-
-        /// <summary>
-        /// Gets a mapping of content types (doc types)
-        /// </summary>
-        public IEnumerable<ContentTypeMap> GetContentTypeMap()
-        {
-            return dataService.GetContentTypeMap();
-        }
-
-        /// <summary>
-        /// Gets all property groups
-        /// </summary>
-        public IEnumerable<string> GetPropertyGroups()
-        {
-            return dataService.GetPropertyGroups();
-        }
-
-        /// <summary>
-        /// Gets all compositions
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ContentTypeData> GetCompositions()
-        {
-            return dataService.GetCompositions();
-        }
-
-        /// <summary>
-        /// Gets all data types
-        /// </summary>
-        public IEnumerable<DataTypeMap> GetDataTypes()
-        {
-            return dataService.GetDataTypes();
-        }
-
-        /// <summary>
-        /// Gets all property editors
-        /// </summary>
-        public IEnumerable<DataTypeMap> GetPropertyEditors()
-        {
-            return dataService.GetPropertyEditors();
-        }
-
-        /// <summary>
-        /// Gets all data types, including the status of whether they are being used
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<DataTypeMap> GetDataTypesStatus()
-        {
-            return dataService.GetDataTypesStatus();
-        }
-
-        /// <summary>
-        /// Gets all templates
-        /// </summary>
-        public IEnumerable<TemplateModel> GetTemplates()
-        {
-            return dataService.GetTemplates();
-        }
-
-        /// <summary>
-        /// Gets all media paged
-        /// </summary>
-        public Page<MediaMap> GetMedia(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC")
-        {
-            return dataService.GetMediaPaged(page, pageSize, name, id, mediaTypeId, orderBy, orderByDir);
-        }
-
-        public IEnumerable<ItemBase> GetMediaTypes()
-        {
-            return dataService.GetMediaTypes();
-        }
-
-        public IEnumerable<Lang> GetLanguages()
-        {
-            return dataBaseService.GetLanguages();
-        }
-
-        /// <summary>
-        /// Gets all content paged
-        /// </summary>
-        /// <param name="page">The current page</param>
-        /// <param name="pageSize">The items per page</param>
-        /// <param name="criteria"></param>
-        public Page<ContentItem> GetContentPaged(long page = 1, long pageSize = 50, string name = null, string alias = null, int? creatorId = null, string id = null, int? level = null, bool? trashed = null, int? updaterId = null, int? languageId = null, string orderBy = "N.id")
-        {
-            var criteria = new ContentCriteria
-            {
-                Name = name,
-                Alias = alias,
-                CreatorId = creatorId,
-                Id = id,
-                Level = level,
-                Trashed = trashed,
-                UpdaterId = updaterId,
-                LanguageId = languageId
-            };
-
-            return dataBaseService.GetContent(page, pageSize, criteria, orderBy);
-        }
-
-        /// <summary>
-        /// Gets all content-type aliases
-        /// </summary>
-        public IEnumerable<string> GetContentTypeAliases()
-        {
-            return dataBaseService.GetContentTypeAliases();
-        }
-
-        public IEnumerable<string> GetStandardContentTypeAliases()
-        {
-            return dataBaseService.GetContentTypeAliases(isElement: false);
-        }
-
-        /// <summary>
-        /// Gets all Surface Controllers
-        /// </summary>
-        public IEnumerable<TypeMap> GetSurfaceControllers()
-        {
-            var data = ReflectionHelper.GetTypeMapFrom(typeof(SurfaceController));
-            return data;
-        }
-
-        /// <summary>
-        /// Gets all API Controllers
-        /// </summary>
-        public IEnumerable<TypeMap> GetApiControllers()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(UmbracoApiControllerBase));
-        }
-
-        /// <summary>
-        /// Gets all Render MVC Controllers
-        /// </summary>
-        public IEnumerable<TypeMap> GetRenderMvcControllers()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(IRenderController));
-        }
-
-        /// <summary>
-        /// Gets all PublishedContent Models
-        /// </summary>
-        public IEnumerable<TypeMap> GetPublishedContentModels()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(PublishedContentModel));
-        }
-
-        /// <summary>
-        /// Gets all property value converters
-        /// </summary>
-        public IEnumerable<TypeMap> GetPropertyValueConverters()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(IPropertyValueConverter));
-        }
-
-        /// <summary>
-        /// Gets all Composers
-        /// </summary>
-        public IEnumerable<TypeMap> GetComposers()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(IComposer));
-        }
-
-        /// <summary>
-        /// Gets all View Components
-        /// </summary>
-        public IEnumerable<TypeMap> GetViewComponents()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(ViewComponent));
-        }
-
-        /// <summary>
-        /// Gets all Content Finders
-        /// </summary>
-        public IEnumerable<TypeMap> GetContentFinders()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(IContentFinder));
-        }
-
-        /// <summary>
-        /// Gets all URL Providers
-        /// </summary>
-        public IEnumerable<TypeMap> GetUrlProviders()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(IUrlProvider));
-        }
-
-        /// <summary>
-        /// Gets all Tag Helpers
-        /// </summary>
-        public IEnumerable<TypeMap> GetTagHelpers()
-        {
-            return ReflectionHelper.GetTypeMapFrom(typeof(ITagHelper)).Where(x => !x.Name.StartsWith("__Generated"));
-        }
-
-        /// <summary>
-        /// Gets registered services
-        /// </summary>
-        public IEnumerable<RegisteredService> GetRegisteredServices()
-        {
-            return this.registeredServiceCollection.Services.Value;
-        }
-
-        /// <summary>
-        /// Gets a type mapping of types assignable from a type passed as a string
-        /// </summary>
-        public IEnumerable<TypeMap> GetTypesAssignableFrom(string baseType)
-        {
-            return ReflectionHelper.GetTypeMapFrom(Type.GetType(baseType));
-        }
-
-        /// <summary>
-        /// Gets diagnostics and settings info
-        /// </summary>
-        public IEnumerable<DiagnosticGroup> GetEnvironmentDiagnostics()
-        {
-            return diagnosticService.GetDiagnosticGroups();
-        }
-
-        /// <summary>
-        /// Get all assemblies that seem to be Umbraco assemblies
-        /// </summary>
-        public IEnumerable<NameValue> GetUmbracoAssemblies()
-        {
-            return ReflectionHelper.GetUmbracoAssemblies().Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
-        }
-
-        /// <summary>
-        /// Get all assemblies that aren't Microsoft ones
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<NameValue> GetNonMsAssemblies()
-        {
-            return ReflectionHelper.GetAssemblies().Where(a => !a.IsDynamic && !a.FullName.StartsWith("Microsoft.") && !a.FullName.StartsWith("System")).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
-        }
-
-        /// <summary>
-        /// Get all assemblies
-        /// </summary>
-        public IEnumerable<NameValue> GetAssemblies()
-        {
-            return ReflectionHelper.GetAssemblies(a => !a.IsDynamic).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
-        }
-
-        /// <summary>
-        /// Get all assemblies that contain at least one interface
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<NameValue> GetAssembliesWithInterfaces()
-        {
-            return ReflectionHelper.GetAssemblies(a => !a.IsDynamic && a.GetLoadableTypes().Any(t => t.IsInterface && !t.IsGenericTypeDefinition && t.IsPublic)).Select(a => new NameValue(a.GetName().Name, a.FullName)).OrderBy(x => x.Name);
-        }
-
-        /// <summary>
-        /// Get all interfaces from a named assembly
-        /// </summary>
-        /// <param name="assembly">The qualified assmebly name</param>
-        public IEnumerable<TypeMap> GetInterfacesFrom(string assembly)
-        {
-            return ReflectionHelper.GetNonGenericInterfaces(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>();
-        }
-
-        /// <summary>
-        /// Gets all types from a name assembly
-        /// </summary>
-        /// <param name="assembly">The qualified assmebly name</param>
-        public IEnumerable<TypeMap> GetTypesFrom(string assembly)
-        {
-            return ReflectionHelper.GetNonGenericTypes(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>();
-        }
-
-        /// <summary>
-        /// Gets the URL of a single page for each unique template on the site
-        /// </summary>
-        /// <returns>A list of URLs</returns>
-        public IEnumerable<string> GetTemplateUrlsToPing()
-        {
-            return dataBaseService.GetTemplateUrlsToPing();
-        }
-
-        /// <summary>
-        /// Gets all site URLs for a given culture
-        /// </summary>
-        /// <returns>A list of URLs</returns>
-        public IEnumerable<string> GetUrlsToPing(string culture)
-        {
-            return utilitiesService.GetAllUrls(culture);
-        }
-
-        /// <summary>
-        /// Gets the GodMode configuration
-        /// </summary>
-        /// <returns></returns>
-        public GodModeConfig GetConfig()
-        {
-            return godModeConfig.Value;
-        }
-
-        /// <summary>
-        /// Attemps to fix template masters
-        /// </summary>
-        /// <returns>A count</returns>
-        [HttpPost]
-        public int FixTemplateMasters()
-        {
-            return dataService.FixTemplateMasters();
-        }
-
-        /// <summary>
-        /// Gets a list of content types and a count of their usage
-        /// </summary>
-        /// <param name="id">Optional Id of the content type to filter by</param>
-        /// <param name="orderBy">Optional order by parameter</param>
-        /// <returns>A list of content usage</returns>
-        public IEnumerable<UsageModel> GetContentUsageData(int? id = null, string orderBy = null)
-        {
-            return dataBaseService.GetContentUsageData(id, orderBy);
-        }
-
-        /// <summary>
-        /// Gets all tags and the content tagged by the tag
-        /// </summary>
-        /// <returns>A dictionary of tagliciousness</returns>
-        public IEnumerable<TagMapping> GetTagMapping()
-        {
-            return dataService.GetTagMapping();
-        }
-
-        /// <summary>
-        /// Clears the internal Umbraco cache's
-        /// </summary>
-        /// <param name="cache">The cache name to clear</param>
-        [HttpPost]
-        public ServerResponse ClearUmbracoCache(string cache)
-        {
-            return utilitiesService.ClearUmbracoCacheFor(cache);
-        }
-
-        /// <summary>
-        /// Clears the Media Cache
-        /// </summary>
-        [HttpPost]
-        public async Task<ServerResponse> PurgeMediaCache()
-        {
-            return await utilitiesService.ClearMediaFileCacheAsync();
-        }
-
-        /// <summary>
-        /// Restarts the application
-        /// </summary>
-        [HttpPost]
-        public ServerResponse RestartAppPool()
-        {
-            try
-            {
-                applicationLifetime?.StopApplication();
-
-                return new ServerResponse("Restarting the application - hold tight...", ServerResponseType.Success);
-            }
-            catch (Exception ex)
-            {
-                return new ServerResponse("Error restarting the application: " + ex.Message, ServerResponseType.Error);
-            }
-        }
-
-        public Page<MemberModel> GetMembersPaged(long page = 1, long pageSize = 50, int? groupId = null, string search = null, string orderBy = "MN.text")
-        {
-            return this.dataBaseService.GetMembers(page, pageSize, groupId, search, orderBy);
-        }
-
-        public IEnumerable<MemberGroupModel> GetMemberGroups()
-        {
-            return this.dataBaseService.GetMemberGroups();
-        }
-
-        public NuCacheItem GetNuCacheItem(int id)
-        {
-            return this.dataBaseService.GetNuCacheItem(id);
-        }
-
-        public string GetNuCacheType()
-        {
-            return this.nuCacheSettings.NuCacheSerializerType.ToString();
-        }
-
-        [HttpPost]
-        public bool DeleteTag(int id)
-        {
-            return this.dataBaseService.DeleteTag(id);
-        }
-
-        public List<Models.Tag> GetOrphanedTags()
-        {
-            return this.dataBaseService.GetOrphanedTags();
-        }
-
-        [HttpPost]
-        public ServerResponse CopyDataType(int id)
-        {
-            return this.dataService.CopyDataType(id);
-        }
-
-
+        this.dataService = dataService;
+        this.dataBaseService = dataBaseService;
+        this.diagnosticService = diagnosticService;
+        this.utilitiesService = utilitiesService;
+        this.applicationLifetime = applicationLifetime;
+        this.nuCacheSettings = nuCacheSettings.Value;
+        this.registeredServiceCollection = registeredServiceCollection;
+        this.godModeConfig = godModeConfig;
     }
+
+    // ─── Doc / content / data types ─────────────────────────────────
+
+    [HttpGet("content-type-map")]
+    [ProducesResponseType<IEnumerable<ContentTypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<ContentTypeMap>> GetContentTypeMap()
+        => Ok(dataService.GetContentTypeMap());
+
+    [HttpGet("property-groups")]
+    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetPropertyGroups()
+        => Ok(dataService.GetPropertyGroups());
+
+    [HttpGet("compositions")]
+    [ProducesResponseType<IEnumerable<ContentTypeData>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<ContentTypeData>> GetCompositions()
+        => Ok(dataService.GetCompositions());
+
+    [HttpGet("data-types")]
+    [ProducesResponseType<IEnumerable<DataTypeMap>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<DataTypeMap>>> GetDataTypes()
+        => Ok(await dataService.GetDataTypes());
+
+    [HttpGet("property-editors")]
+    [ProducesResponseType<IEnumerable<DataTypeMap>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<DataTypeMap>>> GetPropertyEditors()
+        => Ok(await dataService.GetPropertyEditors());
+
+    [HttpGet("data-types-status")]
+    [ProducesResponseType<IEnumerable<DataTypeMap>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<DataTypeMap>>> GetDataTypesStatus()
+        => Ok(await dataService.GetDataTypesStatus());
+
+    [HttpGet("reference-graph")]
+    [ProducesResponseType<IEnumerable<ReferenceEdge>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ReferenceEdge>>> GetReferenceGraph()
+        => Ok(await dataService.GetReferenceGraph());
+
+    [HttpGet("references/used-by")]
+    [ProducesResponseType<IEnumerable<ReferenceEdge>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ReferenceEdge>>> GetUsedBy([FromQuery] string targetType, [FromQuery] string targetKey)
+        => Ok(await dataService.GetUsedBy(targetType, targetKey));
+
+    [HttpGet("references/uses")]
+    [ProducesResponseType<IEnumerable<ReferenceEdge>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ReferenceEdge>>> GetUses([FromQuery] string sourceType, [FromQuery] string sourceKey)
+        => Ok(await dataService.GetUses(sourceType, sourceKey));
+
+    [HttpGet("configuration-drift-findings")]
+    [ProducesResponseType<IEnumerable<ConfigurationDriftFinding>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ConfigurationDriftFinding>>> GetConfigurationDriftFindings()
+        => Ok(await dataService.GetConfigurationDriftFindings());
+
+    [HttpGet("health-risk-findings")]
+    [ProducesResponseType<IEnumerable<HealthRiskFinding>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<HealthRiskFinding>>> GetHealthRiskFindings()
+        => Ok(await this.BuildHealthRiskFindings());
+
+    [HttpGet("templates")]
+    [ProducesResponseType<IEnumerable<TemplateModel>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TemplateModel>>> GetTemplates()
+        => Ok(await dataService.GetTemplates());
+
+    // ─── Content / media / members ───────────────────────────────────
+
+    [HttpGet("media")]
+    [ProducesResponseType<Page<MediaMap>>(StatusCodes.Status200OK)]
+    public ActionResult<Page<MediaMap>> GetMedia(
+        long page = 1,
+        int pageSize = 3,
+        string? name = null,
+        int? id = null,
+        int? mediaTypeId = null,
+        string orderBy = "Id",
+        string orderByDir = "ASC")
+        => Ok(dataService.GetMediaPaged(page, pageSize, name, id, mediaTypeId, orderBy, orderByDir));
+
+    [HttpGet("media-types")]
+    [ProducesResponseType<IEnumerable<ItemBase>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<ItemBase>> GetMediaTypes()
+        => Ok(dataService.GetMediaTypes());
+
+    [HttpGet("languages")]
+    [ProducesResponseType<IEnumerable<Lang>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<Lang>> GetLanguages()
+        => Ok(dataBaseService.GetLanguages());
+
+    [HttpGet("content")]
+    [ProducesResponseType<Page<ContentItem>>(StatusCodes.Status200OK)]
+    public ActionResult<Page<ContentItem>> GetContentPaged(
+        long page = 1,
+        long pageSize = 50,
+        string? name = null,
+        string? alias = null,
+        int? creatorId = null,
+        string? id = null,
+        int? level = null,
+        bool? trashed = null,
+        int? updaterId = null,
+        int? languageId = null,
+        int? missingLanguageId = null,
+        int? publishedLanguageId = null,
+        bool? edited = null,
+        string orderBy = "N.id")
+    {
+        var criteria = new ContentCriteria
+        {
+            Name = name,
+            Alias = alias,
+            CreatorId = creatorId,
+            Id = id,
+            Level = level,
+            Trashed = trashed,
+            UpdaterId = updaterId,
+            LanguageId = languageId,
+            MissingLanguageId = missingLanguageId,
+            PublishedLanguageId = publishedLanguageId,
+            Edited = edited
+        };
+
+        return Ok(dataBaseService.GetContent(page, pageSize, criteria, orderBy));
+    }
+
+    [HttpGet("content-type-aliases")]
+    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetContentTypeAliases()
+        => Ok(dataBaseService.GetContentTypeAliases());
+
+    [HttpGet("standard-content-type-aliases")]
+    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetStandardContentTypeAliases()
+        => Ok(dataBaseService.GetContentTypeAliases(isElement: false));
+
+    [HttpGet("members")]
+    [ProducesResponseType<Page<MemberModel>>(StatusCodes.Status200OK)]
+    public ActionResult<Page<MemberModel>> GetMembersPaged(
+        long page = 1,
+        long pageSize = 50,
+        int? groupId = null,
+        int? memberTypeId = null,
+        bool? isApproved = null,
+        bool? isLockedOut = null,
+        bool? usesTwoFactor = null,
+        string? search = null,
+        string orderBy = "MN.text")
+        => Ok(dataBaseService.GetMembers(page, pageSize, groupId, memberTypeId, isApproved, isLockedOut, usesTwoFactor, search, orderBy));
+
+    [HttpGet("member-groups")]
+    [ProducesResponseType<IEnumerable<MemberGroupModel>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<MemberGroupModel>> GetMemberGroups()
+        => Ok(dataBaseService.GetMemberGroups());
+
+    [HttpGet("member-types")]
+    [ProducesResponseType<IEnumerable<MemberGroupModel>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<MemberGroupModel>> GetMemberTypes()
+        => Ok(dataBaseService.GetMemberTypes());
+
+    // ─── Reflection ──────────────────────────────────────────────────
+
+    [HttpGet("reflection/surface-controllers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetSurfaceControllers()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(SurfaceController)));
+
+    [HttpGet("reflection/api-controllers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetApiControllers()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(ControllerBase)));
+
+    [HttpGet("reflection/render-controllers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetRenderMvcControllers()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IRenderController)));
+
+    [HttpGet("reflection/published-content-models")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetPublishedContentModels()
+        => Ok(ReflectionHelper.GetPublishedContentModelTypeMap());
+
+    [HttpGet("reflection/property-value-converters")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetPropertyValueConverters()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IPropertyValueConverter)));
+
+    [HttpGet("reflection/composers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetComposers()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IComposer)));
+
+    [HttpGet("reflection/view-components")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetViewComponents()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(ViewComponent)));
+
+    [HttpGet("reflection/content-finders")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetContentFinders()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IContentFinder)));
+
+    [HttpGet("reflection/url-providers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetUrlProviders()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IUrlProvider)));
+
+    [HttpGet("reflection/tag-helpers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetTagHelpers()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(ITagHelper)).Where(x => !x.Name.StartsWith("__Generated")));
+
+    [HttpGet("reflection/services")]
+    [ProducesResponseType<IEnumerable<RegisteredService>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<RegisteredService>> GetRegisteredServices()
+        => Ok(registeredServiceCollection.Services.Value);
+
+    [HttpGet("reflection/types-assignable-from")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetTypesAssignableFrom([FromQuery] string baseType)
+    {
+        var t = Type.GetType(baseType);
+        return Ok(t is null ? [] : ReflectionHelper.GetTypeMapFrom(t));
+    }
+
+    // ─── Diagnostics ─────────────────────────────────────────────────
+
+    [HttpGet("diagnostics")]
+    [ProducesResponseType<IEnumerable<DiagnosticGroup>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<DiagnosticGroup>> GetEnvironmentDiagnostics()
+    {
+        diagnosticService.SetContext(HttpContext);
+        return Ok(diagnosticService.GetDiagnosticGroups());
+    }
+
+    [HttpPost("diagnostics/reveal")]
+    [ProducesResponseType<IEnumerable<DiagnosticGroup>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<DiagnosticGroup>> GetRevealedEnvironmentDiagnostics([FromBody] RevealDiagnosticsRequest? request)
+    {
+        if (!IsRevealPasswordValid(request?.Password))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "The diagnostics reveal password is invalid or has not been configured.");
+        }
+
+        diagnosticService.SetContext(HttpContext);
+        return Ok(diagnosticService.GetDiagnosticGroups(revealRedactedValues: true));
+    }
+
+    // ─── Assemblies ──────────────────────────────────────────────────
+
+    [HttpGet("assemblies/umbraco")]
+    [ProducesResponseType<IEnumerable<NameValue>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<NameValue>> GetUmbracoAssemblies()
+        => Ok(ReflectionHelper.GetUmbracoAssemblies()
+            .Select(a => new NameValue(a.GetName().Name, a.FullName))
+            .OrderBy(x => x.Name));
+
+    [HttpGet("assemblies/non-microsoft")]
+    [ProducesResponseType<IEnumerable<NameValue>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<NameValue>> GetNonMsAssemblies()
+        => Ok(ReflectionHelper.GetAssemblies()
+            .Where(a => !a.IsDynamic && !a.FullName!.StartsWith("Microsoft.") && !a.FullName.StartsWith("System"))
+            .Select(a => new NameValue(a.GetName().Name, a.FullName))
+            .OrderBy(x => x.Name));
+
+    [HttpGet("assemblies")]
+    [ProducesResponseType<IEnumerable<NameValue>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<NameValue>> GetAssemblies()
+        => Ok(ReflectionHelper.GetAssemblies(a => !a.IsDynamic)
+            .Select(a => new NameValue(a.GetName().Name, a.FullName))
+            .OrderBy(x => x.Name));
+
+    [HttpGet("assemblies/with-interfaces")]
+    [ProducesResponseType<IEnumerable<NameValue>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<NameValue>> GetAssembliesWithInterfaces()
+        => Ok(ReflectionHelper.GetAssemblies(a => !a.IsDynamic && a.GetLoadableTypes().Any(t => t.IsInterface && !t.IsGenericTypeDefinition && t.IsPublic))
+            .Select(a => new NameValue(a.GetName().Name, a.FullName))
+            .OrderBy(x => x.Name));
+
+    [HttpGet("assemblies/{assembly}/interfaces")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetInterfacesFrom(string assembly)
+        => Ok(ReflectionHelper.GetNonGenericInterfaces(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>());
+
+    [HttpGet("assemblies/{assembly}/types")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetTypesFrom(string assembly)
+        => Ok(ReflectionHelper.GetNonGenericTypes(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>());
+
+    // ─── Templates / URLs ────────────────────────────────────────────
+
+    [HttpGet("templates/urls-to-ping")]
+    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetTemplateUrlsToPing()
+        => Ok(dataBaseService.GetTemplateUrlsToPing());
+
+    [HttpGet("urls-to-ping")]
+    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetUrlsToPing([FromQuery] string culture = "")
+        => Ok(utilitiesService.GetAllUrls(culture));
+
+    // ─── Config / usage / tags ───────────────────────────────────────
+
+    [HttpGet("config")]
+    [ProducesResponseType<GodModeConfig>(StatusCodes.Status200OK)]
+    public ActionResult<GodModeConfig> GetConfig()
+        => Ok(godModeConfig.Value);
+
+    [HttpGet("diagnostics/reveal-enabled")]
+    [ProducesResponseType<bool>(StatusCodes.Status200OK)]
+    public ActionResult<bool> GetDiagnosticsRevealEnabled()
+        => Ok(!string.IsNullOrEmpty(GetRevealPassword()));
+
+    private bool IsRevealPasswordValid(string? password)
+    {
+        var expected = GetRevealPassword();
+
+        if (string.IsNullOrEmpty(expected) || string.IsNullOrEmpty(password))
+        {
+            return false;
+        }
+
+        var expectedBytes = Encoding.UTF8.GetBytes(expected);
+        var passwordBytes = Encoding.UTF8.GetBytes(password);
+
+        return expectedBytes.Length == passwordBytes.Length &&
+            CryptographicOperations.FixedTimeEquals(expectedBytes, passwordBytes);
+    }
+
+    private string? GetRevealPassword()
+    {
+        var environmentVariableName = godModeConfig.Value.Diagnostics.RedactRevealPasswordEnv;
+
+        string password = string.IsNullOrWhiteSpace(environmentVariableName)
+            ? null
+            : Environment.GetEnvironmentVariable(environmentVariableName);
+
+        return password;
+    }
+
+    [HttpGet("content-usage")]
+    [ProducesResponseType<IEnumerable<UsageModel>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<UsageModel>> GetContentUsageData(int? id = null, string? orderBy = null)
+        => Ok(dataBaseService.GetContentUsageData(id, orderBy));
+
+    [HttpGet("tags")]
+    [ProducesResponseType<IEnumerable<TagMapping>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TagMapping>>> GetTagMapping()
+        => Ok(await dataService.GetTagMapping());
+
+    [HttpGet("tags/orphaned")]
+    [ProducesResponseType<List<Models.Tag>>(StatusCodes.Status200OK)]
+    public ActionResult<List<Models.Tag>> GetOrphanedTags()
+        => Ok(dataBaseService.GetOrphanedTags());
+
+    [HttpDelete("tags/{id:int}")]
+    [ProducesResponseType<bool>(StatusCodes.Status200OK)]
+    public ActionResult<bool> DeleteTag(int id)
+        => Ok(dataBaseService.DeleteTag(id));
+
+    // ─── NuCache ─────────────────────────────────────────────────────
+
+    [HttpGet("nucache/{id:int}")]
+    [ProducesResponseType<NuCacheItem>(StatusCodes.Status200OK)]
+    public ActionResult<NuCacheItem> GetNuCacheItem(int id)
+        => Ok(dataBaseService.GetNuCacheItem(id));
+
+    [HttpGet("nucache/type")]
+    [ProducesResponseType<string>(StatusCodes.Status200OK)]
+    public ActionResult<string> GetNuCacheType()
+        => Ok(nuCacheSettings.NuCacheSerializerType.ToString());
+
+    // ─── Maintenance actions (POST) ──────────────────────────────────
+
+    [HttpPost("templates/fix-masters")]
+    [ProducesResponseType<int>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<int>> FixTemplateMasters()
+        => Ok(await dataService.FixTemplateMasters());
+
+    [HttpPost("cache/clear")]
+    [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
+    public ActionResult<ServerResponse> ClearUmbracoCache([FromQuery] string cache)
+        => Ok(utilitiesService.ClearUmbracoCacheFor(cache));
+
+    [HttpPost("cache/purge-media")]
+    [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServerResponse>> PurgeMediaCache()
+        => Ok(await utilitiesService.ClearMediaFileCacheAsync());
+
+    [HttpPost("app/restart")]
+    [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
+    public ActionResult<ServerResponse> RestartAppPool()
+    {
+        try
+        {
+            applicationLifetime?.StopApplication();
+            return Ok(new ServerResponse("Restarting the application - hold tight...", ServerResponseType.Success));
+        }
+        catch (Exception ex)
+        {
+            return Ok(new ServerResponse("Error restarting the application: " + ex.Message, ServerResponseType.Error));
+        }
+    }
+
+    [HttpPost("data-types/{id:int}/copy")]
+    [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServerResponse>> CopyDataType(int id)
+        => Ok(await dataService.CopyDataType(id));
+
+    private async Task<IEnumerable<HealthRiskFinding>> BuildHealthRiskFindings()
+    {
+        const int logRowWarningThreshold = 100000;
+        const int contentVersionWarningThreshold = 50;
+
+        var findings = new List<HealthRiskFinding>();
+        var contentTypes = dataService.GetContentTypeMap().ToList();
+        var dataTypes = (await dataService.GetDataTypesStatus()).ToList();
+        var templates = (await dataService.GetTemplates()).ToList();
+        var referenceEdges = (await dataService.GetReferenceGraph()).ToList();
+        var driftFindings = (await dataService.GetConfigurationDriftFindings()).ToList();
+        var usage = dataBaseService.GetContentUsageData().ToList();
+        var orphanedTags = dataBaseService.GetOrphanedTags();
+        var orphanedMediaCount = dataBaseService.GetOrphanedMediaCount();
+        var logRowCount = dataBaseService.GetLogRowCount();
+        var contentVersionCount = dataBaseService.GetContentVersionCount();
+        var contentWithExcessiveVersionsCount = dataBaseService.GetContentWithExcessiveVersionsCount(contentVersionWarningThreshold);
+        var usageByAlias = usage
+            .Where(x => !string.IsNullOrWhiteSpace(x.Alias))
+            .GroupBy(x => x.Alias)
+            .ToDictionary(x => x.Key, x => x.Sum(y => y.NodeCount));
+
+        foreach (var edge in referenceEdges.Where(x => x.Relation == "configures missing block type"))
+        {
+            findings.Add(CreateFinding(
+                "High",
+                "Broken References",
+                "Block editor references a missing element type",
+                $"{edge.SourceName} references a block element type that was not found. Context: {edge.Context}.",
+                "Data Type",
+                edge.SourceName,
+                edge.SourceAlias,
+                edge.SourceKey,
+                "Open the data type configuration and remove or replace the missing block type."));
+        }
+
+        foreach (var contentType in contentTypes.Where(x => !x.IsElement && !x.HasTemplates))
+        {
+            findings.Add(CreateFinding(
+                "Low",
+                "Content Model",
+                "Document type has no allowed templates",
+                $"{contentType.Name} is a document type, but it has no allowed templates. It may be intentional for headless/API-only content.",
+                "Document Type",
+                contentType.Name,
+                contentType.Alias,
+                contentType.Udi.ToString(),
+                "Add an allowed template, mark it as an element type if it should never render, or keep it documented as API-only."));
+        }
+
+        foreach (var contentType in contentTypes.Where(x => !x.AllProperties.Any()))
+        {
+            findings.Add(CreateFinding(
+                contentType.IsElement ? "Low" : "Medium",
+                "Content Model",
+                contentType.IsElement ? "Element type has no properties" : "Document type has no properties",
+                $"{contentType.Name} has no own or inherited properties.",
+                contentType.IsElement ? "Element Type" : "Document Type",
+                contentType.Name,
+                contentType.Alias,
+                contentType.Udi.ToString(),
+                "Confirm this is a deliberate structural type; otherwise add properties or remove the type."));
+        }
+
+        foreach (var contentType in contentTypes.Where(x => !x.IsElement && usageByAlias.TryGetValue(x.Alias, out var count) && count == 0))
+        {
+            findings.Add(CreateFinding(
+                "Low",
+                "Content Usage",
+                "Document type has no content instances",
+                $"{contentType.Name} exists in the schema but has no content items.",
+                "Document Type",
+                contentType.Name,
+                contentType.Alias,
+                contentType.Udi.ToString(),
+                "Review whether this type is still needed or whether it is waiting for future content."));
+        }
+
+        foreach (var dataType in dataTypes.Where(x => !x.IsUsed && !x.IsNestedUsed))
+        {
+            findings.Add(CreateFinding(
+                "Low",
+                "Data Types",
+                "Data type appears unused",
+                $"{dataType.Name} is not used directly by document/media types and was not found in supported block editor configurations.",
+                "Data Type",
+                dataType.Name,
+                dataType.Alias,
+                dataType.Udi.ToString(),
+                "Delete it if obsolete, or keep it if it is intentionally reserved for future schema work."));
+        }
+
+        foreach (var duplicateGroup in dataTypes.Where(x => !string.IsNullOrWhiteSpace(x.Name)).GroupBy(x => x.Name).Where(x => x.Count() > 1))
+        {
+            var aliases = string.Join(", ", duplicateGroup.Select(x => x.Alias).Distinct().OrderBy(x => x));
+            findings.Add(CreateFinding(
+                "Low",
+                "Data Types",
+                "Multiple data types share the same name",
+                $"{duplicateGroup.Key} appears {duplicateGroup.Count()} times. Editor aliases: {aliases}.",
+                "Data Type",
+                duplicateGroup.Key,
+                aliases,
+                string.Empty,
+                "Rename duplicates so future schema changes are easier to reason about."));
+        }
+
+        foreach (var drift in driftFindings.Where(x => x.Score >= 50).Take(25))
+        {
+            findings.Add(CreateFinding(
+                drift.Severity,
+                "Configuration Drift",
+                drift.Category,
+                drift.Summary,
+                drift.EntityType,
+                drift.EntityName,
+                drift.EntityAlias,
+                drift.EntityKey,
+                drift.Recommendation));
+        }
+
+        var referencedTemplateKeys = referenceEdges
+            .Where(x => x.TargetType == "Template")
+            .Select(x => x.TargetKey)
+            .ToHashSet();
+        var templatesReferencedByTemplates = templates
+            .SelectMany(template => template.Parents
+                .Where(parent => parent.Id != template.Id)
+                .Select(parent => parent.Udi.ToString()))
+            .ToHashSet();
+
+        foreach (var template in templates.Where(x => !referencedTemplateKeys.Contains(x.Udi.ToString()) && !templatesReferencedByTemplates.Contains(x.Udi.ToString())))
+        {
+            findings.Add(CreateFinding(
+                "Low",
+                "Templates",
+                "Template is not allowed by any document type",
+                $"{template.Name} exists but is not referenced by any document type allowed-template relationship or another template.",
+                "Template",
+                template.Name,
+                template.Alias,
+                template.Udi.ToString(),
+                "Remove it if obsolete, or assign it to the document type that should render with it."));
+        }
+
+        if (orphanedTags.Any())
+        {
+            findings.Add(CreateFinding(
+                "Low",
+                "Content Cleanup",
+                "Orphaned tags exist",
+                $"{orphanedTags.Count} tags exist in the database but are not associated with any content or media.",
+                "Tags",
+                "Orphaned tags",
+                string.Empty,
+                string.Empty,
+                "Use the Tag Browser to review and delete orphaned tags if they are no longer needed."));
+        }
+
+        if (orphanedMediaCount > 0)
+        {
+            findings.Add(CreateFinding(
+                "Low",
+                "Content Cleanup",
+                "Orphaned media exists",
+                $"{orphanedMediaCount} media items have no incoming Umbraco relation and may be unused.",
+                "Media",
+                "Orphaned media",
+                string.Empty,
+                string.Empty,
+                "Review media usage before deleting; not every custom picker or rich text reference may create an Umbraco relation."));
+        }
+
+        if (logRowCount > logRowWarningThreshold)
+        {
+            findings.Add(CreateFinding(
+                "Medium",
+                "Database",
+                "umbracoLog table is large",
+                $"The log table contains {logRowCount:n0} rows, which can slow diagnostics and database maintenance.",
+                "Database Table",
+                "umbracoLog",
+                string.Empty,
+                string.Empty,
+                "Review log retention, archive old rows, and investigate noisy recurring errors."));
+        }
+
+        if (contentWithExcessiveVersionsCount > 0)
+        {
+            findings.Add(CreateFinding(
+                "Medium",
+                "Database",
+                "Content has many previous versions",
+                $"{contentWithExcessiveVersionsCount} content items have more than {contentVersionWarningThreshold} versions. The version table contains {contentVersionCount:n0} rows in total.",
+                "Database Table",
+                "umbracoContentVersion",
+                string.Empty,
+                string.Empty,
+                "Review content version cleanup settings and prune old versions where appropriate."));
+        }
+
+        return findings
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Category)
+            .ThenBy(x => x.Title)
+            .ThenBy(x => x.EntityName);
+    }
+
+    private static HealthRiskFinding CreateFinding(string severity, string category, string title, string detail, string entityType, string entityName, string entityAlias, string entityKey, string recommendation)
+        => new()
+        {
+            Severity = severity,
+            Score = severity switch
+            {
+                "High" => 80,
+                "Medium" => 50,
+                "Low" => 20,
+                _ => 10
+            },
+            Category = category,
+            Title = title,
+            Detail = detail,
+            EntityType = entityType,
+            EntityName = entityName,
+            EntityAlias = entityAlias,
+            EntityKey = entityKey,
+            Recommendation = recommendation
+        };
+}
+
+public sealed class RevealDiagnosticsRequest
+{
+    public string? Password { get; set; }
 }

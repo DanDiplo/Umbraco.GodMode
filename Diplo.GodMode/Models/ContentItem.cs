@@ -46,5 +46,7 @@ namespace Diplo.GodMode.Models
         public string UpdaterName { get; set; }
 
         public string Culture { get; set; }
+
+        public string CultureStates { get; set; }
     }
 }

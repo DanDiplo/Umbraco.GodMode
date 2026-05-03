@@ -64,10 +64,33 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of content items</returns>
         public Page<ContentItem> GetContent(long page, long itemsPerPage, ContentCriteria criteria = null, string orderBy = "N.id")
         {
-            var sql = @"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name, 
+            var cultureStatesSql = scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite
+                ? @"SELECT group_concat(
+                        L.languageISOCode || ':' ||
+                        COALESCE(DCV.available, 0) || ':' ||
+                        COALESCE(DCV.published, 0) || ':' ||
+                        COALESCE(DCV.edited, 0) || ':' ||
+                        COALESCE(DCV.name, ''),
+                        '|')
+                    FROM umbracoLanguage L
+                    LEFT JOIN umbracoDocumentCultureVariation DCV ON DCV.languageId = L.id AND DCV.nodeId = D.nodeId"
+                : @"SELECT STRING_AGG(
+                        CONCAT(
+                            L.languageISOCode, ':',
+                            COALESCE(DCV.available, 0), ':',
+                            COALESCE(DCV.published, 0), ':',
+                            COALESCE(DCV.edited, 0), ':',
+                            COALESCE(DCV.name, '')
+                        ),
+                        '|') WITHIN GROUP (ORDER BY L.id)
+                    FROM umbracoLanguage L
+                    LEFT JOIN umbracoDocumentCultureVariation DCV ON DCV.languageId = L.id AND DCV.nodeId = D.nodeId";
+
+            var sql = $@"SELECT N.uniqueID as Udi, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed as Trashed, CT.alias, N.Text as Name, 
                 N.Path as Path, N.createDate, Creator.Id AS CreatorId, Creator.userName as CreatorName,
                 V.versionDate as UpdateDate, Updater.Id as UpdaterID, Updater.userName as UpdaterName,
-				Lang.languageISOCode As Culture
+				DefaultLang.languageISOCode As Culture,
+                CASE WHEN CT.variations = 0 THEN 'Invariant' ELSE COALESCE(({cultureStatesSql}), '') END as CultureStates
                 FROM umbracoContent C
                 INNER JOIN umbracoNode N ON N.Id = C.nodeId
                 INNER JOIN cmsContentType CT ON C.contentTypeId = CT.nodeId
@@ -75,8 +98,7 @@ namespace Diplo.GodMode.Services
                 INNER JOIN umbracoContentVersion As V ON V.nodeId = N.id
                 INNER JOIN umbracoUser AS Creator ON Creator.Id = N.nodeUser
                 INNER JOIN umbracoUser As Updater ON V.userId = Updater.id
-				LEFT JOIN umbracoDocumentCultureVariation DCV ON DCV.nodeId = D.nodeId
-				LEFT JOIN umbracoLanguage Lang ON Lang.id = DCV.languageId
+                LEFT JOIN umbracoLanguage DefaultLang ON DefaultLang.isDefaultVariantLang = 1
                 WHERE V.[current] = 1  ";
 
             var query = new Sql(sql);
@@ -129,14 +151,70 @@ namespace Diplo.GodMode.Services
                 {
                     if (criteria.LanguageId.Value == -1)
                     {
-                        query = query.Append(" AND Lang.Id IS NULL", criteria.LanguageId.Value);
+                        query = query.Append(" AND CT.variations = 0", criteria.LanguageId.Value);
                     }
                     else
                     {
-                        query = query.Append(" AND Lang.Id = @0", criteria.LanguageId.Value);
+                        query = query.Append(@" AND CT.variations <> 0
+                            AND EXISTS (
+                                SELECT 1
+                                FROM umbracoDocumentCultureVariation FilterDCV
+                                WHERE FilterDCV.nodeId = D.nodeId
+                                    AND FilterDCV.languageId = @0
+                                    AND FilterDCV.available = 1
+                            )", criteria.LanguageId.Value);
                     }
                 }
+
+                if (criteria.MissingLanguageId.HasValue)
+                {
+                    query = query.Append(@" AND CT.variations <> 0
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM umbracoDocumentCultureVariation MissingDCV
+                            WHERE MissingDCV.nodeId = D.nodeId
+                                AND MissingDCV.languageId = @0
+                                AND MissingDCV.available = 1
+                        )", criteria.MissingLanguageId.Value);
+                }
+
+                if (criteria.PublishedLanguageId.HasValue)
+                {
+                    query = query.Append(@" AND CT.variations <> 0
+                        AND EXISTS (
+                            SELECT 1
+                            FROM umbracoDocumentCultureVariation PublishedDCV
+                            WHERE PublishedDCV.nodeId = D.nodeId
+                                AND PublishedDCV.languageId = @0
+                                AND PublishedDCV.published = 1
+                        )", criteria.PublishedLanguageId.Value);
+                }
+
+                if (criteria.Edited.HasValue)
+                {
+                    query = criteria.Edited.Value
+                        ? query.Append(@" AND (
+                            D.edited = 1
+                            OR EXISTS (
+                                SELECT 1
+                                FROM umbracoDocumentCultureVariation EditedDCV
+                                WHERE EditedDCV.nodeId = D.nodeId
+                                    AND EditedDCV.edited = 1
+                            )
+                        )")
+                        : query.Append(@" AND D.edited = 0
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM umbracoDocumentCultureVariation EditedDCV
+                                WHERE EditedDCV.nodeId = D.nodeId
+                                    AND EditedDCV.edited = 1
+                            )");
+                }
             }
+
+            query.GroupBy(@"N.uniqueID, N.Id, N.ParentId, N.Level, CT.icon, N.Trashed, CT.alias, N.Text,
+                N.Path, N.createDate, Creator.Id, Creator.userName, V.versionDate, Updater.Id, Updater.userName,
+                DefaultLang.languageISOCode, CT.variations, D.nodeId");
 
             if (!string.IsNullOrEmpty(orderBy))
             {
@@ -270,26 +348,76 @@ namespace Diplo.GodMode.Services
         /// <param name="search">Optional search term</param>
         /// <param name="orderBy">Column to order results by</param>
         /// <returns>A collection of members</returns>
-        public Page<MemberModel> GetMembers(long page, long itemsPerPage, int? groupId = null, string search = null, string orderBy = "MN.text")
+        public Page<MemberModel> GetMembers(
+            long page,
+            long itemsPerPage,
+            int? groupId = null,
+            int? memberTypeId = null,
+            bool? isApproved = null,
+            bool? isLockedOut = null,
+            bool? usesTwoFactor = null,
+            string search = null,
+            string orderBy = "MN.text")
         {
-            string sql = @"SELECT M.nodeId as Id, M.LoginName as UserName, MN.text as Name, M.Email, MN.createDate, MN.uniqueId as Udi
-            FROM cmsMember M 
-            INNER JOIN umbracoNode MN ON M.nodeId = MN.id ";
+            var groupNamesSql = scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite
+                ? @"SELECT group_concat(GN.text, ', ')
+                    FROM cmsMember2MemberGroup MGM
+                    INNER JOIN umbracoNode GN ON GN.id = MGM.MemberGroup
+                    WHERE MGM.Member = M.nodeId"
+                : @"SELECT STRING_AGG(CAST(GN.text AS nvarchar(max)), ', ') WITHIN GROUP (ORDER BY GN.text)
+                    FROM cmsMember2MemberGroup MGM
+                    INNER JOIN umbracoNode GN ON GN.id = MGM.MemberGroup
+                    WHERE MGM.Member = M.nodeId";
+
+            string sql = $@"SELECT M.nodeId as Id, M.LoginName as UserName, MN.text as Name, M.Email,
+                CT.nodeId as MemberTypeId, CTN.text as MemberTypeName, CT.alias as MemberTypeAlias,
+                COALESCE(({groupNamesSql}), '') as Groups,
+                M.isApproved as IsApproved, M.isLockedOut as IsLockedOut,
+                CASE WHEN EXISTS (SELECT 1 FROM umbracoTwoFactorLogin TFL WHERE TFL.userOrMemberKey = MN.uniqueId) THEN 1 ELSE 0 END as UsesTwoFactor,
+                MN.createDate, MN.uniqueId as Udi
+            FROM cmsMember M
+            INNER JOIN umbracoNode MN ON M.nodeId = MN.id
+            INNER JOIN umbracoContent C ON C.nodeId = M.nodeId
+            INNER JOIN cmsContentType CT ON CT.nodeId = C.contentTypeId
+            INNER JOIN umbracoNode CTN ON CTN.id = CT.nodeId
+            WHERE 1 = 1";
 
             var memberQuery = new Sql(sql);
 
             if (groupId.HasValue)
             {
-                memberQuery.Append(" LEFT JOIN cmsMember2MemberGroup MG ON MG.Member = M.nodeId WHERE MG.MemberGroup = @0 ", groupId.Value);
+                memberQuery.Append(" AND EXISTS (SELECT 1 FROM cmsMember2MemberGroup MG WHERE MG.Member = M.nodeId AND MG.MemberGroup = @0)", groupId.Value);
             }
 
-            if (!string.IsNullOrEmpty(search))
+            if (memberTypeId.HasValue)
             {
-                sql = string.Format(" {0} (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0)", groupId.HasValue ? "AND" : "WHERE");
-                memberQuery.Append(sql, "%" + search + "%");
+                memberQuery.Append(" AND CT.nodeId = @0", memberTypeId.Value);
             }
 
-            memberQuery.OrderBy(orderBy);
+            if (isApproved.HasValue)
+            {
+                memberQuery.Append(" AND M.isApproved = @0", isApproved.Value);
+            }
+
+            if (isLockedOut.HasValue)
+            {
+                memberQuery.Append(" AND M.isLockedOut = @0", isLockedOut.Value);
+            }
+
+            if (usesTwoFactor.HasValue)
+            {
+                memberQuery.Append(
+                    usesTwoFactor.Value
+                        ? " AND EXISTS (SELECT 1 FROM umbracoTwoFactorLogin TFL WHERE TFL.userOrMemberKey = MN.uniqueId)"
+                        : " AND NOT EXISTS (SELECT 1 FROM umbracoTwoFactorLogin TFL WHERE TFL.userOrMemberKey = MN.uniqueId)");
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                memberQuery.Append(" AND (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0)", "%" + search + "%");
+            }
+
+            memberQuery.OrderBy(string.IsNullOrWhiteSpace(orderBy) ? "MN.text" : orderBy);
 
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
@@ -303,7 +431,27 @@ namespace Diplo.GodMode.Services
         /// <returns>A list of groups</returns>
         public IEnumerable<MemberGroupModel> GetMemberGroups()
         {
-            var query = new Sql(string.Format("SELECT id as Id, text as Name FROM umbracoNode GN WHERE nodeObjectType = '{0}'", Constants.ObjectTypes.MemberGroup)).OrderBy("text");
+            var query = new Sql(@"SELECT GN.id as Id, GN.text as Name
+                FROM umbracoNode GN
+                WHERE GN.nodeObjectType = @0
+                ORDER BY GN.text", Constants.ObjectTypes.Strings.MemberGroup);
+
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.Fetch<MemberGroupModel>(query);
+            }
+        }
+
+        /// <summary>
+        /// Gets all Umbraco member types
+        /// </summary>
+        /// <returns>A list of member types</returns>
+        public IEnumerable<MemberGroupModel> GetMemberTypes()
+        {
+            var query = new Sql(@"SELECT CTN.id as Id, CTN.text as Name
+                FROM umbracoNode CTN
+                WHERE CTN.nodeObjectType = @0
+                ORDER BY CTN.text", Constants.ObjectTypes.Strings.MemberType);
 
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
@@ -383,6 +531,55 @@ namespace Diplo.GodMode.Services
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
                 return scope.Database.Fetch<Diplo.GodMode.Models.Tag>("SELECT T.Id, T.[Group], T.Tag as Text, L.languageISOCode as Culture FROM cmsTags T LEFT JOIN umbracoLanguage L ON T.languageId = L.id  WHERE T.id NOT IN (SELECT tagId FROM cmsTagRelationship)");
+            }
+        }
+
+        public long GetOrphanedMediaCount()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.ExecuteScalar<long>(
+                    "SELECT COUNT(*) FROM umbracoNode N WHERE N.nodeObjectType = @0 AND N.trashed = 0 AND N.id NOT IN (SELECT DISTINCT childId FROM umbracoRelation WHERE childId IS NOT NULL)",
+                    Constants.ObjectTypes.Media);
+            }
+        }
+
+        public long GetLogRowCount()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                try
+                {
+                    return scope.Database.ExecuteScalar<long>("SELECT COUNT(*) FROM umbracoLog");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogDebug(ex, "Could not read umbracoLog row count; trying umbLog.");
+                    return scope.Database.ExecuteScalar<long>("SELECT COUNT(*) FROM umbLog");
+                }
+            }
+        }
+
+        public long GetContentVersionCount()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.ExecuteScalar<long>("SELECT COUNT(*) FROM umbracoContentVersion");
+            }
+        }
+
+        public long GetContentWithExcessiveVersionsCount(int versionThreshold)
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.ExecuteScalar<long>(
+                    @"SELECT COUNT(*) FROM (
+                        SELECT nodeId
+                        FROM umbracoContentVersion
+                        GROUP BY nodeId
+                        HAVING COUNT(*) > @0
+                    ) VersionedContent",
+                    versionThreshold);
             }
         }
     }

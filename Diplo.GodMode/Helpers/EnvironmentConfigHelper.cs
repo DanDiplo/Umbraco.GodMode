@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Diplo.GodMode.Models;
+﻿using Diplo.GodMode.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace Diplo.GodMode.Helpers
@@ -18,7 +15,7 @@ namespace Diplo.GodMode.Helpers
         /// </remarks>
         public static List<DiagnosticSection> GetEnvironmentDiagnostics(IConfiguration configuration)
         {
-            List<DiagnosticSection> sections = new();
+            List<DiagnosticSection> sections = [];
 
             if (configuration is not IConfigurationRoot configurationRoot)
             {
@@ -27,7 +24,7 @@ namespace Diplo.GodMode.Helpers
 
             int maxRecursions = 1000;
 
-            Dictionary<string, List<Diagnostic>> diagnosticMap = new();
+            Dictionary<string, List<Diagnostic>> diagnosticMap = [];
 
             void RecurseChildren(IEnumerable<IConfigurationSection> children)
             {
@@ -47,10 +44,10 @@ namespace Diplo.GodMode.Helpers
                         }
                         else
                         {
-                            diagnosticMap.Add(provider, new List<Diagnostic>()
-                            {
+                            diagnosticMap.Add(provider,
+                            [
                                 new Diagnostic(child.Path, Value)
-                            });
+                            ]);
                         }
                     }
 
@@ -63,8 +60,8 @@ namespace Diplo.GodMode.Helpers
 
             RecurseChildren(configurationRoot.GetChildren());
 
-            foreach (var mapping in diagnosticMap.OrderBy(x => x.Key)) 
-            { 
+            foreach (var mapping in diagnosticMap.OrderBy(x => x.Key))
+            {
                 sections.Add(new DiagnosticSection(mapping.Key, mapping.Value));
             }
 

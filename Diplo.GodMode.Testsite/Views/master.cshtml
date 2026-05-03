@@ -1,86 +1,42 @@
-﻿@using Umbraco.Cms.Web.Common.PublishedModels;
-@using Umbraco.Extensions
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = null;
-    // Get basic design settings from the homepage
-    var home = (Home)Model.Root();
-    var font = home.Font;
-    var colorTheme = home.ColorTheme;
 }
 
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>@Model.Name - @home.Sitename</title>
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <link rel="stylesheet" href="@Url.Content("~/css/umbraco-starterkit-style.css")" />
-    @RenderSection("Header", required: false)
+    @await Html.PartialAsync("~/Views/Partials/metaData.cshtml")
+    <!-- Font Awesome icons (free version)-->
+    <script defer src="https://use.fontawesome.com/releases/v6.5.1/js/all.js" crossorigin="anonymous" integrity="sha384-3ve3u7etWcm2heCe4TswfZSAYSg2jR/EJxRHuKM5foOiKS8IJL/xRlvmjCaHELBz"></script>
+    <!-- Fonts - Using jsDelivr CDN with Subresource Integrity for security -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@fontsource/lora@@5.2.8/latin.css" integrity="sha384-f4M2zbjkXb09sOmEBQQr/7uaCoS42xKdzLA4btcuoodiBTSBt15fFwe57ZyRN5Zp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@fontsource/open-sans@@5.2.7/latin.css" integrity="sha384-qFkObpNRoSvQPhjjWheuOk1v30/JtCyeIlEa7UVNnbwCQtBJ9PthP7atExwLvrHu" crossorigin="anonymous">
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/assets/css/styles.css" rel="stylesheet" asp-append-version="true" />
+    <link href="/assets/css/vs2015.css" rel="stylesheet" asp-append-version="true" />
+    <link href="/assets/css/highlightjs-copy.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="/assets/css/swiffy-slider.min.css" rel="stylesheet" asp-append-version="true" />
 </head>
+<body>
+    @await Html.CachedPartialAsync("~/Views/Partials/mainNavigation.cshtml", model: Model, cacheTimeout: TimeSpan.FromMinutes(60))
+    @RenderBody()
+    @await Html.CachedPartialAsync("~/Views/Partials/footer.cshtml", model: Model, cacheTimeout: TimeSpan.FromMinutes(60))
 
-<body class="frontpage theme-font-@font theme-color-@colorTheme">
-    <div class="mobile-nav">
-        <nav class="nav-bar">
-            @await Html.PartialAsync("~/Views/Partials/Navigation/TopNavigation.cshtml")
-        </nav>
-    </div>
+    <address>
+        <strong>Support:</strong><email>Support</email><br />
+        <strong>Marketing:</strong><email>Marketing</email>
+    </address>
 
-    <header class="header">
-
-        <div class="logo">
-            @if (home.SiteLogo != null && !string.IsNullOrEmpty(home.SiteLogo.Url()))
-            {
-                <div class="nav-link--home">
-                    <img class="logo-image" src="@home.SiteLogo.Url()" alt="@home.Sitename">
-                </div>
-            }
-            else
-            {
-                <a class="nav-link nav-link--home nav-link--home__text logo-text" href="/">@home.Sitename</a>
-            }
-        </div>
-
-        <nav class="nav-bar top-nav">
-            @await Html.PartialAsync("~/Views/Partials/Navigation/TopNavigation.cshtml")
-        </nav>
-
-        <div class="mobile-nav-handler">
-            <div class="hamburger lines" id="toggle-nav">
-                <span></span>
-            </div>
-        </div>
-
-    </header>
-
-    <main>
-        @RenderBody()
-    </main>
-
-    <footer class="section--themed">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12 ta-center">
-                    @home.FooterAddress
-                </div>
-            </div>
-        </div>
-    </footer>
-    
-    @* 
-    Wish not to use JQuery?
-    Insert this method call to load Umbraco Forms client dependencies without JQuery. @Html.RenderUmbracoFormDependencies()
-    *@
-    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>	
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>	
-    <script src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>
-    <script src="@Url.Content("~/scripts/umbraco-starterkit-app.js")"></script>
-
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <!-- Core theme JS-->
+    <script src="/assets/js/scripts.js" asp-append-version="true"></script>
+    <script src="/assets/js/highlight.min.js" asp-append-version="true"></script>
+    <script src="/assets/js/highlightjs-copy.min.js" asp-append-version="true"></script>
+    <script src="/assets/js/initHighlight.js" asp-append-version="true"></script>
+    <script src="/assets/js/swiffy-slider.min.js" asp-append-version="true"></script>
 </body>
-
 </html>

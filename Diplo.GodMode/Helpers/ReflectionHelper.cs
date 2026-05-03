@@ -1,11 +1,8 @@
-﻿using Diplo.GodMode.Models;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
+using Diplo.GodMode.Models;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Helpers
@@ -22,7 +19,7 @@ namespace Diplo.GodMode.Helpers
 
         public static readonly Func<Type, Type, bool> IsAssignableFromPredicate = (a, b) => a.Inherits(b);
 
-        private static readonly string[] PropertiesToIgnore = new[] { "PreviewBadge" };
+        private static readonly string[] PropertiesToIgnore = ["PreviewBadge"];
 
         public static IEnumerable<Type> GetTypesAssignableFrom(Type baseType, Func<Assembly, bool> predicate = null)
         {
@@ -74,6 +71,16 @@ namespace Diplo.GodMode.Helpers
             return GetTypesAssignableFrom(myType).Select(t => new TypeMap(t));
         }
 
+        public static IEnumerable<TypeMap> GetPublishedContentModelTypeMap()
+        {
+            return GetLoadableTypes()
+                .Where(IsPublishedContentModelType)
+                .GroupBy(t => t.GetFullNameWithAssembly())
+                .Select(g => g.First())
+                .OrderBy(t => t.Name)
+                .Select(t => new TypeMap(t));
+        }
+
         public static IEnumerable<TypeMap> GetNonGenericInterfaces(Assembly assembly)
         {
             return assembly.GetLoadableTypes().Where(t => t != null && !t.IsGenericType && t.IsPublic && !t.IsGenericTypeDefinition && t.IsInterface).Select(t => new TypeMap(t));
@@ -110,7 +117,7 @@ namespace Diplo.GodMode.Helpers
         {
             if (type == null)
             {
-                return Enumerable.Empty<Diagnostic>();
+                return [];
             }
 
             return type.GetAllPublicConstants().Select(x => new Diagnostic(x.Name, x.GetRawConstantValue().ToString()));
@@ -120,14 +127,14 @@ namespace Diplo.GodMode.Helpers
         {
             if (obj == null)
             {
-                return Enumerable.Empty<Diagnostic>();
+                return [];
             }
 
             var props = obj.GetType().GetAllProperties();
 
             if (props == null)
             {
-                return Enumerable.Empty<Diagnostic>();
+                return [];
             }
 
             if (onlyUmbraco)
@@ -139,44 +146,81 @@ namespace Diplo.GodMode.Helpers
 
             foreach (var prop in props.Where(p => !PropertiesToIgnore.InvariantContains(p.Name)))
             {
-                try
+                if (!CanReadProperty(prop))
                 {
-                    var value = prop.GetValue(obj);
+                    continue;
+                }
 
-                    if (value != null)
+                var displayName = GetPropertyDisplayName(prop);
+
+                if (!TryGetPropertyValue(obj, prop, out var value, out var error))
+                {
+                    diagnostics.Add(new Diagnostic(displayName, $"Unable to evaluate ({error})"));
+                    continue;
+                }
+
+                if (value != null)
+                {
+                    if (value.GetType().IsPublic)
                     {
-                        if (value.GetType().IsPublic)
+                        if (prop.PropertyType.IsArray || (prop.PropertyType != typeof(string) && prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable))))
                         {
-                            if (prop.PropertyType.IsArray || (prop.PropertyType != typeof(string) && prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable))))
+                            var items = ((IEnumerable)value)
+                                .Cast<object>()
+                                .Select(x => x?.ToString())
+                                .Where(x => !string.IsNullOrEmpty(x))
+                                .ToList();
+
+                            string sValue = string.Join(", ", items);
+
+                            diagnostics.Add(new Diagnostic(displayName, sValue));
+                        }
+                        else
+                        {
+                            string sValue = value.ToString();
+
+                            if (ignoreNestedType && sValue.StartsWith("Umbraco."))
                             {
-                                var items = ((IEnumerable)value).Cast<string>().ToList();
-
-                                if (items != null)
-                                {
-                                    string sValue = string.Join(", ", items);
-
-                                    diagnostics.Add(new Diagnostic(GetPropertyDisplayName(prop), sValue));
-                                }
                             }
                             else
                             {
-                                string sValue = value.ToString();
-
-                                if (ignoreNestedType && sValue.StartsWith("Umbraco."))
-                                {
-                                }
-                                else
-                                {
-                                    diagnostics.Add(new Diagnostic(GetPropertyDisplayName(prop), sValue));
-                                }
+                                diagnostics.Add(new Diagnostic(displayName, sValue));
                             }
                         }
                     }
                 }
-                catch { };
             }
 
             return diagnostics;
+        }
+
+        private static bool CanReadProperty(PropertyInfo prop)
+        {
+            return prop.GetMethod != null &&
+                prop.GetMethod.GetParameters().Length == 0 &&
+                prop.GetIndexParameters().Length == 0;
+        }
+
+        private static bool TryGetPropertyValue(object obj, PropertyInfo prop, out object value, out string error)
+        {
+            try
+            {
+                value = prop.GetValue(obj);
+                error = string.Empty;
+                return true;
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                value = null;
+                error = ex.InnerException.GetType().Name;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                value = null;
+                error = ex.GetType().Name;
+                return false;
+            }
         }
 
         private static IEnumerable<Type> GetTypesThatCanBeLoaded(Assembly assembly)
@@ -199,6 +243,27 @@ namespace Diplo.GodMode.Helpers
         private static string GetPropertyDisplayName(PropertyInfo prop)
         {
             return prop.Name.Split('.').Last() + (prop.PropertyType == typeof(bool) ? "?" : string.Empty);
+        }
+
+        private static bool IsPublishedContentModelType(Type type)
+        {
+            if (type == null || !type.IsClass || type.IsAbstract || !type.IsPublic)
+            {
+                return false;
+            }
+
+            if (IsAssignableClassFromPredicate(typeof(PublishedContentModel), type))
+            {
+                return true;
+            }
+
+            string nameSpace = type.Namespace ?? string.Empty;
+            bool isPublishedModelsNamespace =
+                nameSpace.Equals("Umbraco.Cms.Web.Common.PublishedModels", StringComparison.Ordinal) ||
+                nameSpace.EndsWith(".PublishedModels", StringComparison.Ordinal);
+
+            return isPublishedModelsNamespace &&
+                (typeof(IPublishedContent).IsAssignableFrom(type) || typeof(IPublishedElement).IsAssignableFrom(type));
         }
 
         private static string SplitOnCapitals(string text)

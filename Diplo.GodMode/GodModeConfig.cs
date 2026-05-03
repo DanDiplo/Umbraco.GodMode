@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Diplo.GodMode
+﻿namespace Diplo.GodMode
 {
     /// <summary>
     /// Configuration for GodMode
@@ -12,7 +10,7 @@ namespace Diplo.GodMode
         /// </summary>
         public const string ConfigSectionName = "GodMode";
 
-        public string[] FeaturesToHide { get; set; } = Array.Empty<string>();
+        public string[] FeaturesToHide { get; set; } = [];
 
         public DiagnosticsConfig Diagnostics { get; set; } = new DiagnosticsConfig();
 
@@ -24,17 +22,27 @@ namespace Diplo.GodMode
             /// <summary>
             /// Get or set the groups that should be hidden in diganostics
             /// </summary>
-            public string[] GroupsToHide { get; set; } = Array.Empty<string>();
+            public string[] GroupsToHide { get; set; } = [];
 
             /// <summary>
             /// Get or set the sub-sections that should be hidden in diganostics
             /// </summary>
-            public string[] SectionsToHide { get; set; } = Array.Empty<string>();
+            public string[] SectionsToHide { get; set; } = [];
 
             /// <summary>
             /// Get or set the keys to redact the values from
             /// </summary>
-            public string[] KeysToRedact { get; set; } = Array.Empty<string>();
+            public string[] KeysToRedact { get; set; } = ["ConnectionStrings:umbracoDbDSN", "godmode_password", "ConnectionString"];
+
+            /// <summary>
+            /// Get or set keywords found in a key that should have their values redacted.
+            /// </summary>
+            public string[] KeyMatchesToRedact { get; set; } = ["password", "pwd", "secret", "key"];
+
+            /// <summary>
+            /// Get or set the environment variable that reveals the redacted value
+            /// </summary>
+            public string RedactRevealPasswordEnv { get; set; } = "godmode_password";
         }
     }
 }

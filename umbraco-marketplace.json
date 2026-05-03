@@ -1,25 +1,34 @@
 {
   "Title": "Diplo God Mode",
-  "AlternatePackageNames": [ "God Mode", "Umbraco.GodMode", "DiploGodMode", "Diplo GodMode", "GodMode", "Diplo.GodMode" ],
+  "AlternatePackageNames": [
+    "God Mode",
+    "Umbraco.GodMode",
+    "DiploGodMode",
+    "Diplo GodMode",
+    "GodMode",
+    "Diplo.GodMode"
+  ],
   "AuthorDetails": {
     "Name": "Dan 'Diplo' Booth",
     "Description": "Dan is an Umbraco MVP and has been releasing packages for Umbraco since Umbraco 6",
     "Url": "https://www.diplo.co.uk/",
-    "ImageUrl": "https://pbs.twimg.com/profile_images/794295655846002688/S8SQ_XFM_400x400.jpg",
-    "Contributors": [
-      {
-        "Name": "Søren Kottal",
-        "Url": "https://github.com/skttl"
-      }
-    ]
+    "ImageUrl": "https://pbs.twimg.com/profile_images/794295655846002688/S8SQ_XFM_400x400.jpg"
   },
   "Category": "Developer Tools",
   "Description": "God Mode provides developers with tools, diagnostics and in-depth insights into their Umbraco site. This custom tree in the Settings section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers, services and models. It also provides diagnostics about your Umbraco set-up and the server it is running on.",
-  "DocumentationUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v10/README.md",
-  "LicenseTypes": [ "Free" ],
+  "DocumentationUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v17/README.md",
+  "LicenseTypes": [
+    "Free"
+  ],
   "IssueTrackerUrl": "https://github.com/DanDiplo/Umbraco.GodMode/issues",
   "PackageType": "Package",
-  "PackagesByAuthor": [ "Diplo.AuditLogViewer", "Diplo.MediaDownloader", "Diplo.Translator", "Diplo.DictionaryEditor", "DiploTraceLogViewer" ],
+  "PackagesByAuthor": [
+    "Diplo.AuditLogViewer",
+    "Diplo.MediaDownloader",
+    "Diplo.Translator",
+    "Diplo.DictionaryEditor",
+    "DiploTraceLogViewer"
+  ],
   "Tags": [
     "developer",
     "insight",
@@ -36,27 +45,25 @@
   ],
   "Screenshots": [
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/document-type-browser.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/document-type-browser.png",
       "Caption": "Document Type Browser"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/document-type-browser-detail.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/document-type-browser-detail.png",
       "Caption": "Document Type Browser - Properties"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/diagnostics-umbraco.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics-umbraco.png",
       "Caption": "Umbraco and Server Diagnostics"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/tag-browser.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/tag-browser.png",
       "Caption": "Tag Browser"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v10/Screenshots/service-browser.PNG",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/service-browser.PNG",
       "Caption": "IOC (DI) Services Browser"
     }
   ],
   "VideoUrl": "https://www.youtube.com/watch?v=xLjTV5LMp44"
 }
-
-// https://marketplace.umbraco.com/listing

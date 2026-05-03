@@ -19,6 +19,12 @@
 
         public int? LanguageId { get; set; }
 
+        public int? MissingLanguageId { get; set; }
+
+        public int? PublishedLanguageId { get; set; }
+
+        public bool? Edited { get; set; }
+
         public string Alias { get; set; }
     }
 }
