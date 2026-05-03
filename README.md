@@ -1,8 +1,19 @@
-# Umbraco GodMode
+# Diplo Umbraco GodMode
 
 **Diplo God Mode makes Umbraco developers invincible!**
 
-This package adds a **God Mode** tree to the **Settings** section of Umbraco 17. It gives developers fast access to site structure, diagnostics, configuration, content references, services, templates, partials, media, members, tags, and other implementation details that are useful while building or supporting an Umbraco site.
+[![NuGet](https://img.shields.io/nuget/v/Diplo.GodMode?color=004880&logo=nuget&label=NuGet)](https://www.nuget.org/packages/Diplo.GodMode/)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Diplo.GodMode?color=cc9900&label=downloads)](https://www.nuget.org/packages/Diplo.GodMode/)
+[![Umbraco](https://img.shields.io/badge/Umbraco-17-3544b1?logo=umbraco)](https://umbraco.com/)
+[![.NET](https://img.shields.io/badge/.NET-10-512bd4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://licenses.nuget.org/MIT)
+[![GitHub issues](https://img.shields.io/github/issues/DanDiplo/Umbraco.GodMode?logo=github)](https://github.com/DanDiplo/Umbraco.GodMode/issues)
+
+## What this does
+
+This package adds a **God Mode** tree to the **Settings** section of **Umbraco 17**. 
+
+It gives developers fast access to site structure, diagnostics, configuration, content references, services, templates, partials, media, members, tags, and other implementation details that are useful while building or supporting an Umbraco 17 site.
 
 ## Features
 
@@ -27,37 +38,64 @@ After installation, restart the site and open the Umbraco backoffice. The **God 
 
 ## Configuration
 
-Features and diagnostic values can be hidden via `appsettings.json`:
+God Mode reads its options from the `GodMode` section of `appsettings.json`. All settings are optional; this example shows the current defaults:
 
 ```json
 {
   "GodMode": {
-    "FeaturesToHide": [
-      "Services",
-      "Content Browser"
-    ],
+    "FeaturesToHide": [],
     "Diagnostics": {
-      "GroupsToHide": [
-        "Server Configuration",
-        "Umbraco Configuration"
-      ],
-      "SectionsToHide": [
-        "MVC Version"
-      ],
+      "GroupsToHide": [],
+      "SectionsToHide": [],
       "KeysToRedact": [
-        "Database Settings:ConnectionString",
         "ConnectionStrings:umbracoDbDSN",
-        "Server Settings:Current Directory",
-        "Environment Settings:LocalTempPath"
-      ]
+        "godmode_password",
+        "ConnectionString"
+      ],
+      "KeyMatchesToRedact": [
+        "password",
+        "pwd",
+        "secret",
+        "key"
+      ],
+      "RedactRevealPasswordEnv": "godmode_password"
     }
   }
 }
 ```
 
-`FeaturesToHide` hides complete God Mode sections by name or alias.
+`FeaturesToHide` hides complete God Mode sections by name or alias, for example `"Services"` or `"Content Browser"`.
 
-`GroupsToHide`, `SectionsToHide`, and `KeysToRedact` hide or redact diagnostic output that may reveal sensitive environment details. Restart the site after changing these settings.
+`GroupsToHide` hides complete diagnostic groups by title, such as `"Server Configuration"` or `"Umbraco Configuration"`.
+
+`SectionsToHide` hides individual diagnostic sections by heading, such as `"MVC Version"`.
+
+`KeysToRedact` redacts exact diagnostic keys. Non-environment diagnostics can also be redacted with scoped keys in the form `"Section:Key"` or `"Group:Section:Key"`. Environment config values use the raw configuration key, for example `"ConnectionStrings:umbracoDbDSN"`.
+
+`KeyMatchesToRedact` redacts any diagnostic whose key contains one of the configured words, case-insensitively. By default this catches keys containing `password`, `pwd`, `secret`, or `key`.
+
+Restart the site after changing these settings.
+
+### Revealing Redacted Diagnostics
+
+Redacted diagnostics stay hidden by default. To enable the **Reveal** control in the diagnostics browser, set an environment variable whose name matches `Diagnostics:RedactRevealPasswordEnv`. The default variable name is `godmode_password`.
+
+For local PowerShell development:
+
+```powershell
+$env:godmode_password = "use-a-strong-local-password"
+dotnet run --project Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj
+```
+
+For a persistent Windows user environment variable:
+
+```powershell
+[Environment]::SetEnvironmentVariable("godmode_password", "use-a-strong-local-password", "User")
+```
+
+For a deployment environment, set `godmode_password` in the host's environment variable settings. If you change `RedactRevealPasswordEnv`, set the environment variable using that custom name instead.
+
+When the variable is present, the diagnostics screen shows a password field. Enter the value of the environment variable to reload diagnostics with redacted values revealed for the current browser session. If the variable is missing, empty, or the configured variable name is blank, reveal is disabled.
 
 ## Building / Developing
 
@@ -100,4 +138,4 @@ The package ships the compiled assembly and static web assets under `App_Plugins
 
 ## Thanks
 
-This code is indebted to a lot of people in the Umbraco community. Particular thanks to Soren Kottal for his help, to Sebastiaan "Cultiv" Janssen for diagnostic code borrowed in earlier versions, and to everyone who maintains Umbraco docs and package examples.
+This code is indebted to a lot of people in the Umbraco community. Particular thanks to Soren Kottal for his help, to Sebastiaan "Cultiv" Janssen for diagnostic code borrowed in earlier versions, Andy Butler for his cleverness and to everyone who maintains Umbraco docs and package examples.

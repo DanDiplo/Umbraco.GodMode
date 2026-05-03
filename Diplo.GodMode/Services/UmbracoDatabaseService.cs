@@ -2,8 +2,6 @@
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using NPoco;
-using System;
-using System.Collections.Generic;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Infrastructure.Scoping;

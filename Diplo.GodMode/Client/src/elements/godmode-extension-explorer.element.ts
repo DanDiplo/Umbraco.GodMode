@@ -310,9 +310,7 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
         .manifest-table {
             display: grid;
             background: var(--uui-color-surface);
-            border-top: 1px solid var(--uui-color-border);
-            border-left: 1px solid var(--uui-color-border);
-            border-right: 1px solid var(--uui-color-border);
+            border: 1px solid var(--uui-color-border);
             border-radius: var(--uui-border-radius);
             overflow: hidden;
         }
@@ -322,12 +320,12 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
             grid-template-columns: minmax(190px, 1.1fr) minmax(260px, 1.6fr) minmax(180px, 1fr) minmax(80px, 0.45fr) minmax(140px, 0.8fr) minmax(220px, 1.4fr);
             align-items: start;
             column-gap: var(--uui-size-space-4);
-            border-bottom: 1px solid var(--uui-color-border);
             padding: var(--uui-size-space-3);
         }
         .table-head {
             font-weight: 700;
             background: var(--uui-color-surface-alt);
+            border-bottom: 1px solid var(--uui-color-border);
         }
         .table-head button,
         .manifest-row {
@@ -345,11 +343,16 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
         }
         .manifest-row {
             cursor: pointer;
+            border-bottom: 1px solid var(--uui-color-border);
             width: 100%;
+            box-shadow: inset 0 1px 0 color-mix(in srgb, var(--uui-color-surface) 72%, var(--uui-color-border));
             transition: background-color 120ms ease;
         }
+        .manifest-row:nth-of-type(odd) {
+            background: color-mix(in srgb, var(--uui-color-surface-alt) 38%, var(--uui-color-surface));
+        }
         .manifest-row:hover {
-            background: var(--uui-color-surface-alt);
+            background: color-mix(in srgb, var(--uui-color-interactive) 7%, var(--uui-color-surface-alt));
         }
         .pill,
         .kind,
