@@ -23,4 +23,11 @@ namespace Diplo.GodMode.Models
     {
         public string Value { get; set; }
     }
+
+    public class CreateKeyValueRequest
+    {
+        public string Key { get; set; }
+
+        public string Value { get; set; }
+    }
 }

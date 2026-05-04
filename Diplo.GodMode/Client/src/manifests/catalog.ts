@@ -200,6 +200,39 @@ export const browsers: BrowserDef[] = [
         }
     },
     {
+        id: "notificationHandlers",
+        label: "Notification Handlers",
+        icon: "icon-bell",
+        weight: 764,
+        skipMenuItem: true,
+        element: async () => {
+            await import("../elements/reflection-pages");
+            return { default: customElements.get("godmode-notification-handlers")! };
+        }
+    },
+    {
+        id: "hostedServices",
+        label: "Hosted Services",
+        icon: "icon-server",
+        weight: 763,
+        skipMenuItem: true,
+        element: async () => {
+            await import("../elements/reflection-pages");
+            return { default: customElements.get("godmode-hosted-services")! };
+        }
+    },
+    {
+        id: "middleware",
+        label: "Middleware",
+        icon: "icon-autofill",
+        weight: 762,
+        skipMenuItem: true,
+        element: async () => {
+            await import("../elements/reflection-pages");
+            return { default: customElements.get("godmode-middleware")! };
+        }
+    },
+    {
         id: "viewComponents",
         label: "View Components",
         icon: "icon-code",
@@ -279,7 +312,7 @@ export const browsers: BrowserDef[] = [
         id: "utilityBrowser",
         label: "Utilities",
         icon: "icon-wrench",
-        description: "Clear caches, restart application pool and warm-up your little templates",
+        description: "Inspect and clear caches, restart application pool and warm-up your little templates",
         weight: 500,
         element: () => import("../elements/godmode-utility-browser.element")
     }

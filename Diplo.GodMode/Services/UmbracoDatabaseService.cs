@@ -501,6 +501,20 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        public bool CreateKeyValue(string key, string value)
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                var affected = scope.Database.Execute(
+                    "INSERT INTO umbracoKeyValue ([key], [value], Updated) VALUES (@0, @1, @2)",
+                    key,
+                    value,
+                    DateTime.UtcNow);
+
+                return affected > 0;
+            }
+        }
+
         public bool DeleteKeyValue(string key)
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))

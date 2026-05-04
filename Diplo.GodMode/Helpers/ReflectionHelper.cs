@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text;
 using Diplo.GodMode.Models;
+using Microsoft.AspNetCore.Http;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
@@ -69,6 +70,26 @@ namespace Diplo.GodMode.Helpers
         public static IEnumerable<TypeMap> GetTypeMapFrom(Type myType)
         {
             return GetTypesAssignableFrom(myType).Select(t => new TypeMap(t));
+        }
+
+        public static IEnumerable<TypeMap> GetTypeMapFromOpenGeneric(Type openGenericType)
+        {
+            return GetAllTypesImplementingOpenGenericType(openGenericType)
+                .Where(t => t != null && t.IsClass && !t.IsAbstract)
+                .GroupBy(t => t.GetFullNameWithAssembly())
+                .Select(g => g.First())
+                .OrderBy(t => t.Name)
+                .Select(t => new TypeMap(t));
+        }
+
+        public static IEnumerable<TypeMap> GetMiddlewareTypeMap()
+        {
+            return GetLoadableTypes()
+                .Where(IsMiddlewareType)
+                .GroupBy(t => t.GetFullNameWithAssembly())
+                .Select(g => g.First())
+                .OrderBy(t => t.Name)
+                .Select(t => new TypeMap(t));
         }
 
         public static IEnumerable<TypeMap> GetPublishedContentModelTypeMap()
@@ -264,6 +285,42 @@ namespace Diplo.GodMode.Helpers
 
             return isPublishedModelsNamespace &&
                 (typeof(IPublishedContent).IsAssignableFrom(type) || typeof(IPublishedElement).IsAssignableFrom(type));
+        }
+
+        private static bool IsMiddlewareType(Type type)
+        {
+            if (type == null || !type.IsClass || type.IsAbstract || !type.IsPublic)
+            {
+                return false;
+            }
+
+            if (typeof(IMiddleware).IsAssignableFrom(type))
+            {
+                return true;
+            }
+
+            return HasRequestDelegateConstructor(type) && HasMiddlewareInvokeMethod(type);
+        }
+
+        private static bool HasRequestDelegateConstructor(Type type)
+        {
+            return type.GetConstructors()
+                .Any(ctor => ctor.GetParameters().Any(p => p.ParameterType == typeof(RequestDelegate)));
+        }
+
+        private static bool HasMiddlewareInvokeMethod(Type type)
+        {
+            return type.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                .Any(method =>
+                {
+                    if (method.Name != "Invoke" && method.Name != "InvokeAsync")
+                    {
+                        return false;
+                    }
+
+                    var parameters = method.GetParameters();
+                    return parameters.Length > 0 && parameters[0].ParameterType == typeof(HttpContext);
+                });
         }
 
         private static string SplitOnCapitals(string text)

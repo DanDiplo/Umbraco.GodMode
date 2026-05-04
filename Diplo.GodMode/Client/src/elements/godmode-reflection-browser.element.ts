@@ -17,6 +17,7 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
     @property({ type: String }) endpoint = "";
     @property({ type: String }) heading = "Reflection Browser";
     @property({ type: String }) description = "";
+    @property({ type: Boolean, attribute: "group-by-assembly" }) groupByAssembly = false;
 
     @state() private _items: TypeMap[] = [];
     @state() private _loading = true;
@@ -65,6 +66,7 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
             .filter(Boolean)
             .sort();
         const results = this._filtered();
+        const groups = this.groupByAssembly ? this._groupByAssembly(results) : [];
 
         return html`
             <godmode-page heading=${this.heading} description=${this.description} show-reload @reload=${() => void this._load()}>
@@ -93,26 +95,60 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
                     ? html`<uui-loader></uui-loader>`
                     : html`
                           <p class="results"><strong>${results.length}</strong> / <strong>${this._items.length}</strong></p>
-                          <uui-table @sort-change=${this._onSortChange}>
-                              <uui-table-head>
-                                  <godmode-sort-header column="name" .sort=${this._sort}>Name</godmode-sort-header>
-                                  <godmode-sort-header column="namespace" .sort=${this._sort}>Namespace</godmode-sort-header>
-                                  <godmode-sort-header column="assembly" .sort=${this._sort}>Assembly</godmode-sort-header>
-                                  <godmode-sort-header column="baseType" .sort=${this._sort}>Base</godmode-sort-header>
-                              </uui-table-head>
-                              ${results.map(
-                                  (c) => html`
-                                      <uui-table-row>
-                                          <uui-table-cell><strong>${c.name}</strong></uui-table-cell>
-                                          <uui-table-cell><code>${c.namespace}</code></uui-table-cell>
-                                          <uui-table-cell><code>${c.assembly}</code></uui-table-cell>
-                                          <uui-table-cell>${c.baseType}</uui-table-cell>
-                                      </uui-table-row>
-                                  `
-                              )}
-                          </uui-table>
+                          ${this.groupByAssembly
+                              ? groups.map(
+                                    (group) => html`
+                                        <h3>${group.assembly} <span>${group.items.length}</span></h3>
+                                        ${this._renderTable(group.items, false)}
+                                    `
+                                )
+                              : this._renderTable(results, true)}
                       `}
             </godmode-page>
+        `;
+    }
+
+    private _groupByAssembly(items: TypeMap[]): Array<{ assembly: string; items: TypeMap[] }> {
+        const grouped = new Map<string, TypeMap[]>();
+        for (const item of items) {
+            const key = item.assembly || "Unknown";
+            grouped.set(key, [...(grouped.get(key) ?? []), item]);
+        }
+
+        return [...grouped.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([assembly, groupItems]) => ({ assembly, items: groupItems }));
+    }
+
+    private _renderTable(items: TypeMap[], sortable: boolean) {
+        return html`
+            <uui-table @sort-change=${sortable ? this._onSortChange : undefined}>
+                <uui-table-head>
+                    ${sortable
+                        ? html`
+                              <godmode-sort-header column="name" .sort=${this._sort}>Name</godmode-sort-header>
+                              <godmode-sort-header column="namespace" .sort=${this._sort}>Namespace</godmode-sort-header>
+                              <godmode-sort-header column="assembly" .sort=${this._sort}>Assembly</godmode-sort-header>
+                              <godmode-sort-header column="baseType" .sort=${this._sort}>Base</godmode-sort-header>
+                          `
+                        : html`
+                              <uui-table-head-cell>Name</uui-table-head-cell>
+                              <uui-table-head-cell>Namespace</uui-table-head-cell>
+                              <uui-table-head-cell>Assembly</uui-table-head-cell>
+                              <uui-table-head-cell>Base</uui-table-head-cell>
+                          `}
+                </uui-table-head>
+                ${items.map(
+                    (c) => html`
+                        <uui-table-row>
+                            <uui-table-cell><strong>${c.name}</strong></uui-table-cell>
+                            <uui-table-cell><code>${c.namespace}</code></uui-table-cell>
+                            <uui-table-cell><code>${c.assembly}</code></uui-table-cell>
+                            <uui-table-cell>${c.baseType}</uui-table-cell>
+                        </uui-table-row>
+                    `
+                )}
+            </uui-table>
         `;
     }
 
@@ -141,6 +177,14 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
         .results {
             margin: var(--uui-size-space-3) 0;
             color: var(--uui-color-text-alt);
+        }
+        h3 {
+            margin: var(--uui-size-space-5) 0 var(--uui-size-space-2);
+            font-size: 1rem;
+        }
+        h3 span {
+            color: var(--uui-color-text-alt);
+            font-weight: 400;
         }
     `;
 }

@@ -1,6 +1,6 @@
 import { LitElement, css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { godmodeDelete, godmodeGet, godmodePut } from "../api/client";
+import { godmodeDelete, godmodeGet, godmodePost, godmodePut } from "../api/client";
 import "../shared";
 import type { UmbracoKeyValue } from "../shared/types";
 
@@ -11,6 +11,9 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _loading = true;
     @state() private _savingKey: string | null = null;
     @state() private _filter = "";
+    @state() private _newKey = "";
+    @state() private _newValue = "";
+    @state() private _creating = false;
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -57,6 +60,27 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
         }
     }
 
+    private async _create() {
+        const key = this._newKey.trim();
+        if (!key) return;
+        if (this._items.some((item) => item.key.toLowerCase() === key.toLowerCase())) {
+            alert("A row with this key already exists.");
+            return;
+        }
+
+        this._creating = true;
+        try {
+            await godmodePost<boolean>("key-values", undefined, { key, value: this._newValue });
+            this._newKey = "";
+            this._newValue = "";
+            await this._load();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            this._creating = false;
+        }
+    }
+
     private async _delete(item: UmbracoKeyValue) {
         if (!confirm(`Delete the key value '${item.key}'?`)) return;
         this._savingKey = item.key;
@@ -85,6 +109,35 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
                                 .value=${this._filter}
                                 @input=${(e: Event) => (this._filter = (e.target as HTMLInputElement).value)}
                             ></uui-input>
+                        </div>
+                    </div>
+                </uui-box>
+
+                <uui-box headline="Add Key Value">
+                    <div class="new-row">
+                        <div>
+                            <label>Key</label>
+                            <uui-input
+                                placeholder="Key"
+                                .value=${this._newKey}
+                                ?disabled=${this._creating}
+                                @input=${(e: Event) => (this._newKey = (e.target as HTMLInputElement).value)}
+                            ></uui-input>
+                        </div>
+                        <div>
+                            <label>Value</label>
+                            <uui-textarea
+                                rows="2"
+                                auto-height
+                                .value=${this._newValue}
+                                ?disabled=${this._creating}
+                                @input=${(e: Event) => (this._newValue = (e.target as HTMLTextAreaElement).value)}
+                            ></uui-textarea>
+                        </div>
+                        <div class="new-row-actions">
+                            <uui-button look="primary" label="Add row" ?disabled=${this._creating || !this._newKey.trim()} @click=${() => void this._create()}>
+                                Add row
+                            </uui-button>
                         </div>
                     </div>
                 </uui-box>
@@ -158,8 +211,25 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
             margin-bottom: var(--uui-size-space-1);
         }
         .filters uui-input,
+        .new-row uui-input,
         uui-textarea {
             width: 100%;
+        }
+        .new-row {
+            display: grid;
+            grid-template-columns: minmax(16rem, 1fr) minmax(20rem, 2fr) auto;
+            gap: var(--uui-size-space-4);
+            align-items: end;
+        }
+        .new-row label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: var(--uui-size-space-1);
+        }
+        .new-row-actions {
+            display: flex;
+            align-items: center;
+            min-height: 3rem;
         }
         .results {
             margin: var(--uui-size-space-3) 0;
@@ -188,7 +258,8 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
             flex-wrap: wrap;
         }
         @media (max-width: 900px) {
-            .filters {
+            .filters,
+            .new-row {
                 grid-template-columns: 1fr;
             }
         }

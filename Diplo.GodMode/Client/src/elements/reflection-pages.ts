@@ -17,6 +17,7 @@ interface Spec {
     endpoint: string;
     heading: string;
     description: string;
+    groupByAssembly?: boolean;
 }
 
 const SPECS: Spec[] = [
@@ -48,7 +49,26 @@ const SPECS: Spec[] = [
         tag: "godmode-composers",
         endpoint: "reflection/composers",
         heading: "Composers",
-        description: "Umbraco IComposer implementations."
+        description: "Umbraco IComposer implementations grouped by assembly.",
+        groupByAssembly: true
+    },
+    {
+        tag: "godmode-notification-handlers",
+        endpoint: "reflection/notification-handlers",
+        heading: "Notification Handlers",
+        description: "Umbraco INotificationHandler<TNotification> implementations."
+    },
+    {
+        tag: "godmode-hosted-services",
+        endpoint: "reflection/hosted-services",
+        heading: "Hosted Services",
+        description: "ASP.NET Core IHostedService and BackgroundService implementations."
+    },
+    {
+        tag: "godmode-middleware",
+        endpoint: "reflection/middleware",
+        heading: "Middleware",
+        description: "ASP.NET Core IMiddleware implementations and conventional middleware classes."
     },
     {
         tag: "godmode-value-converters",
@@ -90,6 +110,7 @@ for (const spec of SPECS) {
                 endpoint=${spec.endpoint}
                 heading=${spec.heading}
                 description=${spec.description}
+                ?group-by-assembly=${spec.groupByAssembly === true}
             ></godmode-reflection-browser>`;
         }
     }

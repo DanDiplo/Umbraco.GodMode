@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NPoco;
+using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Composing;
@@ -253,6 +254,21 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<IEnumerable<TypeMap>> GetComposers()
         => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IComposer)));
 
+    [HttpGet("reflection/notification-handlers")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetNotificationHandlers()
+        => Ok(ReflectionHelper.GetTypeMapFromOpenGeneric(typeof(INotificationHandler<>)));
+
+    [HttpGet("reflection/hosted-services")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetHostedServices()
+        => Ok(ReflectionHelper.GetTypeMapFrom(typeof(IHostedService)));
+
+    [HttpGet("reflection/middleware")]
+    [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<TypeMap>> GetMiddleware()
+        => Ok(ReflectionHelper.GetMiddlewareTypeMap());
+
     [HttpGet("reflection/view-components")]
     [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<TypeMap>> GetViewComponents()
@@ -318,6 +334,18 @@ public class GodModeApiController : ManagementApiControllerBase
     [ProducesResponseType<bool>(StatusCodes.Status200OK)]
     public ActionResult<bool> UpdateKeyValue([FromQuery] string key, [FromBody] UpdateKeyValueRequest request)
         => Ok(dataBaseService.UpdateKeyValue(key, request.Value ?? string.Empty));
+
+    [HttpPost("key-values")]
+    [ProducesResponseType<bool>(StatusCodes.Status200OK)]
+    public ActionResult<bool> CreateKeyValue([FromBody] CreateKeyValueRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Key))
+        {
+            return BadRequest("Key is required.");
+        }
+
+        return Ok(dataBaseService.CreateKeyValue(request.Key.Trim(), request.Value ?? string.Empty));
+    }
 
     [HttpDelete("key-values")]
     [ProducesResponseType<bool>(StatusCodes.Status200OK)]

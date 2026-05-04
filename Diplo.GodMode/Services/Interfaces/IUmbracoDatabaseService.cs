@@ -40,6 +40,8 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<UmbracoKeyValue> GetKeyValues();
 
+        bool CreateKeyValue(string key, string value);
+
         bool UpdateKeyValue(string key, string value);
 
         bool DeleteKeyValue(string key);
