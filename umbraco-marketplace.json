@@ -45,24 +45,56 @@
   ],
   "Screenshots": [
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/document-type-browser.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/welcome.png",
+      "Caption": "God Mode welcome"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser.png",
       "Caption": "Document Type Browser"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/document-type-browser-detail.png",
-      "Caption": "Document Type Browser - Properties"
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatypes.png",
+      "Caption": "Data Type Browser"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics-umbraco.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatype-usedby.png",
+      "Caption": "Data Type Usage"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reference-graph.png",
+      "Caption": "Reference Graph"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics.png",
       "Caption": "Umbraco and Server Diagnostics"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/tag-browser.png",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/health.png",
+      "Caption": "Health Checks"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/extensions.png",
+      "Caption": "Extension Explorer"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/tags.png",
       "Caption": "Tag Browser"
     },
     {
-      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/service-browser.PNG",
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/services.png",
       "Caption": "IOC (DI) Services Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/members.png",
+      "Caption": "Member Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/types.png",
+      "Caption": "Type Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/key-value-editor.png",
+      "Caption": "Key Value Editor"
     }
   ],
   "VideoUrl": "https://www.youtube.com/watch?v=xLjTV5LMp44"

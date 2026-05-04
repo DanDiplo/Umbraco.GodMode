@@ -20,9 +20,23 @@ It gives developers fast access to site structure, diagnostics, configuration, c
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
 - Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
-- View content and media in searchable/filterable tables.
+- View content, members and media in searchable/filterable tables.
 - Inspect diagnostics and configuration values, with optional redaction for sensitive settings.
-- Clear Umbraco caches and restart the app where supported.
+- Inspect and clear Umbraco caches and restart the app where supported.
+
+## Screenshots
+
+![God Mode welcome](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/welcome.png)
+
+![Document Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser.png)
+
+![Data Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatypes.png)
+
+![Reference graph](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reference-graph.png)
+
+![Diagnostics](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics.png)
+
+![Services](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/services.png)
 
 ## Download & Installation
 
