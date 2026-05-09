@@ -364,4 +364,5 @@ FodyWeavers.xsd
 
 # GodMode v17 generated backoffice bundle
 Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/
+Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/
 

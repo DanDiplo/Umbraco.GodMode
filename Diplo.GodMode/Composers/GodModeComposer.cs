@@ -20,6 +20,8 @@ namespace Diplo.GodMode.Composers
             builder.Services.AddScoped<IUmbracoDatabaseService, UmbracoDatabaseService>();
             builder.Services.AddScoped<IUmbracoDataService, UmbracoDataService>();
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
+            builder.Services.AddScoped<IGodModeHealthRiskService, GodModeHealthRiskService>();
+            builder.Services.AddScoped<IGodModeSnapshotService, GodModeSnapshotService>();
             
             builder.Services.AddSingleton(services => new RegisteredServiceCollection(builder.Services));
         }

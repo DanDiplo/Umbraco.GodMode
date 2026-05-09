@@ -52,6 +52,8 @@ namespace Diplo.GodMode.Services.Interfaces
 
         List<Tag> GetOrphanedTags();
 
+        List<MediaMap> GetOrphanedMedia();
+
         long GetOrphanedMediaCount();
 
         long GetLogRowCount();

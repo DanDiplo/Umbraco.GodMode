@@ -40,6 +40,7 @@ public class GodModeApiController : ManagementApiControllerBase
     private readonly IUmbracoDataService dataService;
     private readonly IUmbracoDatabaseService dataBaseService;
     private readonly IDiagnosticService diagnosticService;
+    private readonly IGodModeHealthRiskService healthRiskService;
     private readonly IUtilitiesService utilitiesService;
     private readonly IHostApplicationLifetime applicationLifetime;
     private readonly NuCacheSettings nuCacheSettings;
@@ -50,6 +51,7 @@ public class GodModeApiController : ManagementApiControllerBase
         IUmbracoDataService dataService,
         IUmbracoDatabaseService dataBaseService,
         IDiagnosticService diagnosticService,
+        IGodModeHealthRiskService healthRiskService,
         IUtilitiesService utilitiesService,
         IHostApplicationLifetime applicationLifetime,
         IOptions<NuCacheSettings> nuCacheSettings,
@@ -59,6 +61,7 @@ public class GodModeApiController : ManagementApiControllerBase
         this.dataService = dataService;
         this.dataBaseService = dataBaseService;
         this.diagnosticService = diagnosticService;
+        this.healthRiskService = healthRiskService;
         this.utilitiesService = utilitiesService;
         this.applicationLifetime = applicationLifetime;
         this.nuCacheSettings = nuCacheSettings.Value;
@@ -121,7 +124,7 @@ public class GodModeApiController : ManagementApiControllerBase
     [HttpGet("health-risk-findings")]
     [ProducesResponseType<IEnumerable<HealthRiskFinding>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<HealthRiskFinding>>> GetHealthRiskFindings()
-        => Ok(await this.BuildHealthRiskFindings());
+        => Ok(await healthRiskService.BuildHealthRiskFindingsAsync(HttpContext.RequestAborted));
 
     [HttpGet("templates")]
     [ProducesResponseType<IEnumerable<TemplateModel>>(StatusCodes.Status200OK)]

@@ -578,6 +578,16 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        public List<MediaMap> GetOrphanedMedia()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.Fetch<MediaMap>(
+                    "SELECT N.id as Id, N.uniqueId as Udi, N.text as Name, N.path as Path FROM umbracoNode N WHERE N.nodeObjectType = @0 AND N.trashed = 0 AND N.id NOT IN (SELECT DISTINCT childId FROM umbracoRelation WHERE childId IS NOT NULL) ORDER BY N.text",
+                    Constants.ObjectTypes.Media);
+            }
+        }
+
         public long GetLogRowCount()
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))

@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../Diplo.GodMode.Testsite/umbraco-package-schema.json",
+  "name": "Diplo.GodMode.AI",
+  "version": "17.0.0",
+  "allowTelemetry": true,
+  "extensions": [
+    {
+      "type": "backofficeEntryPoint",
+      "alias": "Diplo.GodMode.AI.EntryPoint",
+      "name": "Diplo GodMode AI Entry Point",
+      "js": "/App_Plugins/DiploGodModeAI/index.js"
+    }
+  ]
+}

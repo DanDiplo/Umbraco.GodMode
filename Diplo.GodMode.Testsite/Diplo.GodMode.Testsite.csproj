@@ -8,11 +8,14 @@
 
   <ItemGroup>
     <PackageReference Include="Clean" />
+    <PackageReference Include="Umbraco.AI" />
+    <PackageReference Include="Umbraco.AI.OpenAI" />
     <PackageReference Include="Umbraco.Cms" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Diplo.GodMode.AI\Diplo.GodMode.AI.csproj" />
     <ProjectReference Include="..\Diplo.GodMode\Diplo.GodMode.csproj" />
   </ItemGroup>
 
