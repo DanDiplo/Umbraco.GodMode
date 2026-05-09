@@ -33,9 +33,50 @@ export interface GodModeAnalysisResult {
   generatedUtc: string;
 }
 
+export interface GodModeAiExplainSubject {
+  subjectType: string;
+  title: string;
+  data: Record<string, unknown>;
+}
+
+export interface GodModeAiExplainResponse {
+  summary: string;
+  whatItIs: string;
+  whyItMatters: string;
+  risk: string;
+  suggestedNextSteps: string[];
+}
+
 export async function analyzeSchemaHealth(): Promise<GodModeAnalysisResult> {
   const { data, error } = await umbHttpClient.post<GodModeAnalysisResult>({
     url: `${GODMODE_AI_API_BASE}/schema-health`,
+    security: BEARER_SECURITY
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data as GodModeAnalysisResult;
+}
+
+export async function explainSubject(subject: GodModeAiExplainSubject): Promise<GodModeAiExplainResponse> {
+  const { data, error } = await umbHttpClient.post<GodModeAiExplainResponse>({
+    url: `${GODMODE_AI_API_BASE}/explain`,
+    body: subject,
+    security: BEARER_SECURITY
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data as GodModeAiExplainResponse;
+}
+
+export async function createFixPlan(): Promise<GodModeAnalysisResult> {
+  const { data, error } = await umbHttpClient.post<GodModeAnalysisResult>({
+    url: `${GODMODE_AI_API_BASE}/fix-plan`,
     security: BEARER_SECURITY
   });
 

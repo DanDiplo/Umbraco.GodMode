@@ -188,10 +188,26 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
                         <uui-button look="secondary" color="danger" label="Delete" ?disabled=${busy} @click=${() => void this._delete(item)}>
                             Delete
                         </uui-button>
+                        <godmode-ai-explain-button .subject=${this._explainSubject(item, draft)}></godmode-ai-explain-button>
                     </div>
                 </uui-table-cell>
             </uui-table-row>
         `;
+    }
+
+    private _explainSubject(item: UmbracoKeyValue, draft: string) {
+        return {
+            subjectType: "Umbraco key value",
+            title: item.key,
+            data: {
+                key: item.key,
+                savedValue: item.value,
+                draftValue: draft,
+                hasUnsavedChange: draft !== (item.value ?? ""),
+                updated: item.updated,
+                table: "umbracoKeyValue"
+            }
+        };
     }
 
     private _formatDate(value: string): string {

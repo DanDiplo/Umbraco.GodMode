@@ -1,7 +1,6 @@
 import { LitElement, customElement, html, property, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_SECTION_CONTEXT } from "@umbraco-cms/backoffice/section";
-import { GODMODE_AI_ENTITY_TYPE } from "./constants";
 
 @customElement("godmode-ai-schema-health-menu-item")
 export class GodModeAiSchemaHealthMenuItemElement extends UmbElementMixin(LitElement) {
@@ -24,7 +23,7 @@ export class GodModeAiSchemaHealthMenuItemElement extends UmbElementMixin(LitEle
 
   override render() {
     if (!this.manifest) return html``;
-    const href = this._pathname ? `section/${this._pathname}/workspace/${GODMODE_AI_ENTITY_TYPE}` : undefined;
+    const href = this._pathname ? `section/${this._pathname}/workspace/${this.manifest.meta.entityType}` : undefined;
 
     return html`
       <umb-menu-item-layout

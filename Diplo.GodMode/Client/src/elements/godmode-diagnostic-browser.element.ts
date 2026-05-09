@@ -158,12 +158,18 @@ export class GodModeDiagnosticBrowserElement extends UmbElementMixin(LitElement)
                                         <uui-table-head>
                                             <uui-table-head-cell style="width:35%">Key</uui-table-head-cell>
                                             <uui-table-head-cell>Value</uui-table-head-cell>
+                                            <uui-table-head-cell>Actions</uui-table-head-cell>
                                         </uui-table-head>
                                         ${matched.map(
                                             (d) => html`
                                                 <uui-table-row>
                                                     <uui-table-cell><strong>${d.key}</strong></uui-table-cell>
-                                                    <uui-table-cell><code>${d.value == null ? "—" : String(d.value)}</code></uui-table-cell>
+                                                    <uui-table-cell class="value-cell"><code>${d.value == null ? "—" : String(d.value)}</code></uui-table-cell>
+                                                    <uui-table-cell class="action-cell">
+                                                        <godmode-ai-explain-button
+                                                            .subject=${this._explainSubject(group.title, sec.heading, d)}
+                                                        ></godmode-ai-explain-button>
+                                                    </uui-table-cell>
                                                 </uui-table-row>
                                             `
                                         )}
@@ -173,6 +179,21 @@ export class GodModeDiagnosticBrowserElement extends UmbElementMixin(LitElement)
                         })}
             </godmode-page>
         `;
+    }
+
+    private _explainSubject(groupTitle: string, sectionHeading: string, diagnostic: { key: string; value: string | null }) {
+        return {
+            subjectType: "God Mode diagnostic",
+            title: diagnostic.key,
+            data: {
+                group: groupTitle,
+                section: sectionHeading,
+                key: diagnostic.key,
+                value: diagnostic.value,
+                valueIsRedacted: diagnostic.value === "[Redacted]",
+                source: "God Mode diagnostics"
+            }
+        };
     }
 
     static override styles = css`
@@ -228,6 +249,20 @@ export class GodModeDiagnosticBrowserElement extends UmbElementMixin(LitElement)
             border-radius: var(--uui-border-radius);
             background: var(--uui-color-surface);
             color: var(--uui-color-text);
+        }
+        .action-cell {
+            width: 7rem;
+        }
+        .value-cell {
+            min-width: 0;
+            max-width: 0;
+        }
+        .value-cell code {
+            display: block;
+            max-width: 100%;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
         @media (max-width: 900px) {
             .filters {

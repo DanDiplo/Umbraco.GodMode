@@ -204,11 +204,58 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <uui-icon name="icon-edit"></uui-icon>
                             Edit
                         </uui-button>
+                        <godmode-ai-explain-button .subject=${this._explainSubject(ct)}></godmode-ai-explain-button>
                     </span>
                 </div>
                 ${isOpen ? this._renderDetail(ct) : ""}
             </uui-box>
         `;
+    }
+
+    private _explainSubject(ct: ContentTypeMap) {
+        const allProperties = [...(ct.properties ?? []), ...(ct.compositionProperties ?? [])];
+
+        return {
+            subjectType: ct.isElement ? "Umbraco element type" : "Umbraco document type",
+            title: `${ct.name} (${ct.alias})`,
+            data: {
+                id: ct.id,
+                name: ct.name,
+                alias: ct.alias,
+                udi: ct.udi,
+                description: ct.description,
+                icon: ct.icon,
+                isElement: ct.isElement,
+                isListView: ct.isListView,
+                allowedAtRoot: ct.allowedAtRoot,
+                variesBy: variesByLabel(ct.variesBy),
+                templateCount: ct.templates?.length ?? 0,
+                templates: (ct.templates ?? []).map((template) => ({
+                    name: template.name,
+                    alias: template.alias,
+                    udi: template.udi
+                })),
+                compositionCount: ct.compositions?.length ?? 0,
+                compositions: (ct.compositions ?? []).map((composition) => ({
+                    name: composition.name,
+                    alias: composition.alias,
+                    udi: composition.udi
+                })),
+                nativePropertyCount: ct.properties?.length ?? 0,
+                inheritedPropertyCount: ct.compositionProperties?.length ?? 0,
+                propertyGroups: ct.propertyGroups ?? [],
+                properties: allProperties.slice(0, 30).map((property) => ({
+                    name: property.name,
+                    alias: property.alias,
+                    editorAlias: property.editorAlias,
+                    variesBy: property.variesBy,
+                    storageType: property.storageType,
+                    inherited: (ct.compositionProperties ?? []).some((p) => p.alias === property.alias)
+                })),
+                propertySampleLimit: 30,
+                totalPropertyCount: allProperties.length
+            }
+        };
     }
 
     private _renderDetail(ct: ContentTypeMap) {
