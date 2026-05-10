@@ -4,8 +4,9 @@ import { godmodeGet } from "../api/client";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
 import { uniqueBy } from "../shared/format";
 import "../shared";
-import type { ConfigurationDriftFinding } from "../shared/types";
+import type { ConfigurationDriftFinding, ReferenceEdge } from "../shared/types";
 import { openUsedByModal } from "../shared/used-by-modal";
+import { openEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-configuration-drift")
 export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement) {
@@ -147,6 +148,10 @@ export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement
                             <uui-table-cell>${this._list(finding.differingFields)}</uui-table-cell>
                             <uui-table-cell><small>${finding.recommendation}</small></uui-table-cell>
                             <uui-table-cell class="action-cell">
+                                <uui-button compact look="secondary" label="Evidence" @click=${(e: Event) => void this._openEvidence(finding, e)}>
+                                    <uui-icon name="icon-search"></uui-icon>
+                                    Evidence
+                                </uui-button>
                                 <uui-button compact look="secondary" label="Used by" @click=${(e: Event) => openUsedByModal(this, {
                                     targetType: finding.entityType,
                                     targetKey: finding.entityKey,
@@ -167,6 +172,63 @@ export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement
 
     private _list(values: string[]) {
         return values?.length ? html`<ul>${values.map((value) => html`<li>${value}</li>`)}</ul>` : html`<small>None</small>`;
+    }
+
+    private async _openEvidence(finding: ConfigurationDriftFinding, e: Event) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const [usedBy, uses] = await Promise.all([
+            godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: finding.entityType, targetKey: finding.entityKey }),
+            godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: finding.entityType, sourceKey: finding.entityKey })
+        ]);
+
+        openEvidenceDrawer(
+            this,
+            {
+                title: `Evidence: ${finding.entityName}`,
+                subtitle: finding.summary,
+                summary: [
+                    { label: "Severity", value: finding.severity },
+                    { label: "Score", value: finding.score },
+                    { label: "Category", value: finding.category },
+                    { label: "Entity", value: finding.entityName },
+                    { label: "Type", value: finding.entityType },
+                    { label: "Alias", value: finding.entityAlias }
+                ],
+                sections: [
+                    {
+                        heading: "Drift Finding",
+                        items: {
+                            summary: finding.summary,
+                            recommendation: finding.recommendation,
+                            entityKey: finding.entityKey
+                        }
+                    },
+                    {
+                        heading: "Compared With",
+                        description: "Entities that contributed to this drift finding.",
+                        items: finding.comparedWith
+                    },
+                    {
+                        heading: "Differing Fields",
+                        description: "Fields that differ between this item and similar items.",
+                        items: finding.differingFields
+                    },
+                    {
+                        heading: "Used By",
+                        description: "Reference graph edges where this entity is the target.",
+                        items: usedBy
+                    },
+                    {
+                        heading: "Uses",
+                        description: "Reference graph edges where this entity is the source.",
+                        items: uses
+                    }
+                ]
+            },
+            e
+        );
     }
 
     private _explainSubject(finding: ConfigurationDriftFinding) {

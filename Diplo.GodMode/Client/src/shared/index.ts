@@ -6,5 +6,6 @@ export * from "./godmode-ai-explain-host.element";
 export * from "./sort";
 export * from "./reference-links";
 export * from "./used-by-modal";
+export * from "./evidence-drawer";
 export * from "./format";
 export type * from "./types";

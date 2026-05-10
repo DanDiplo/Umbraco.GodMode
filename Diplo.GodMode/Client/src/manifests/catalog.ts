@@ -2,6 +2,7 @@ import { browserManifests, type BrowserDef } from "./browsers";
 import { menuManifests } from "./menu";
 import type { ManifestBase } from "@umbraco-cms/backoffice/extension-api";
 import { GODMODE_USED_BY_MODAL_ALIAS } from "../shared/used-by-modal";
+import { GODMODE_EVIDENCE_DRAWER_ALIAS } from "../shared/evidence-drawer";
 
 /**
  * The full set of browsers GodMode exposes. Each entry creates a menuItem +
@@ -325,6 +326,12 @@ export const allManifests: ManifestBase[] = [
         alias: GODMODE_USED_BY_MODAL_ALIAS,
         name: "GodMode Used By Modal",
         element: () => import("../elements/godmode-used-by-modal.element")
+    } as ManifestBase,
+    {
+        type: "modal",
+        alias: GODMODE_EVIDENCE_DRAWER_ALIAS,
+        name: "GodMode Evidence Drawer",
+        element: () => import("../elements/godmode-evidence-drawer.element")
     } as ManifestBase,
     ...browsers.flatMap(browserManifests)
 ];
