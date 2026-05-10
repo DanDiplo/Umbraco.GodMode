@@ -52,6 +52,16 @@ export class GodModeAiExplainModalElement extends LitElement {
         ${result.summary ? html`<p class="summary">${result.summary}</p>` : ""}
         ${this._section("What It Is", result.whatItIs)}
         ${this._section("Why It Matters", result.whyItMatters)}
+        ${result.observedDetails?.length
+          ? html`
+              <section>
+                <h2>Observed Details</h2>
+                <ul>
+                  ${result.observedDetails.map((detail) => html`<li>${detail}</li>`)}
+                </ul>
+              </section>
+            `
+          : ""}
         ${this._section("Risk", result.risk)}
         ${result.suggestedNextSteps?.length
           ? html`

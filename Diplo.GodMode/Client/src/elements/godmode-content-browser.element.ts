@@ -2,7 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
-import type { ContentItem, Lang, Page } from "../shared/types";
+import type { ContentItem, ContentMediaDetail, Lang, Page } from "../shared/types";
 import { truncate } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 
@@ -134,6 +134,39 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
+    private async _explainSubject(content: ContentItem) {
+        const detail = await godmodeGet<ContentMediaDetail>(`content/${content.id}/detail`);
+
+        return {
+            subjectType: "Umbraco content item",
+            title: `${content.name} (${content.alias})`,
+            data: {
+                id: content.id,
+                udi: content.udi,
+                name: content.name,
+                documentTypeAlias: content.alias,
+                path: content.path,
+                level: content.level,
+                parentId: content.parentId,
+                trashed: content.trashed,
+                createDate: content.createDate,
+                updateDate: content.updateDate,
+                creatorName: content.creatorName,
+                updaterName: content.updaterName,
+                cultureStates: this._cultureStates(content)
+            },
+            context: {
+                detail,
+                detailSources: [
+                    "IContentService.GetById",
+                    "IRelationService parent/child relations",
+                    "IAuditService.GetLogs",
+                    "God Mode reference graph"
+                ]
+            }
+        };
+    }
+
     override render() {
         return html`
             <godmode-page
@@ -220,6 +253,7 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                     <uui-table-head-cell>Creator</uui-table-head-cell>
                                     <uui-table-head-cell>Updated</uui-table-head-cell>
                                     <uui-table-head-cell>Trashed?</uui-table-head-cell>
+                                    <uui-table-head-cell>Actions</uui-table-head-cell>
                                 </uui-table-head>
                                 ${this._page.items.map(
                                     (c) => html`
@@ -236,6 +270,9 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                             <uui-table-cell>${c.creatorName}</uui-table-cell>
                                             <uui-table-cell><small>${truncate(c.updateDate, 22)}</small></uui-table-cell>
                                             <uui-table-cell><godmode-yes-no .value=${c.trashed}></godmode-yes-no></uui-table-cell>
+                                            <uui-table-cell class="action-cell">
+                                                <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(c)}></godmode-ai-explain-host>
+                                            </uui-table-cell>
                                         </uui-table-row>
                                     `
                                 )}
@@ -311,6 +348,14 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
         }
         .culture-chip.invariant {
             color: var(--uui-color-text-alt);
+        }
+        .action-cell {
+            text-align: right;
+            width: 7rem;
+        }
+        .action-cell godmode-ai-explain-host {
+            display: inline-flex;
+            justify-content: flex-end;
         }
         @media (max-width: 1200px) {
             .filters {

@@ -21,6 +21,8 @@ namespace Diplo.GodMode.AI.Services
 
         public string WhyItMatters { get; set; } = string.Empty;
 
+        public List<string> ObservedDetails { get; set; } = [];
+
         public string Risk { get; set; } = string.Empty;
 
         public List<string> SuggestedNextSteps { get; set; } = [];

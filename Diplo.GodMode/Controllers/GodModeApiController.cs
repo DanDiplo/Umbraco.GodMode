@@ -145,6 +145,16 @@ public class GodModeApiController : ManagementApiControllerBase
         string orderByDir = "ASC")
         => Ok(dataService.GetMediaPaged(page, pageSize, name, id, mediaTypeId, orderBy, orderByDir));
 
+    [HttpGet("media/{id:int}/detail")]
+    [ProducesResponseType<ContentMediaDetail>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ContentMediaDetail>> GetMediaDetail(int id)
+    {
+        var detail = await dataService.GetMediaDetail(id);
+
+        return detail is null ? NotFound() : Ok(detail);
+    }
+
     [HttpGet("media-types")]
     [ProducesResponseType<IEnumerable<ItemBase>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<ItemBase>> GetMediaTypes()
@@ -189,6 +199,16 @@ public class GodModeApiController : ManagementApiControllerBase
         };
 
         return Ok(dataBaseService.GetContent(page, pageSize, criteria, orderBy));
+    }
+
+    [HttpGet("content/{id:int}/detail")]
+    [ProducesResponseType<ContentMediaDetail>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ContentMediaDetail>> GetContentDetail(int id)
+    {
+        var detail = await dataService.GetContentDetail(id);
+
+        return detail is null ? NotFound() : Ok(detail);
     }
 
     [HttpGet("content-type-aliases")]

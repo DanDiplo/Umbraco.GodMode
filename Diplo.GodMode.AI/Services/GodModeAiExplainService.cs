@@ -34,10 +34,16 @@ namespace Diplo.GodMode.AI.Services
             var messages = new List<ChatMessage>
             {
                 new(ChatRole.System, """
-                    You explain Umbraco developer diagnostics clearly and concisely.
+                    You explain Umbraco developer diagnostics clearly and concisely for an experienced Umbraco developer.
                     Return only data that conforms to the supplied structured output schema.
-                    Use the supplied row data only. Do not invent hidden configuration or project details.
+                    Use both the supplied row data JSON and the additional context JSON. The additional context is usually more important than the row data.
+                    Do not invent hidden configuration or project details.
+                    Prefer concrete facts from the JSON over generic CMS advice.
+                    If a count or collection is present, mention what it shows. For example: audit trail entries, populated properties, published/edited state, relations, used-by references, and uses references.
+                    If a relevant collection is empty, say that explicitly when it affects risk or next steps.
+                    For content and media items, ground the answer in the detail object if it exists.
                     Keep the response practical: what it is, why it matters, likely risk, and next steps.
+                    Put three to six concrete facts in observedDetails. Each fact must be directly supported by the JSON.
                     Treat redacted or empty values carefully and say when there is not enough context.
                     """),
                 new(ChatRole.User, $"""

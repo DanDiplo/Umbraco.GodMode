@@ -29,6 +29,10 @@ namespace Diplo.GodMode.Services.Interfaces
 
         Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC");
 
+        Task<ContentMediaDetail?> GetContentDetail(int id);
+
+        Task<ContentMediaDetail?> GetMediaDetail(int id);
+
         IEnumerable<ItemBase> GetMediaTypes();
 
         Task<IEnumerable<DataTypeMap>> GetPropertyEditors();

@@ -125,6 +125,77 @@ export interface MediaMap extends ItemBase {
     path: string;
 }
 
+export interface ContentMediaDetail {
+    kind: "Content" | "Media" | string;
+    id: number;
+    key: string;
+    name: string;
+    contentTypeName: string;
+    contentTypeAlias: string;
+    path: string;
+    parentId: number;
+    level: number;
+    trashed: boolean;
+    createDate: string;
+    updateDate: string;
+    state: {
+        published?: boolean | null;
+        edited?: boolean | null;
+        templateId?: number | null;
+        publishedVersionId?: number | null;
+        publishDate?: string | null;
+        availableCultures: string[];
+        publishedCultures: string[];
+        editedCultures: string[];
+    };
+    mediaFile?: {
+        extension: string;
+        fileType: string;
+        size: number;
+    } | null;
+    properties: Array<{
+        alias: string;
+        name: string;
+        editorAlias: string;
+        storageType: string;
+        mandatory: boolean;
+        variations: string;
+        valueCount: number;
+        hasEditedValue: boolean;
+        hasPublishedValue: boolean;
+        cultures: string[];
+    }>;
+    incomingRelations: Array<{
+        direction: string;
+        relationTypeAlias: string;
+        relationTypeName: string;
+        relatedId: number;
+        relatedKey: string;
+        relatedName: string;
+        relatedPath: string;
+        comment: string;
+    }>;
+    outgoingRelations: Array<{
+        direction: string;
+        relationTypeAlias: string;
+        relationTypeName: string;
+        relatedId: number;
+        relatedKey: string;
+        relatedName: string;
+        relatedPath: string;
+        comment: string;
+    }>;
+    usedBy: ReferenceEdge[];
+    uses: ReferenceEdge[];
+    auditTrail: Array<{
+        auditType: string;
+        entityType: string;
+        userId: number;
+        comment: string;
+        parameters: string;
+    }>;
+}
+
 export interface MemberModel {
     id: number;
     username: string;

@@ -2,7 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
-import type { ItemBase, MediaMap, Page } from "../shared/types";
+import type { ContentMediaDetail, ItemBase, MediaMap, Page } from "../shared/types";
 import { formatBytes, truncate } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 
@@ -48,6 +48,36 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
         this._currentPage = e.detail;
         void this._fetch();
     };
+
+    private async _explainSubject(media: MediaMap) {
+        const detail = await godmodeGet<ContentMediaDetail>(`media/${media.id}/detail`);
+
+        return {
+            subjectType: "Umbraco media item",
+            title: `${media.name} (${media.type})`,
+            data: {
+                id: media.id,
+                udi: media.udi,
+                name: media.name,
+                mediaTypeName: media.alias,
+                fileType: media.type,
+                extension: media.ext,
+                size: media.size,
+                path: media.path,
+                createDate: media.createDate,
+                updateDate: media.updateDate
+            },
+            context: {
+                detail,
+                detailSources: [
+                    "IMediaService.GetById",
+                    "IRelationService parent/child relations",
+                    "IAuditService.GetLogs",
+                    "God Mode reference graph"
+                ]
+            }
+        };
+    }
 
     override render() {
         return html`
@@ -107,6 +137,7 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                                     <uui-table-head-cell>Ext</uui-table-head-cell>
                                     <uui-table-head-cell>Size</uui-table-head-cell>
                                     <uui-table-head-cell>Updated</uui-table-head-cell>
+                                    <uui-table-head-cell>Actions</uui-table-head-cell>
                                 </uui-table-head>
                                 ${this._page.items.map(
                                     (m) => html`
@@ -122,6 +153,9 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                                             <uui-table-cell><code>${m.ext ?? ""}</code></uui-table-cell>
                                             <uui-table-cell>${formatBytes(m.size)}</uui-table-cell>
                                             <uui-table-cell><small>${truncate(m.updateDate, 22)}</small></uui-table-cell>
+                                            <uui-table-cell class="action-cell">
+                                                <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(m)}></godmode-ai-explain-host>
+                                            </uui-table-cell>
                                         </uui-table-row>
                                     `
                                 )}
@@ -160,6 +194,14 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
         }
         a:hover {
             text-decoration: underline;
+        }
+        .action-cell {
+            text-align: right;
+            width: 7rem;
+        }
+        .action-cell godmode-ai-explain-host {
+            display: inline-flex;
+            justify-content: flex-end;
         }
     `;
 }

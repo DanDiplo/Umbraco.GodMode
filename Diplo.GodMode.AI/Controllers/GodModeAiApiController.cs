@@ -1,6 +1,5 @@
 using Asp.Versioning;
 using Diplo.GodMode.AI.Services;
-using Diplo.GodMode.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,26 +15,12 @@ namespace Diplo.GodMode.AI.Controllers
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     public class GodModeAiApiController : ManagementApiControllerBase
     {
-        private readonly IGodModeAiAnalysisService analysisService;
         private readonly IGodModeAiExplainService explainService;
 
-        public GodModeAiApiController(
-            IGodModeAiAnalysisService analysisService,
-            IGodModeAiExplainService explainService)
+        public GodModeAiApiController(IGodModeAiExplainService explainService)
         {
-            this.analysisService = analysisService;
             this.explainService = explainService;
         }
-
-        [HttpPost("schema-health")]
-        [ProducesResponseType<GodModeAnalysisResult>(StatusCodes.Status200OK)]
-        public async Task<ActionResult<GodModeAnalysisResult>> AnalyzeSchemaHealth(CancellationToken cancellationToken)
-            => Ok(await analysisService.AnalyzeSchemaHealthAsync(cancellationToken));
-
-        [HttpPost("fix-plan")]
-        [ProducesResponseType<GodModeAnalysisResult>(StatusCodes.Status200OK)]
-        public async Task<ActionResult<GodModeAnalysisResult>> CreateFixPlan(CancellationToken cancellationToken)
-            => Ok(await analysisService.CreateFixPlanAsync(cancellationToken));
 
         [HttpPost("explain")]
         [ProducesResponseType<GodModeAiExplainResponse>(StatusCodes.Status200OK)]

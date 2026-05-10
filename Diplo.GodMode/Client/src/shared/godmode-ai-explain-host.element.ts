@@ -7,11 +7,14 @@ export interface GodModeAiExplainSubject {
     context?: Record<string, unknown>;
 }
 
+export type GodModeAiExplainSubjectProvider = () => GodModeAiExplainSubject | Promise<GodModeAiExplainSubject>;
+
 const AI_EXPLAIN_BUTTON_TAG = "godmode-ai-explain-button";
 
 @customElement("godmode-ai-explain-host")
 export class GodModeAiExplainHostElement extends LitElement {
     @property({ type: Object, attribute: false }) subject?: GodModeAiExplainSubject;
+    @property({ attribute: false }) subjectProvider?: GodModeAiExplainSubjectProvider;
 
     @state() private _isAiExplainAvailable = customElements.get(AI_EXPLAIN_BUTTON_TAG) !== undefined;
 
@@ -26,9 +29,9 @@ export class GodModeAiExplainHostElement extends LitElement {
     }
 
     override render() {
-        if (!this.subject || !this._isAiExplainAvailable) return html``;
+        if ((!this.subject && !this.subjectProvider) || !this._isAiExplainAvailable) return html``;
 
-        return html`<godmode-ai-explain-button .subject=${this.subject}></godmode-ai-explain-button>`;
+        return html`<godmode-ai-explain-button .subject=${this.subject} .subjectProvider=${this.subjectProvider}></godmode-ai-explain-button>`;
     }
 }
 

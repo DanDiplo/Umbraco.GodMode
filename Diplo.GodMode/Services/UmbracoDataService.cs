@@ -30,6 +30,8 @@ namespace Diplo.GodMode.Services
         private readonly IMemberTypeService memberTypeService;
         private readonly ITemplateService templateService;
         private readonly IMediaService mediaService;
+        private readonly IAuditService auditService;
+        private readonly IRelationService relationService;
         private readonly IScopeProvider scopeProvider;
         private readonly ITagService tagService;
         private readonly ILanguageService languageService;
@@ -37,7 +39,7 @@ namespace Diplo.GodMode.Services
         private readonly IConfigurationEditorJsonSerializer serializer;
         private readonly GodModeConfig godModeConfig;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -45,6 +47,8 @@ namespace Diplo.GodMode.Services
             this.memberTypeService = memberTypeService;
             this.templateService = templateService;
             this.mediaService = mediaService;
+            this.auditService = auditService;
+            this.relationService = relationService;
             this.scopeProvider = scopeProvider;
             this.tagService = tagService;
             this.contentService = contentService;
@@ -794,6 +798,150 @@ namespace Diplo.GodMode.Services
 
             return paged;
         }
+
+        public async Task<ContentMediaDetail?> GetContentDetail(int id)
+        {
+            var content = this.contentService.GetById(id);
+            if (content is null)
+            {
+                return null;
+            }
+
+            return new ContentMediaDetail
+            {
+                Kind = "Content",
+                Id = content.Id,
+                Key = content.Key,
+                Name = content.Name ?? string.Empty,
+                ContentTypeName = content.ContentType.Name ?? string.Empty,
+                ContentTypeAlias = content.ContentType.Alias,
+                Path = content.Path,
+                ParentId = content.ParentId,
+                Level = content.Level,
+                Trashed = content.Trashed,
+                CreateDate = content.CreateDate,
+                UpdateDate = content.UpdateDate == default ? content.CreateDate : content.UpdateDate,
+                State = new ContentStateDetail
+                {
+                    Published = content.Published,
+                    Edited = content.Edited,
+                    TemplateId = content.TemplateId,
+                    PublishedVersionId = content.PublishedVersionId,
+                    PublishDate = content.PublishDate,
+                    AvailableCultures = content.AvailableCultures ?? [],
+                    PublishedCultures = content.PublishedCultures ?? [],
+                    EditedCultures = content.EditedCultures ?? []
+                },
+                Properties = this.PropertySummaries(content.Properties),
+                IncomingRelations = this.RelationSummaries(id, incoming: true),
+                OutgoingRelations = this.RelationSummaries(id, incoming: false),
+                UsedBy = await this.GetUsedBy("Content Node", content.Key.ToString()),
+                Uses = await this.GetUses("Content Node", content.Key.ToString()),
+                AuditTrail = await this.AuditSummaries(id)
+            };
+        }
+
+        public async Task<ContentMediaDetail?> GetMediaDetail(int id)
+        {
+            var media = this.mediaService.GetById(id);
+            if (media is null)
+            {
+                return null;
+            }
+
+            var extension = FileTypeHelper.GetExtensionFromMedia(media);
+
+            return new ContentMediaDetail
+            {
+                Kind = "Media",
+                Id = media.Id,
+                Key = media.Key,
+                Name = media.Name ?? string.Empty,
+                ContentTypeName = media.ContentType.Name ?? string.Empty,
+                ContentTypeAlias = media.ContentType.Alias,
+                Path = media.Path,
+                ParentId = media.ParentId,
+                Level = media.Level,
+                Trashed = media.Trashed,
+                CreateDate = media.CreateDate,
+                UpdateDate = media.UpdateDate == default ? media.CreateDate : media.UpdateDate,
+                MediaFile = new MediaFileDetail
+                {
+                    Extension = extension,
+                    FileType = FileTypeHelper.GetFileTypeName(extension, media),
+                    Size = FileTypeHelper.GetFileSize(media)
+                },
+                Properties = this.PropertySummaries(media.Properties),
+                IncomingRelations = this.RelationSummaries(id, incoming: true),
+                OutgoingRelations = this.RelationSummaries(id, incoming: false),
+                UsedBy = await this.GetUsedBy("Media", media.Key.ToString()),
+                Uses = await this.GetUses("Media", media.Key.ToString()),
+                AuditTrail = await this.AuditSummaries(id)
+            };
+        }
+
+        private IEnumerable<PropertyValueSummary> PropertySummaries(IPropertyCollection properties)
+            => properties.Select(property => new PropertyValueSummary
+            {
+                Alias = property.Alias,
+                Name = property.PropertyType.Name ?? property.Alias,
+                EditorAlias = property.PropertyType.PropertyEditorAlias,
+                StorageType = property.ValueStorageType.ToString(),
+                Mandatory = property.PropertyType.Mandatory,
+                Variations = property.PropertyType.Variations.ToString(),
+                ValueCount = property.Values.Count,
+                HasEditedValue = property.Values.Any(value => !this.IsEmptyPropertyValue(value.EditedValue)),
+                HasPublishedValue = property.Values.Any(value => !this.IsEmptyPropertyValue(value.PublishedValue)),
+                Cultures = property.Values
+                    .Select(value => value.Culture)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Select(value => value!)
+                    .Distinct()
+                    .OrderBy(x => x)
+            }).OrderBy(x => x.Alias);
+
+        private bool IsEmptyPropertyValue(object? value)
+            => value is null || (value is string stringValue && string.IsNullOrWhiteSpace(stringValue));
+
+        private IEnumerable<RelationSummary> RelationSummaries(int id, bool incoming)
+        {
+            var relations = incoming ? this.relationService.GetByChildId(id) : this.relationService.GetByParentId(id);
+
+            return relations
+                .Take(25)
+                .Select(relation =>
+                {
+                    var related = incoming
+                        ? this.relationService.GetParentEntityFromRelation(relation)
+                        : this.relationService.GetChildEntityFromRelation(relation);
+
+                    return new RelationSummary
+                    {
+                        Direction = incoming ? "Incoming" : "Outgoing",
+                        RelationTypeAlias = relation.RelationType.Alias,
+                        RelationTypeName = relation.RelationType.Name,
+                        RelatedId = related?.Id ?? (incoming ? relation.ParentId : relation.ChildId),
+                        RelatedKey = related?.Key ?? Guid.Empty,
+                        RelatedName = related?.Name ?? string.Empty,
+                        RelatedPath = related?.Path ?? string.Empty,
+                        Comment = relation.Comment ?? string.Empty
+                    };
+                })
+                .OrderBy(x => x.RelationTypeAlias)
+                .ThenBy(x => x.RelatedName);
+        }
+
+        private async Task<IEnumerable<AuditSummary>> AuditSummaries(int id)
+            => (await this.auditService.GetItemsByEntityAsync(id, 0, 10, Direction.Descending, [], null))
+                .Items
+                .Select(item => new AuditSummary
+                {
+                    AuditType = item.AuditType.ToString(),
+                    EntityType = item.EntityType ?? string.Empty,
+                    UserId = item.UserId,
+                    Comment = item.Comment ?? string.Empty,
+                    Parameters = item.Parameters ?? string.Empty
+                });
 
         public IEnumerable<ItemBase> GetMediaTypes()
         {

@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Initial optional Umbraco.AI schema analysis companion package.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optional Umbraco.AI companion package for contextual God Mode explanations.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <CompressionEnabled>false</CompressionEnabled>
     <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
