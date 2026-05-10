@@ -188,7 +188,7 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
                         <uui-button look="secondary" color="danger" label="Delete" ?disabled=${busy} @click=${() => void this._delete(item)}>
                             Delete
                         </uui-button>
-                        <godmode-ai-explain-button .subject=${this._explainSubject(item, draft)}></godmode-ai-explain-button>
+                        <godmode-ai-explain-host .subject=${this._explainSubject(item, draft)}></godmode-ai-explain-host>
                     </div>
                 </uui-table-cell>
             </uui-table-row>

@@ -231,6 +231,7 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                                   <godmode-sort-header column="lifetime" .sort=${this._sort}>Lifetime</godmode-sort-header>
                                   <uui-table-head-cell>Flags</uui-table-head-cell>
                                   <godmode-sort-header column="key" .sort=${this._sort}>Key</godmode-sort-header>
+                                  <uui-table-head-cell>Actions</uui-table-head-cell>
                               </uui-table-head>
                               ${results.map((s, index) => this._renderRow(s, index, multiRegisteredNames, possibleOverrideNames))}
                           </uui-table>
@@ -260,11 +261,14 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                     </span>
                 </uui-table-cell>
                 <uui-table-cell><small>${s.key ?? ""}</small></uui-table-cell>
+                <uui-table-cell class="action-cell" @click=${(e: Event) => e.stopPropagation()}>
+                    <godmode-ai-explain-host .subject=${this._explainSubject(s, source, isMultiRegistered, isPossibleOverride)}></godmode-ai-explain-host>
+                </uui-table-cell>
             </uui-table-row>
             ${this._expanded.has(id)
                 ? html`
                       <uui-table-row class="details">
-                          <uui-table-cell colspan="5">
+                          <uui-table-cell colspan="6">
                               <dl>
                                   <dt>Service namespace</dt>
                                   <dd>${s.namespace ?? ""}</dd>
@@ -280,6 +284,28 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                   `
                 : ""}
         `;
+    }
+
+    private _explainSubject(s: RegisteredService, source: string, isMultiRegistered: boolean, isPossibleOverride: boolean) {
+        return {
+            subjectType: "ASP.NET Core dependency injection registration",
+            title: s.name ?? s.implementName ?? "Registered service",
+            data: {
+                serviceName: s.name,
+                serviceNamespace: s.namespace,
+                serviceFullName: s.fullName,
+                implementationName: s.implementName,
+                implementationNamespace: s.implementNamespace,
+                implementationFullName: s.implementFullName,
+                lifetime: s.lifetime,
+                key: s.key,
+                source,
+                isPublic: s.isPublic,
+                isKeyed: !!s.key,
+                isMultiRegistered,
+                isPossibleOverride
+            }
+        };
     }
 
     static override styles = css`
@@ -367,6 +393,15 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
         .details {
             cursor: default;
             background: var(--uui-color-surface-alt);
+        }
+        .action-cell {
+            cursor: default;
+            text-align: right;
+            width: 7rem;
+        }
+        .action-cell godmode-ai-explain-host {
+            --uui-button-padding-left-factor: 1;
+            --uui-button-padding-right-factor: 1;
         }
         dl {
             display: grid;

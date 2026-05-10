@@ -154,12 +154,6 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
     }
 
-    private _formatDate(value: string | null): string {
-        if (!value) return "";
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-    }
-
     override render() {
         return html`
             <godmode-page heading="Utilities" description="Clear caches, restart the application, warm up templates.">

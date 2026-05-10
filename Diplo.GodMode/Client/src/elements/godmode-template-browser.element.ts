@@ -123,6 +123,7 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
                             <uui-icon name="icon-edit"></uui-icon>
                             Edit
                         </uui-button>
+                        <godmode-ai-explain-host .subject=${this._explainSubject(t)}></godmode-ai-explain-host>
                     </span>
                 </div>
                 ${isOpen
@@ -194,6 +195,37 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
                     : ""}
             </uui-box>
         `;
+    }
+
+    private _explainSubject(t: TemplateModel) {
+        return {
+            subjectType: "Umbraco template",
+            title: `${t.name} (${t.alias})`,
+            data: {
+                id: t.id,
+                name: t.name,
+                alias: t.alias,
+                udi: t.udi,
+                masterAlias: t.masterAlias,
+                hasCorrectMaster: t.hasCorrectMaster,
+                virtualPath: t.virtualPath,
+                filePath: t.filePath,
+                parentTemplates: (t.parents ?? []).map((parent) => ({
+                    name: parent.name,
+                    alias: parent.alias,
+                    udi: parent.udi
+                })),
+                partials: (t.partials ?? []).map((partial) => ({
+                    name: partial.name,
+                    path: partial.path
+                })),
+                viewComponents: (t.viewComponents ?? []).map((component) => ({
+                    name: component.name,
+                    parameters: component.parameters,
+                    tagHelper: component.tagHelper
+                }))
+            }
+        };
     }
 
     static override styles = css`

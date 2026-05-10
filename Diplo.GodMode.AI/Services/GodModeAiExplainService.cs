@@ -51,6 +51,9 @@ namespace Diplo.GodMode.AI.Services
 
                     Row data JSON:
                     {JsonSerializer.Serialize(request.Data, JsonOptions)}
+
+                    Additional context JSON:
+                    {SerializeContext(request.Context)}
                     """)
             };
 
@@ -112,6 +115,11 @@ namespace Diplo.GodMode.AI.Services
                 Temperature = config.Temperature
             };
         }
+
+        private static string SerializeContext(JsonElement? context)
+            => context.HasValue && context.Value.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null
+                ? JsonSerializer.Serialize(context.Value, JsonOptions)
+                : "{}";
 
         private static string ExtractJson(string text)
         {

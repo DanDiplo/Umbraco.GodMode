@@ -166,9 +166,9 @@ export class GodModeDiagnosticBrowserElement extends UmbElementMixin(LitElement)
                                                     <uui-table-cell><strong>${d.key}</strong></uui-table-cell>
                                                     <uui-table-cell class="value-cell"><code>${d.value == null ? "—" : String(d.value)}</code></uui-table-cell>
                                                     <uui-table-cell class="action-cell">
-                                                        <godmode-ai-explain-button
+                                                        <godmode-ai-explain-host
                                                             .subject=${this._explainSubject(group.title, sec.heading, d)}
-                                                        ></godmode-ai-explain-button>
+                                                        ></godmode-ai-explain-host>
                                                     </uui-table-cell>
                                                 </uui-table-row>
                                             `

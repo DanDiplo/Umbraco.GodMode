@@ -128,6 +128,7 @@ export class GodModeHealthRiskBrowserElement extends UmbElementMixin(LitElement)
                     <godmode-sort-header column="entityName" .sort=${this._sort}>Entity</godmode-sort-header>
                     <godmode-sort-header column="title" .sort=${this._sort}>Finding</godmode-sort-header>
                     <uui-table-head-cell>Recommendation</uui-table-head-cell>
+                    <uui-table-head-cell>Actions</uui-table-head-cell>
                 </uui-table-head>
                 ${results.map(
                     (finding) => html`
@@ -145,11 +146,32 @@ export class GodModeHealthRiskBrowserElement extends UmbElementMixin(LitElement)
                                 <small>${finding.detail}</small>
                             </uui-table-cell>
                             <uui-table-cell><small>${finding.recommendation}</small></uui-table-cell>
+                            <uui-table-cell class="action-cell">
+                                <godmode-ai-explain-host .subject=${this._explainSubject(finding)}></godmode-ai-explain-host>
+                            </uui-table-cell>
                         </uui-table-row>
                     `
                 )}
             </uui-table>
         `;
+    }
+
+    private _explainSubject(finding: HealthRiskFinding) {
+        return {
+            subjectType: "God Mode health and risk finding",
+            title: finding.title,
+            data: {
+                severity: finding.severity,
+                score: finding.score,
+                category: finding.category,
+                title: finding.title,
+                detail: finding.detail,
+                entityType: finding.entityType,
+                entityName: finding.entityName,
+                entityAlias: finding.entityAlias,
+                recommendation: finding.recommendation
+            }
+        };
     }
 
     static override styles = css`
@@ -238,6 +260,14 @@ export class GodModeHealthRiskBrowserElement extends UmbElementMixin(LitElement)
         }
         .info {
             background: #6c757d;
+        }
+        .action-cell {
+            text-align: right;
+            width: 7rem;
+        }
+        .action-cell godmode-ai-explain-host {
+            --uui-button-padding-left-factor: 1;
+            --uui-button-padding-right-factor: 1;
         }
         @media (max-width: 900px) {
             .summary,

@@ -181,7 +181,10 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                                           <uui-table-cell><godmode-yes-no .value=${d.isUsed}></godmode-yes-no></uui-table-cell>
                                           <uui-table-cell><godmode-yes-no .value=${d.isNestedUsed}></godmode-yes-no></uui-table-cell>
                                           <uui-table-cell><small>${truncate(d.updateDate, 22)}</small></uui-table-cell>
-                                          <uui-table-cell class="action-cell">${this._renderUsedByAction(d)}</uui-table-cell>
+                                          <uui-table-cell class="action-cell">
+                                              ${this._renderUsedByAction(d)}
+                                              <godmode-ai-explain-host .subject=${this._explainSubject(d)}></godmode-ai-explain-host>
+                                          </uui-table-cell>
                                           <uui-table-cell>
                                               <div><strong>${d.id}</strong></div>
                                               <code>${d.udi}</code>
@@ -225,6 +228,23 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
+    private _explainSubject(d: DataTypeMap) {
+        return {
+            subjectType: "Umbraco data type",
+            title: `${d.name} (${d.alias})`,
+            data: {
+                id: d.id,
+                name: d.name,
+                editorAlias: d.alias,
+                databaseType: d.dbType,
+                udi: d.udi,
+                isUsedByDocumentOrMediaTypes: d.isUsed,
+                isNestedUsedInBlocks: d.isNestedUsed,
+                updateDate: d.updateDate
+            }
+        };
+    }
+
     static override styles = css`
         .filters {
             display: grid;
@@ -260,9 +280,11 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
         }
         .action-cell {
             display: flex;
+            gap: var(--uui-size-space-2);
             justify-content: flex-end;
         }
-        .action-cell uui-button {
+        .action-cell uui-button,
+        .action-cell godmode-ai-explain-host {
             --uui-button-padding-left-factor: 1;
             --uui-button-padding-right-factor: 1;
         }

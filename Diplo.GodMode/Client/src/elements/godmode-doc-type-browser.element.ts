@@ -204,7 +204,7 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <uui-icon name="icon-edit"></uui-icon>
                             Edit
                         </uui-button>
-                        <godmode-ai-explain-button .subject=${this._explainSubject(ct)}></godmode-ai-explain-button>
+                        <godmode-ai-explain-host .subject=${this._explainSubject(ct)}></godmode-ai-explain-host>
                     </span>
                 </div>
                 ${isOpen ? this._renderDetail(ct) : ""}

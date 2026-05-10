@@ -156,6 +156,7 @@ export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement
                                     <uui-icon name="icon-link"></uui-icon>
                                     Used by
                                 </uui-button>
+                                <godmode-ai-explain-host .subject=${this._explainSubject(finding)}></godmode-ai-explain-host>
                             </uui-table-cell>
                         </uui-table-row>
                     `
@@ -166,6 +167,26 @@ export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement
 
     private _list(values: string[]) {
         return values?.length ? html`<ul>${values.map((value) => html`<li>${value}</li>`)}</ul>` : html`<small>None</small>`;
+    }
+
+    private _explainSubject(finding: ConfigurationDriftFinding) {
+        return {
+            subjectType: "God Mode configuration drift finding",
+            title: `${finding.entityName} drift`,
+            data: {
+                severity: finding.severity,
+                score: finding.score,
+                category: finding.category,
+                entityType: finding.entityType,
+                entityName: finding.entityName,
+                entityAlias: finding.entityAlias,
+                entityKey: finding.entityKey,
+                comparedWith: finding.comparedWith,
+                differingFields: finding.differingFields,
+                summary: finding.summary,
+                recommendation: finding.recommendation
+            }
+        };
     }
 
     static override styles = css`
@@ -266,9 +287,11 @@ export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement
         }
         .action-cell {
             display: flex;
+            gap: var(--uui-size-space-2);
             justify-content: flex-end;
         }
-        .action-cell uui-button {
+        .action-cell uui-button,
+        .action-cell godmode-ai-explain-host {
             --uui-button-padding-left-factor: 1;
             --uui-button-padding-right-factor: 1;
         }

@@ -9,6 +9,8 @@ namespace Diplo.GodMode.AI.Services
         public string Title { get; set; } = string.Empty;
 
         public JsonElement Data { get; set; }
+
+        public JsonElement? Context { get; set; }
     }
 
     public class GodModeAiExplainResponse

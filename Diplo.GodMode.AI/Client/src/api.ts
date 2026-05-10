@@ -37,6 +37,7 @@ export interface GodModeAiExplainSubject {
   subjectType: string;
   title: string;
   data: Record<string, unknown>;
+  context?: Record<string, unknown>;
 }
 
 export interface GodModeAiExplainResponse {

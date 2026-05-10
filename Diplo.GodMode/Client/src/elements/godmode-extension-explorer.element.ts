@@ -21,6 +21,72 @@ interface ExtensionRow {
 }
 
 const FEATURE_TYPES = ["section", "menu", "menuItem", "workspace", "workspaceView", "dashboard", "propertyEditorUi", "tree", "sectionSidebarApp"];
+const GODMODE_MENU_ALIAS = "Diplo.Menu.GodMode";
+const UMB_WORKSPACE_CONDITION_ALIAS = "Umb.Condition.WorkspaceAlias";
+const UMBRACO_EXTENSION_TYPES_DOCS_URL = "https://docs.umbraco.com/umbraco-cms/customizing/extending-overview/extension-types";
+const UMBRACO_EXTENSION_CONDITIONS_DOCS_URL = "https://docs.umbraco.com/umbraco-cms/customizing/extending-overview/extension-types/condition#built-in-conditions-types";
+const EXTENSION_TYPE_REFERENCE: Record<string, string> = {
+    appEntryPoint: "Runs JavaScript when an Umbraco app loads, including Login, Installer, Upgrader, and Backoffice. It is long-lived.",
+    backofficeEntryPoint: "Runs JavaScript when the backoffice initializes and can register package extensions, custom elements, and lifecycle behavior.",
+    blockEditorCustomView: "Defines a custom web component used to render blocks inside a block editor.",
+    bundle: "Groups multiple extension manifests so they can be loaded together.",
+    condition: "Controls when and where other UI extensions are available.",
+    currentUserAction: "Adds an action to the current user view.",
+    dashboard: "Adds an informational or functional view to an Umbraco section dashboard.",
+    dashboardCollection: "Adds a dashboard-like view to a collection.",
+    dynamicRootOrigin: "Adds an origin option for Dynamic Root selection.",
+    dynamicRootQueryStep: "Adds a query step for Dynamic Root selection.",
+    entityAction: "Adds an operation to an entity action menu, such as actions on content, media, members, or other entities.",
+    entityBulkAction: "Adds an operation for selected entities in a collection bulk actions menu.",
+    entryPoint: "Deprecated older name for backofficeEntryPoint.",
+    fileUploadPreview: "Adds a component for previewing uploaded media files.",
+    globalContext: "Provides shared state, data, or functions that can be consumed across the backoffice session.",
+    granularUserPermissions: "Defines custom permission behavior for access control in the backoffice.",
+    headerApp: "Adds a single-purpose component to the top-level backoffice header.",
+    healthCheck: "Adds a check to Umbraco's health check area.",
+    icons: "Registers a custom icon set for use in the backoffice and UI components.",
+    localization: "Registers translation files and strings for backoffice UI extensions.",
+    menu: "Defines a menu container that menu items can be placed inside.",
+    menuItem: "Adds a navigation item to a menu, often used with an entity type to open a workspace.",
+    mfaLoginProvider: "Adds a backoffice UI for enabling or disabling a two-factor authentication provider.",
+    modal: "Registers a dialog or sidebar surface that other components can open.",
+    monacoMarkdownEditorAction: "Adds an action to the Monaco Markdown editor toolbar.",
+    packageView: "Adds a view shown in the Packages section for package information or management.",
+    previewAppProvider: "Provides a preview app option for Save and Preview on documents.",
+    propertyAction: "Adds an action to a property action menu.",
+    propertyEditorSchema: "Describes a data editor and its configuration from the backend to the UI.",
+    propertyEditorUi: "Provides the UI used to render a data editor on content types.",
+    propertyValuePreset: "Customizes default property editor values and can use hooks for dynamic behavior.",
+    searchProvider: "Provides search results for the backoffice search experience.",
+    searchResultItem: "Provides custom rendering for a backoffice search result item.",
+    section: "Adds a top-level backoffice navigation section alongside areas such as Content, Media, and Settings.",
+    sectionSidebarApp: "Adds a sidebar contribution to a section, commonly to expose a menu.",
+    theme: "Registers backoffice theme styles users can select.",
+    tiptapExtension: "Adds functionality to the Tiptap rich text editor.",
+    tiptapToolbarExtension: "Adds a toolbar control to the Tiptap rich text editor.",
+    tree: "Adds a hierarchical node structure, such as a content, media, or custom tree.",
+    workspace: "Provides a routed work area for editing, inspecting, or managing an entity type.",
+    workspaceView: "Adds a view or tab inside a workspace, scoped by a workspace alias condition."
+};
+const BUILT_IN_CONDITION_REFERENCE: Record<string, string> = {
+    "Umb.Condition.Switch": "Toggles availability on and off based on a configured frequency in seconds.",
+    "Umb.Condition.MultipleAppLanguages": "Requires the app to have more than one language.",
+    "Umb.Condition.SectionAlias": "Requires the current section alias to match the configured value.",
+    "Umb.Condition.MenuAlias": "Requires the current menu alias to match the configured value.",
+    "Umb.Condition.WorkspaceAlias": "Requires the current workspace alias to match the configured value.",
+    "Umb.Condition.WorkspaceEntityType": "Requires the current workspace to work on the configured entity type, such as document, block, or user.",
+    "Umb.Condition.WorkspaceContentTypeAlias": "Requires the current workspace to be based on a content type with the configured alias.",
+    "Umb.Condition.WorkspaceContentTypeUnique": "Requires the current workspace to be based on a uniquely matching content type.",
+    "Umb.Condition.Workspace.ContentHasProperties": "Requires the content type of the current workspace to have properties.",
+    "Umb.Condition.WorkspaceHasCollection": "Requires the current workspace to have a collection.",
+    "Umb.Condition.WorkspaceEntityIsNew": "Requires the current workspace data to be new and not yet persisted.",
+    "Umb.Condition.EntityIsTrashed": "Requires the current entity to be trashed.",
+    "Umb.Condition.EntityIsNotTrashed": "Requires the current entity not to be trashed.",
+    "Umb.Condition.SectionUserPermission": "Requires the current user to have permissions for the configured section alias.",
+    "Umb.Condition.UserPermission.Document": "Requires the current user to have specific document permissions.",
+    "Umb.Condition.CurrentUser.GroupId": "Requires the current user to belong to matching user groups, using match, oneOf, allOf, or noneOf GUID values.",
+    "Umb.Condition.CurrentUser.IsAdmin": "Requires the current user to be an administrator."
+};
 
 @customElement("godmode-extension-explorer")
 export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement) {
@@ -91,6 +157,21 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
                 return `${c.alias ?? "condition"}${details ? ` (${details})` : ""}`;
             })
             .join("; ");
+    }
+
+    private _conditionSummaries(value: unknown) {
+        if (!Array.isArray(value)) return [];
+
+        return value.map((condition) => {
+            const config = this._record(condition);
+            const alias = String(config.alias ?? "");
+            return {
+                alias,
+                description: BUILT_IN_CONDITION_REFERENCE[alias] ?? "Custom or package-provided condition.",
+                configuration: Object.fromEntries(Object.entries(config).filter(([key]) => key !== "alias")),
+                isBuiltIn: alias in BUILT_IN_CONDITION_REFERENCE
+            };
+        });
     }
 
     private _summarizeMeta(meta: Record<string, unknown>): string {
@@ -235,6 +316,9 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
             ${this._expanded.has(item.alias)
                 ? html`
                       <div class="details">
+                          <div class="detail-actions">
+                              <godmode-ai-explain-host .subject=${this._explainSubject(item)}></godmode-ai-explain-host>
+                          </div>
                           <dl>
                               <dt>Meta</dt>
                               <dd>${item.meta || "None"}</dd>
@@ -245,6 +329,215 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
                   `
                 : ""}
         `;
+    }
+
+    private _explainSubject(item: ExtensionRow) {
+        const manifest = item.manifest;
+        const meta = this._record(manifest.meta);
+        const relationships = this._extensionRelationships(item);
+        return {
+            subjectType: "Umbraco backoffice extension manifest",
+            title: item.alias,
+            data: {
+                alias: item.alias,
+                type: item.type,
+                kind: item.kind,
+                name: item.name,
+                label: meta.label,
+                icon: meta.icon,
+                pathname: meta.pathname,
+                entityType: meta.entityType,
+                weight: item.weight,
+                sourcePackage: item.package,
+                conditions: item.conditions,
+                conditionCount: item.conditionCount,
+                conditionSummary: this._conditionSummaries(manifest.conditions),
+                metaSummary: item.meta,
+                likelyPurpose: this._extensionPurpose(item)
+            },
+            context: {
+                relatedExtensions: relationships,
+                rawManifest: JSON.parse(JSON.stringify(manifest, this._jsonReplacer)),
+                docsReference: this._docsReference(item),
+                umbracoExtensionConcepts: this._extensionConcepts(item),
+                likelyCoreUiFeature: FEATURE_TYPES.includes(item.type),
+                inferredSourcePackage: item.package
+            }
+        };
+    }
+
+    private _extensionRelationships(item: ExtensionRow) {
+        const manifest = item.manifest;
+        const meta = this._record(manifest.meta);
+
+        if (item.type === "menuItem") {
+            const entityType = typeof meta.entityType === "string" ? meta.entityType : "";
+            const workspaces = this._items
+                .filter((candidate) => candidate.type === "workspace" && this._record(candidate.manifest.meta).entityType === entityType)
+                .map((workspace) => this._summarizeRelatedExtension(workspace));
+            const workspaceViews = workspaces.flatMap((workspace) => this._workspaceViewsForAlias(workspace.alias));
+
+            return {
+                opensEntityType: entityType,
+                appearsInMenus: Array.isArray(meta.menus) ? meta.menus : [],
+                isGodModeMenuItem: Array.isArray(meta.menus) && meta.menus.includes(GODMODE_MENU_ALIAS),
+                relatedWorkspaces: workspaces,
+                relatedWorkspaceViews: workspaceViews
+            };
+        }
+
+        if (item.type === "workspace") {
+            const entityType = typeof meta.entityType === "string" ? meta.entityType : "";
+            const menuItems = this._items
+                .filter((candidate) => candidate.type === "menuItem" && this._record(candidate.manifest.meta).entityType === entityType)
+                .map((menuItem) => this._summarizeRelatedExtension(menuItem));
+
+            return {
+                hostsEntityType: entityType,
+                openedByMenuItems: menuItems,
+                workspaceViews: this._workspaceViewsForAlias(item.alias)
+            };
+        }
+
+        if (item.type === "workspaceView") {
+            const workspaceAlias = this._workspaceAliasFromConditions(manifest.conditions);
+            const workspace = workspaceAlias ? this._items.find((candidate) => candidate.alias === workspaceAlias) : undefined;
+
+            return {
+                belongsToWorkspaceAlias: workspaceAlias,
+                belongsToWorkspace: workspace ? this._summarizeRelatedExtension(workspace) : null,
+                routePathname: meta.pathname,
+                viewLabel: meta.label
+            };
+        }
+
+        if (item.type === "sectionSidebarApp") {
+            return {
+                mountsMenuAlias: meta.menu,
+                sectionConditions: manifest.conditions,
+                exposesGodModeMenu: meta.menu === GODMODE_MENU_ALIAS
+            };
+        }
+
+        return {};
+    }
+
+    private _workspaceViewsForAlias(workspaceAlias: string) {
+        return this._items
+            .filter((candidate) => candidate.type === "workspaceView" && this._workspaceAliasFromConditions(candidate.manifest.conditions) === workspaceAlias)
+            .map((view) => this._summarizeRelatedExtension(view));
+    }
+
+    private _workspaceAliasFromConditions(value: unknown): string {
+        if (!Array.isArray(value)) return "";
+        const condition = value.map((item) => this._record(item)).find((item) => item.alias === UMB_WORKSPACE_CONDITION_ALIAS);
+        return typeof condition?.match === "string" ? condition.match : "";
+    }
+
+    private _summarizeRelatedExtension(item: ExtensionRow) {
+        const meta = this._record(item.manifest.meta);
+        return {
+            alias: item.alias,
+            type: item.type,
+            name: item.name,
+            label: meta.label,
+            pathname: meta.pathname,
+            entityType: meta.entityType,
+            icon: meta.icon,
+            weight: item.weight,
+            sourcePackage: item.package
+        };
+    }
+
+    private _extensionPurpose(item: ExtensionRow) {
+        const manifest = item.manifest;
+        const meta = this._record(manifest.meta);
+        const label = typeof meta.label === "string" ? meta.label : item.name || item.alias;
+
+        switch (item.type) {
+            case "menu":
+                return `Defines a named menu container that other menu items can appear inside.`;
+            case "sectionSidebarApp":
+                return `Mounts a sidebar app, usually to expose a menu in one or more Umbraco sections.`;
+            case "menuItem":
+                return `Adds the "${label}" navigation item. If it has an entityType, selecting it opens the matching workspace.`;
+            case "workspace":
+                return `Provides the editing or inspection workspace for entity type "${meta.entityType ?? "unknown"}".`;
+            case "workspaceView":
+                return `Adds the "${label}" view/tab to a workspace, usually at pathname "${meta.pathname ?? "overview"}".`;
+            case "modal":
+                return `Registers a modal dialog that can be opened by other backoffice components.`;
+            case "backofficeEntryPoint":
+                return `Loads a package JavaScript entry point so its extensions and custom elements can register.`;
+            default:
+                return FEATURE_TYPES.includes(item.type)
+                    ? `Registers a visible backoffice UI extension of type "${item.type}".`
+                    : `Registers an Umbraco extension of type "${item.type}".`;
+        }
+    }
+
+    private _docsReference(item: ExtensionRow) {
+        return {
+            sourceUrl: UMBRACO_EXTENSION_TYPES_DOCS_URL,
+            conditionSourceUrl: UMBRACO_EXTENSION_CONDITIONS_DOCS_URL,
+            currentTypeDescription: EXTENSION_TYPE_REFERENCE[item.type] ?? "",
+            conditionDescriptions: this._conditionSummaries(item.manifest.conditions),
+            relatedTypeDescriptions: this._relatedTypeDescriptions(item)
+        };
+    }
+
+    private _relatedTypeDescriptions(item: ExtensionRow) {
+        const relatedTypes = new Set<string>([item.type]);
+
+        if (item.type === "menuItem") {
+            relatedTypes.add("menu");
+            relatedTypes.add("workspace");
+            relatedTypes.add("workspaceView");
+        }
+
+        if (item.type === "workspace") {
+            relatedTypes.add("menuItem");
+            relatedTypes.add("workspaceView");
+        }
+
+        if (item.type === "workspaceView") {
+            relatedTypes.add("workspace");
+            relatedTypes.add("condition");
+        }
+
+        if (item.type === "sectionSidebarApp") {
+            relatedTypes.add("section");
+            relatedTypes.add("menu");
+            relatedTypes.add("menuItem");
+            relatedTypes.add("condition");
+        }
+
+        if (item.type === "propertyEditorUi") {
+            relatedTypes.add("propertyEditorSchema");
+            relatedTypes.add("propertyValuePreset");
+        }
+
+        if (item.type === "backofficeEntryPoint") {
+            relatedTypes.add("bundle");
+            relatedTypes.add("appEntryPoint");
+        }
+
+        return Array.from(relatedTypes)
+            .filter((type) => EXTENSION_TYPE_REFERENCE[type])
+            .map((type) => ({
+                type,
+                description: EXTENSION_TYPE_REFERENCE[type]
+            }));
+    }
+
+    private _extensionConcepts(item: ExtensionRow) {
+        return {
+            menuItem: "A navigation item. When meta.entityType matches a workspace meta.entityType, clicking it usually opens that workspace.",
+            workspace: "A routed backoffice surface for a specific entity type.",
+            workspaceView: "A view or tab inside a workspace. Its WorkspaceAlias condition determines which workspace hosts it.",
+            sectionSidebarApp: "A sidebar contribution mounted into an Umbraco section, often used to show a menu.",
+            currentExtensionType: item.type
+        };
     }
 
     private _jsonReplacer(_key: string, value: unknown) {
@@ -378,6 +671,15 @@ export class GodModeExtensionExplorerElement extends UmbElementMixin(LitElement)
             background: var(--uui-color-surface);
             border-bottom: 1px solid var(--uui-color-border);
             padding: var(--uui-size-space-4);
+        }
+        .detail-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: var(--uui-size-space-3);
+        }
+        .detail-actions godmode-ai-explain-host {
+            --uui-button-padding-left-factor: 1;
+            --uui-button-padding-right-factor: 1;
         }
         dl {
             display: grid;

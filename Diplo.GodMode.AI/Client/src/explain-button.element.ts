@@ -12,6 +12,7 @@ export class GodModeAiExplainButtonElement extends UmbElementMixin(LitElement) {
 
     return html`
       <uui-button compact look="secondary" label="Explain" title="Explain this item with AI" @click=${(e: Event) => openExplainModal(this, this.subject!, e)}>
+        <uui-icon name="icon-help-alt"></uui-icon>
         Explain
       </uui-button>
     `;

@@ -119,6 +119,7 @@ export class GodModePartialBrowserElement extends UmbElementMixin(LitElement) {
                                                   <uui-icon name="icon-link"></uui-icon>
                                                   Used by
                                               </uui-button>
+                                              <godmode-ai-explain-host .subject=${this._explainSubject(p)}></godmode-ai-explain-host>
                                           </uui-table-cell>
                                       </uui-table-row>
                                   `
@@ -127,6 +128,20 @@ export class GodModePartialBrowserElement extends UmbElementMixin(LitElement) {
                       `}
             </godmode-page>
         `;
+    }
+
+    private _explainSubject(partial: PartialRow) {
+        return {
+            subjectType: "Umbraco partial view reference",
+            title: partial.name,
+            data: {
+                name: partial.name,
+                path: partial.path,
+                templateId: partial.templateId,
+                templateAlias: partial.templateAlias,
+                templateName: partial.templateName
+            }
+        };
     }
 
     static override styles = css`
@@ -162,9 +177,11 @@ export class GodModePartialBrowserElement extends UmbElementMixin(LitElement) {
         }
         .action-cell {
             display: flex;
+            gap: var(--uui-size-space-2);
             justify-content: flex-end;
         }
-        .action-cell uui-button {
+        .action-cell uui-button,
+        .action-cell godmode-ai-explain-host {
             --uui-button-padding-left-factor: 1;
             --uui-button-padding-right-factor: 1;
         }
