@@ -63,5 +63,9 @@ namespace Diplo.GodMode.Services.Interfaces
         long GetContentWithExcessiveVersionsCount(int versionThreshold);
 
         IEnumerable<DatabaseHealthRow> GetDatabaseHealthRows();
+
+        IEnumerable<DatabaseTableInfo> GetDatabaseTables();
+
+        DatabaseTableDetail? GetDatabaseTableDetail(string tableName);
     }
 }

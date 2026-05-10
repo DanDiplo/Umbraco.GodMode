@@ -7,6 +7,7 @@ import { applySort, toggleSort, type SortState } from "../shared/sort";
 import { truncate, uniqueBy } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 import { openUsedByModal } from "../shared/used-by-modal";
+import { openEvidenceDrawer } from "../shared/evidence-drawer";
 
 type TriState = "any" | "yes" | "no";
 
@@ -182,6 +183,10 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                                           <uui-table-cell><godmode-yes-no .value=${d.isNestedUsed}></godmode-yes-no></uui-table-cell>
                                           <uui-table-cell><small>${truncate(d.updateDate, 22)}</small></uui-table-cell>
                                           <uui-table-cell class="action-cell">
+                                              <uui-button compact look="secondary" label="Impact" @click=${(e: Event) => void this._openImpact(d, e)}>
+                                                  <uui-icon name="icon-alert"></uui-icon>
+                                                  Impact
+                                              </uui-button>
                                               ${this._renderUsedByAction(d)}
                                               <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(d)}></godmode-ai-explain-host>
                                           </uui-table-cell>
@@ -203,6 +208,79 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                       `}
             </godmode-page>
         `;
+    }
+
+    private async _openImpact(d: DataTypeMap, e: Event) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const [usedBy, uses] = await Promise.all([
+            godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: "Data Type", targetKey: d.udi }),
+            godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: "Data Type", sourceKey: d.udi })
+        ]);
+
+        const directUsage = usedBy.filter((edge) => edge.relation === "uses data type");
+        const nestedUsage = usedBy.filter((edge) => edge.relation === "uses nested data type");
+        const blockConfigurationUsage = usedBy.filter((edge) => edge.relation.startsWith("configures"));
+        const appearsUnused = !d.isUsed && !d.isNestedUsed && usedBy.length === 0;
+
+        openEvidenceDrawer(
+            this,
+            {
+                title: `Impact: ${d.name}`,
+                subtitle: appearsUnused
+                    ? "No direct, nested, or reference graph usage was found."
+                    : "Review where this data type is used before changing or deleting it.",
+                summary: [
+                    { label: "Editor", value: d.alias },
+                    { label: "Database Type", value: d.dbType },
+                    { label: "Direct Usage", value: d.isUsed },
+                    { label: "Nested Block Usage", value: d.isNestedUsed },
+                    { label: "Used By Edges", value: usedBy.length },
+                    { label: "Uses Edges", value: uses.length }
+                ],
+                sections: [
+                    {
+                        heading: "Impact Summary",
+                        items: {
+                            appearsUnused,
+                            caution: appearsUnused
+                                ? "This looks like a low-risk cleanup candidate, but custom code can still reference data type aliases or keys outside the reference graph."
+                                : "Changing configuration can affect editors and stored values for every property that uses this data type.",
+                            recommendedCheck: d.isNestedUsed
+                                ? "Review nested block usage carefully; changes may affect element types embedded inside Block List, Block Grid, Single Block, or Rich Text configurations."
+                                : "Review direct property usage and any custom code references before changing storage/editor configuration."
+                        }
+                    },
+                    {
+                        heading: "Direct Property Usage",
+                        description: "Document, media, or member type properties that directly use this data type.",
+                        items: directUsage
+                    },
+                    {
+                        heading: "Nested Block Usage",
+                        description: "Element type properties that use this data type inside supported block editor configurations.",
+                        items: nestedUsage
+                    },
+                    {
+                        heading: "Block Configuration Usage",
+                        description: "Block editor configuration references involving this data type.",
+                        items: blockConfigurationUsage
+                    },
+                    {
+                        heading: "All Used By References",
+                        description: "Complete reference graph edges where this data type is the target.",
+                        items: usedBy
+                    },
+                    {
+                        heading: "Uses References",
+                        description: "Reference graph edges where this data type is the source.",
+                        items: uses
+                    }
+                ]
+            },
+            e
+        );
     }
 
     private _renderUsedByAction(d: DataTypeMap) {
@@ -292,6 +370,7 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
             display: flex;
             gap: var(--uui-size-space-2);
             justify-content: flex-end;
+            min-width: 18rem;
         }
         .action-cell uui-button,
         .action-cell godmode-ai-explain-host {

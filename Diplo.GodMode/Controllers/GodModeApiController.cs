@@ -433,6 +433,21 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<UtilityDiagnostics> GetUtilityDiagnostics()
         => Ok(utilitiesService.GetDiagnostics());
 
+    [HttpGet("database/tables")]
+    [ProducesResponseType<IEnumerable<DatabaseTableInfo>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<DatabaseTableInfo>> GetDatabaseTables()
+        => Ok(dataBaseService.GetDatabaseTables());
+
+    [HttpGet("database/tables/{tableName}")]
+    [ProducesResponseType<DatabaseTableDetail>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public ActionResult<DatabaseTableDetail> GetDatabaseTableDetail(string tableName)
+    {
+        var detail = dataBaseService.GetDatabaseTableDetail(tableName);
+
+        return detail is null ? NotFound() : Ok(detail);
+    }
+
     // ─── Config / usage / tags ───────────────────────────────────────
 
     [HttpGet("config")]

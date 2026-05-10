@@ -94,6 +94,14 @@ export const browsers: BrowserDef[] = [
         element: () => import("../elements/godmode-usage-browser.element")
     },
     {
+        id: "databaseBrowser",
+        label: "Database Browser",
+        icon: "icon-database",
+        description: "Inspect database tables, row counts, columns and declared relationships",
+        weight: 907,
+        element: () => import("../elements/godmode-database-browser.element")
+    },
+    {
         id: "referenceGraph",
         label: "Reference Graph",
         icon: "icon-link",

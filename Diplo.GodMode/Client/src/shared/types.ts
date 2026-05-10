@@ -406,6 +406,39 @@ export interface UtilityDiagnostics {
     }>;
 }
 
+export interface DatabaseTableInfo {
+    name: string;
+    schema: string;
+    category: string;
+    purpose: string;
+    rowCount: number;
+    countSucceeded: boolean;
+    warning: string;
+}
+
+export interface DatabaseTableDetail extends DatabaseTableInfo {
+    columns: DatabaseColumnInfo[];
+    outgoingRelationships: DatabaseRelationshipInfo[];
+    incomingRelationships: DatabaseRelationshipInfo[];
+}
+
+export interface DatabaseColumnInfo {
+    name: string;
+    dataType: string;
+    maxLength?: number | null;
+    nullable: boolean;
+    primaryKey: boolean;
+    ordinal: number;
+}
+
+export interface DatabaseRelationshipInfo {
+    constraintName: string;
+    fromTable: string;
+    fromColumn: string;
+    toTable: string;
+    toColumn: string;
+}
+
 export interface Page<T> {
     currentPage: number;
     totalPages: number;
