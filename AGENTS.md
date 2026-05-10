@@ -5,11 +5,13 @@
 This repository contains the Umbraco 17 / .NET 10 version of the Diplo GodMode package.
 
 - `Diplo.GodMode/` is the active Umbraco 17 package project. It should be the default location for package code changes.
+- `Diplo.GodMode.AI/` is an optional companion package that adds AI explanations and modal UI. It may depend on the core package, but the core package must not depend on it.
 - `Diplo.GodMode.Testsite/` is the local Umbraco 17 demo/test site. It references the package project and is used for local verification.
-- `Diplo.GodMode.slnx` is the active solution and includes both projects.
+- `Diplo.GodMode.slnx` is the active solution and includes the core package, AI companion package, and test site.
 - Older Umbraco 13 / AngularJS code lives on the `v13` branch. Do not reintroduce AngularJS-era files into this branch.
 
 Umbraco must be able to discover the package manifest at `/App_Plugins/DiploGodMode/umbraco-package.json`.
+The AI companion manifest must be discoverable at `/App_Plugins/DiploGodModeAI/umbraco-package.json` when the AI package is installed.
 
 ## Repo Layout
 
@@ -17,17 +19,28 @@ Umbraco must be able to discover the package manifest at `/App_Plugins/DiploGodM
 - `Diplo.GodMode/Client/` contains the Lit + TypeScript backoffice source.
 - `Diplo.GodMode/Client/public/umbraco-package.json` is the source package manifest used by the client build.
 - `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/` contains the built package assets served by Umbraco and packed as static web assets.
+- `Diplo.GodMode.AI/Diplo.GodMode.AI.csproj` is the optional AI companion NuGet package project.
+- `Diplo.GodMode.AI/Client/` contains the AI Lit + TypeScript source.
+- `Diplo.GodMode.AI/Client/public/umbraco-package.json` is the source manifest for the AI companion package.
+- `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/` contains the built AI package assets served by Umbraco and packed as static web assets.
 - `Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj` is the local host site used to run and verify the package.
 - `Directory.Packages.props` centrally manages .NET package versions.
 
 ## Working Rules For Agents
 
 - Prefer changes in `Diplo.GodMode/` unless the request is specifically about the demo site, docs, packaging, or repo configuration.
+- Put AI-specific endpoints, prompts, AI modals, and AI package manifests in `Diplo.GodMode.AI/`.
 - Use `Diplo.GodMode.Testsite/` only as the local host and verification site unless the requested work is explicitly host-site configuration.
 - Build backoffice changes with Lit, TypeScript, Umbraco UI components, and Umbraco v17 extension manifests.
 - Do not port or restore AngularJS controllers, `package.manifest`, or legacy `App_Plugins/DiploGodMode/backoffice/` views/scripts from v13.
 - Keep the package identity as `Diplo.GodMode` even though this branch targets Umbraco 17.
 - Preserve static web asset behavior: the package manifest and built JS must be available under `/App_Plugins/DiploGodMode/`, not only under `/_content/`.
+- Preserve AI static web asset behavior: AI package assets must be available under `/App_Plugins/DiploGodModeAI/`.
+- Keep the core package free of compile-time references to `Diplo.GodMode.AI`. Core may render optional custom element tags such as `<godmode-ai-explain-host>`, but should not import AI package modules.
+- Prefer augmenting existing God Mode views over adding standalone AI tree items. Historical AI-only views such as schema analysis and fix plans were removed because they were token-heavy and less useful than contextual augmentation.
+- When adding AI context, prefer lazy providers and evidence payloads. Expensive detail data should be fetched only when the AI button or evidence drawer is opened, not during normal list rendering.
+- The reusable core host is `<godmode-ai-explain-host>`. It should render nothing until the AI package registers `<godmode-ai-explain-button>`, so core views remain quiet when the AI add-on is not installed.
+- The AI prompt should use both row data and additional context/evidence. Avoid prompts that tell the model to ignore context.
 - Be careful with generated folders. Do not commit `bin/`, `obj/`, `node_modules/`, local database files, or package output artifacts unless explicitly requested.
 
 ## Build, Run, And Package
@@ -36,11 +49,21 @@ Useful validation commands from the repository root:
 
 ```powershell
 dotnet build Diplo.GodMode.slnx
+dotnet build Diplo.GodMode/Diplo.GodMode.csproj
+dotnet build Diplo.GodMode.AI/Diplo.GodMode.AI.csproj
 dotnet build Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj
 dotnet pack Diplo.GodMode/Diplo.GodMode.csproj -c Release
+dotnet pack Diplo.GodMode.AI/Diplo.GodMode.AI.csproj -c Release
 ```
 
-The `Diplo.GodMode` project has MSBuild targets that run the client build. When `Diplo.GodMode/Client/node_modules` is missing, the build restores packages with `npm ci`; package builds also run `npm ci` and `npm run build`.
+Useful client validation commands:
+
+```powershell
+npm run type-check --prefix Diplo.GodMode/Client
+npm run type-check --prefix Diplo.GodMode.AI/Client
+```
+
+The `Diplo.GodMode` and `Diplo.GodMode.AI` projects have MSBuild targets that run their client builds. When each package's `Client/node_modules` folder is missing, the build restores packages with `npm ci`; package builds also run `npm ci` and `npm run build`.
 
 For local browser testing, run the host site:
 
@@ -56,6 +79,10 @@ Then open the Umbraco backoffice and verify the GodMode package loads from `/App
 - Built manifest: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/umbraco-package.json`.
 - Vite output directory: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/`.
 - NuGet package should contain `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
+- AI source manifest: `Diplo.GodMode.AI/Client/public/umbraco-package.json`.
+- AI built manifest: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/umbraco-package.json`.
+- AI Vite output directory: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/`.
+- AI NuGet package should contain `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
 
 ## External References
 
