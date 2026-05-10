@@ -104,7 +104,7 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                           ${results.map(
                               (m) => html`
                                   <uui-box class="tag-card">
-                                      <div slot="headline" class="tag-headline">
+                                      <div class="tag-headline">
                                           <span class="tag-title">
                                               <uui-icon name="icon-tag"></uui-icon>
                                               <strong title=${`ID: ${m.tag.id}`}>${m.tag.text}</strong>
@@ -112,9 +112,12 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                                               <span class="pill">${m.tag.group}</span>
                                               ${m.tag.culture ? html`<span class="pill">${m.tag.culture}</span>` : ""}
                                           </span>
-                                          <uui-button look="secondary" color="danger" label=${`Delete ${m.tag.text}`} @click=${() => void this._delete(m.tag)}>
-                                              Delete
-                                          </uui-button>
+                                          <span class="actions">
+                                              <uui-button look="secondary" color="danger" label=${`Delete ${m.tag.text}`} @click=${() => void this._delete(m.tag)}>
+                                                  Delete
+                                              </uui-button>
+                                              <godmode-ai-explain-host .subject=${this._explainSubject(m)}></godmode-ai-explain-host>
+                                          </span>
                                       </div>
                                       ${(m.content ?? []).length
                                           ? this._renderContentTable(m.content ?? [])
@@ -138,6 +141,7 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                                                         <uui-table-cell><strong>${t.text}</strong></uui-table-cell>
                                                         <uui-table-cell>${t.group}</uui-table-cell>
                                                         <uui-table-cell>
+                                                            <godmode-ai-explain-host .subject=${this._orphanExplainSubject(t)}></godmode-ai-explain-host>
                                                             <uui-button look="secondary" color="danger" label="Delete" @click=${() => void this._delete(t)}>Delete</uui-button>
                                                         </uui-table-cell>
                                                     </uui-table-row>
@@ -187,6 +191,53 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
+    private _explainSubject(mapping: TagMapping) {
+        const content = mapping.content ?? [];
+        return {
+            subjectType: "Umbraco tag",
+            title: `${mapping.tag.text} (${mapping.tag.group})`,
+            data: {
+                id: mapping.tag.id,
+                text: mapping.tag.text,
+                group: mapping.tag.group,
+                culture: mapping.tag.culture,
+                nodeCount: mapping.tag.nodeCount,
+                taggedItemCount: content.length,
+                taggedItems: content.slice(0, 25).map((item) => ({
+                    id: item.id,
+                    udi: item.udi,
+                    name: item.name,
+                    type: item.type,
+                    alias: item.alias,
+                    tags: (item.tags ?? []).map((tag) => tag.text)
+                })),
+                taggedItemSampleLimit: 25
+            },
+            context: {
+                isOrphaned: false,
+                relatedOrphanedTagsWithSameText: this._orphans.filter((tag) => tag.text === mapping.tag.text)
+            }
+        };
+    }
+
+    private _orphanExplainSubject(tag: Tag) {
+        return {
+            subjectType: "Orphaned Umbraco tag",
+            title: `${tag.text} (${tag.group})`,
+            data: {
+                id: tag.id,
+                text: tag.text,
+                group: tag.group,
+                culture: tag.culture,
+                nodeCount: tag.nodeCount
+            },
+            context: {
+                isOrphaned: true,
+                matchingAssignedTags: this._tags.filter((mapping) => mapping.tag.text === tag.text)
+            }
+        };
+    }
+
     static override styles = css`
         .filters {
             display: grid;
@@ -219,6 +270,20 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
         .tag-headline {
             justify-content: space-between;
             width: 100%;
+            margin-bottom: var(--uui-size-space-4);
+        }
+        .actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: var(--uui-size-space-2);
+            margin-left: auto;
+            flex: 0 0 auto;
+        }
+        .actions uui-button,
+        .actions godmode-ai-explain-host {
+            --uui-button-padding-left-factor: 1;
+            --uui-button-padding-right-factor: 1;
         }
         .tag-title strong {
             font-size: 1.15rem;

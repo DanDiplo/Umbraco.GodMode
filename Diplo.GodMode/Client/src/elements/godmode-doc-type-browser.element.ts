@@ -2,7 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
-import type { ContentTypeMap, ContentVariation } from "../shared/types";
+import type { ContentTypeMap, ContentVariation, ReferenceEdge, UsageModel } from "../shared/types";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 import { openUsedByModal } from "../shared/used-by-modal";
 
@@ -204,7 +204,7 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <uui-icon name="icon-edit"></uui-icon>
                             Edit
                         </uui-button>
-                        <godmode-ai-explain-host .subject=${this._explainSubject(ct)}></godmode-ai-explain-host>
+                        <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(ct)}></godmode-ai-explain-host>
                     </span>
                 </div>
                 ${isOpen ? this._renderDetail(ct) : ""}
@@ -212,8 +212,14 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
-    private _explainSubject(ct: ContentTypeMap) {
+    private async _explainSubject(ct: ContentTypeMap) {
         const allProperties = [...(ct.properties ?? []), ...(ct.compositionProperties ?? [])];
+        const entityType = ct.isElement ? "Element Type" : "Document Type";
+        const [usedBy, uses, usage] = await Promise.all([
+            godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: entityType, targetKey: ct.udi }),
+            godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: entityType, sourceKey: ct.udi }),
+            ct.isElement ? Promise.resolve([] as UsageModel[]) : godmodeGet<UsageModel[]>("content-usage", { id: ct.id })
+        ]);
 
         return {
             subjectType: ct.isElement ? "Umbraco element type" : "Umbraco document type",
@@ -254,6 +260,12 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                 })),
                 propertySampleLimit: 30,
                 totalPropertyCount: allProperties.length
+            },
+            context: {
+                usedBy,
+                uses,
+                contentUsage: usage,
+                detailSources: ["content-type-map", "content-usage", "God Mode reference graph"]
             }
         };
     }

@@ -2,7 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
-import type { DataTypeMap } from "../shared/types";
+import type { DataTypeMap, ReferenceEdge } from "../shared/types";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
 import { truncate, uniqueBy } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
@@ -183,7 +183,7 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                                           <uui-table-cell><small>${truncate(d.updateDate, 22)}</small></uui-table-cell>
                                           <uui-table-cell class="action-cell">
                                               ${this._renderUsedByAction(d)}
-                                              <godmode-ai-explain-host .subject=${this._explainSubject(d)}></godmode-ai-explain-host>
+                                              <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(d)}></godmode-ai-explain-host>
                                           </uui-table-cell>
                                           <uui-table-cell>
                                               <div><strong>${d.id}</strong></div>
@@ -228,7 +228,12 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
-    private _explainSubject(d: DataTypeMap) {
+    private async _explainSubject(d: DataTypeMap) {
+        const [usedBy, uses] = await Promise.all([
+            godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: "Data Type", targetKey: d.udi }),
+            godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: "Data Type", sourceKey: d.udi })
+        ]);
+
         return {
             subjectType: "Umbraco data type",
             title: `${d.name} (${d.alias})`,
@@ -241,6 +246,11 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                 isUsedByDocumentOrMediaTypes: d.isUsed,
                 isNestedUsedInBlocks: d.isNestedUsed,
                 updateDate: d.updateDate
+            },
+            context: {
+                usedBy,
+                uses,
+                detailSources: ["data-types-status", "God Mode reference graph"]
             }
         };
     }

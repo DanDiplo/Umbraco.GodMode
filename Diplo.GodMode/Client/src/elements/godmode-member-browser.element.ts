@@ -88,6 +88,40 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
             : [];
     }
 
+    private _explainSubject(member: MemberModel) {
+        return {
+            subjectType: "Umbraco member",
+            title: `${member.name} (${member.email})`,
+            data: {
+                id: member.id,
+                udi: member.udi,
+                name: member.name,
+                username: member.username,
+                email: member.email,
+                memberTypeId: member.memberTypeId,
+                memberTypeName: member.memberTypeName,
+                memberTypeAlias: member.memberTypeAlias,
+                groups: this._groupNames(member),
+                isApproved: member.isApproved,
+                isLockedOut: member.isLockedOut,
+                usesTwoFactor: member.usesTwoFactor,
+                createDate: member.createDate
+            },
+            context: {
+                activeFilters: {
+                    search: this._search,
+                    groupId: this._groupId,
+                    memberTypeId: this._memberTypeId,
+                    isApproved: this._isApproved,
+                    isLockedOut: this._isLockedOut,
+                    usesTwoFactor: this._usesTwoFactor
+                },
+                availableGroups: this._groups,
+                availableMemberTypes: this._memberTypes
+            }
+        };
+    }
+
     override render() {
         return html`
             <godmode-page
@@ -172,6 +206,7 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                                     <uui-table-head-cell>Groups</uui-table-head-cell>
                                     <uui-table-head-cell>Status</uui-table-head-cell>
                                     <uui-table-head-cell>Created</uui-table-head-cell>
+                                    <uui-table-head-cell>Actions</uui-table-head-cell>
                                 </uui-table-head>
                                 ${this._page.items.map(
                                     (m) => html`
@@ -202,6 +237,9 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                                                 </div>
                                             </uui-table-cell>
                                             <uui-table-cell><small>${truncate(m.createDate, 22)}</small></uui-table-cell>
+                                            <uui-table-cell class="action-cell">
+                                                <godmode-ai-explain-host .subject=${this._explainSubject(m)}></godmode-ai-explain-host>
+                                            </uui-table-cell>
                                         </uui-table-row>
                                     `
                                 )}
@@ -270,6 +308,14 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
         .muted-text {
             color: var(--uui-color-text-alt);
             font-size: 12px;
+        }
+        .action-cell {
+            text-align: right;
+            width: 7rem;
+        }
+        .action-cell godmode-ai-explain-host {
+            display: inline-flex;
+            justify-content: flex-end;
         }
         @media (max-width: 1100px) {
             .filters {
