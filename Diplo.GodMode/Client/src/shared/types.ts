@@ -439,6 +439,30 @@ export interface DatabaseRelationshipInfo {
     toColumn: string;
 }
 
+export interface GodModeLogOverview {
+    logFolder: string;
+    exists: boolean;
+    fileCount: number;
+}
+
+export interface GodModeLogEvent {
+    id: string;
+    timestamp: string | null;
+    level: string;
+    message: string;
+    messageTemplate: string;
+    exception: string;
+    sourceContext: string;
+    requestId: string;
+    requestPath: string;
+    machineName: string;
+    processId?: number | null;
+    threadId?: number | null;
+    logFile: string;
+    properties: Record<string, unknown>;
+    rawJson: string;
+}
+
 export interface Page<T> {
     currentPage: number;
     totalPages: number;

@@ -102,6 +102,14 @@ export const browsers: BrowserDef[] = [
         element: () => import("../elements/godmode-database-browser.element")
     },
     {
+        id: "logBrowser",
+        label: "Log Browser",
+        icon: "icon-script",
+        description: "Inspect Umbraco JSON logs and explain individual entries with AI",
+        weight: 906,
+        element: () => import("../elements/godmode-log-browser.element")
+    },
+    {
         id: "referenceGraph",
         label: "Reference Graph",
         icon: "icon-link",

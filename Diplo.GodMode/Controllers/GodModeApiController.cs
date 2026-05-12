@@ -42,6 +42,7 @@ public class GodModeApiController : ManagementApiControllerBase
     private readonly IDiagnosticService diagnosticService;
     private readonly IGodModeHealthRiskService healthRiskService;
     private readonly IUtilitiesService utilitiesService;
+    private readonly IGodModeLogService logService;
     private readonly IHostApplicationLifetime applicationLifetime;
     private readonly NuCacheSettings nuCacheSettings;
     private readonly RegisteredServiceCollection registeredServiceCollection;
@@ -53,6 +54,7 @@ public class GodModeApiController : ManagementApiControllerBase
         IDiagnosticService diagnosticService,
         IGodModeHealthRiskService healthRiskService,
         IUtilitiesService utilitiesService,
+        IGodModeLogService logService,
         IHostApplicationLifetime applicationLifetime,
         IOptions<NuCacheSettings> nuCacheSettings,
         RegisteredServiceCollection registeredServiceCollection,
@@ -63,6 +65,7 @@ public class GodModeApiController : ManagementApiControllerBase
         this.diagnosticService = diagnosticService;
         this.healthRiskService = healthRiskService;
         this.utilitiesService = utilitiesService;
+        this.logService = logService;
         this.applicationLifetime = applicationLifetime;
         this.nuCacheSettings = nuCacheSettings.Value;
         this.registeredServiceCollection = registeredServiceCollection;
@@ -447,6 +450,22 @@ public class GodModeApiController : ManagementApiControllerBase
 
         return detail is null ? NotFound() : Ok(detail);
     }
+
+    [HttpGet("logs/overview")]
+    [ProducesResponseType<GodModeLogOverview>(StatusCodes.Status200OK)]
+    public ActionResult<GodModeLogOverview> GetLogOverview()
+        => Ok(logService.GetOverview());
+
+    [HttpGet("logs")]
+    [ProducesResponseType<Page<GodModeLogEvent>>(StatusCodes.Status200OK)]
+    public ActionResult<Page<GodModeLogEvent>> GetLogs(
+        long page = 1,
+        long pageSize = 25,
+        DateTimeOffset? from = null,
+        DateTimeOffset? to = null,
+        string? level = null,
+        string? search = null)
+        => Ok(logService.GetLogs(page, pageSize, from, to, level, search));
 
     // ─── Config / usage / tags ───────────────────────────────────────
 

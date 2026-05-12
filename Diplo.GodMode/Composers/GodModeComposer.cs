@@ -22,6 +22,7 @@ namespace Diplo.GodMode.Composers
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
             builder.Services.AddScoped<IGodModeHealthRiskService, GodModeHealthRiskService>();
             builder.Services.AddScoped<IGodModeSnapshotService, GodModeSnapshotService>();
+            builder.Services.AddScoped<IGodModeLogService, GodModeLogService>();
             
             builder.Services.AddSingleton(services => new RegisteredServiceCollection(builder.Services));
         }
