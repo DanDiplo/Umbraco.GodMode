@@ -6,20 +6,40 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     @property({ attribute: false }) modalContext?: { reject: () => void };
     @property({ type: Object, attribute: false }) data?: GodModeEvidenceDrawerData;
 
+    override connectedCallback(): void {
+        super.connectedCallback();
+        window.addEventListener("pointerdown", this._onOutsidePointerDown, { capture: true });
+    }
+
+    override disconnectedCallback(): void {
+        window.removeEventListener("pointerdown", this._onOutsidePointerDown, { capture: true });
+        super.disconnectedCallback();
+    }
+
     private _close = () => {
         this.modalContext?.reject();
+    };
+
+    private _onOutsidePointerDown = (e: PointerEvent) => {
+        if (e.composedPath().includes(this)) {
+            return;
+        }
+
+        this._close();
     };
 
     override render() {
         const data = this.data;
         return html`
             <uui-dialog-layout headline=${data?.title || "Evidence"}>
+                <uui-button class="top-close" compact look="secondary" label="Close" @click=${this._close}>
+                    <uui-icon name="icon-wrong"></uui-icon>
+                </uui-button>
                 ${data?.subtitle ? html`<p class="subtitle">${data.subtitle}</p>` : ""}
                 ${data?.summary?.length ? this._renderSummary(data.summary) : ""}
                 <div class="sections">
                     ${(data?.sections ?? []).map((section) => this._renderSection(section))}
                 </div>
-                <uui-button slot="actions" look="secondary" label="Close" @click=${this._close}>Close</uui-button>
             </uui-dialog-layout>
         `;
     }
@@ -98,6 +118,10 @@ export class GodModeEvidenceDrawerElement extends LitElement {
             return html`<pre>${JSON.stringify(value, null, 2)}</pre>`;
         }
 
+        if (typeof value === "string") {
+            return html`<code>${this._formatScalar(value)}</code>`;
+        }
+
         return html`<span>${this._formatScalar(value)}</span>`;
     }
 
@@ -121,8 +145,15 @@ export class GodModeEvidenceDrawerElement extends LitElement {
 
     static override styles = css`
         uui-dialog-layout {
+            position: relative;
             width: min(1120px, 94vw);
             max-height: 84vh;
+        }
+        .top-close {
+            position: absolute;
+            top: var(--uui-size-space-4);
+            right: var(--uui-size-space-4);
+            z-index: 1;
         }
         .subtitle,
         .section-description,
@@ -156,6 +187,15 @@ export class GodModeEvidenceDrawerElement extends LitElement {
         dd {
             margin: 0;
             font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+        code,
+        pre {
+            font-family: Consolas, "Liberation Mono", Menlo, Monaco, "Courier New", monospace;
+        }
+        code {
+            color: var(--uui-color-text);
+            font-size: 0.92em;
             overflow-wrap: anywhere;
         }
         uui-table {

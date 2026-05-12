@@ -775,7 +775,15 @@ namespace Diplo.GodMode.Services
         {
             if (this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite)
             {
-                return database.Fetch<SQLiteColumnInfo>($"PRAGMA table_info({QuoteIdentifier(tableName)})")
+                return database.Fetch<SQLiteColumnInfo>(
+                    @"SELECT
+                        cid AS Cid,
+                        name AS Name,
+                        type AS Type,
+                        [notnull] AS [NotNull],
+                        pk AS Pk
+                      FROM pragma_table_info(@0)",
+                    tableName)
                     .Select(column => new DatabaseColumnInfo
                     {
                         Name = column.Name,
@@ -816,7 +824,14 @@ namespace Diplo.GodMode.Services
             if (this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite)
             {
                 return GetTableNames(database)
-                    .SelectMany(table => database.Fetch<SQLiteForeignKeyInfo>($"PRAGMA foreign_key_list({QuoteIdentifier(table.Name)})")
+                    .SelectMany(table => database.Fetch<SQLiteForeignKeyInfo>(
+                        @"SELECT
+                            id AS Id,
+                            [table] AS [Table],
+                            [from] AS [From],
+                            [to] AS [To]
+                          FROM pragma_foreign_key_list(@0)",
+                        table.Name)
                         .Select(foreignKey => new DatabaseRelationshipInfo
                         {
                             ConstraintName = $"FK_{table.Name}_{foreignKey.Table}_{foreignKey.Id}",

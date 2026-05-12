@@ -1,5 +1,7 @@
 import { LitElement, css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
+import { UmbNotificationContext, UMB_NOTIFICATION_CONTEXT } from "@umbraco-cms/backoffice/notification";
+import type { UmbNotificationColor } from "@umbraco-cms/backoffice/notification";
 import { godmodeGet, godmodePost } from "../api/client";
 import "../shared";
 import type { Lang, ServerResponse, UtilityDiagnostics } from "../shared/types";
@@ -11,7 +13,7 @@ interface WarmupResult {
     ok: boolean;
 }
 
-function responseKind(r: ServerResponse): { color: string; label: string } {
+function responseKind(r: ServerResponse): { color: UmbNotificationColor; label: string } {
     // C# enum order is Success=0, Error=1, Warning=2 (see ServerResponseType.cs)
     if (r.response === "Success" || r.responseType === 0) return { color: "positive", label: "Success" };
     if (r.response === "Warning" || r.responseType === 2) return { color: "warning", label: "Warning" };
@@ -20,6 +22,8 @@ function responseKind(r: ServerResponse): { color: string; label: string } {
 
 @customElement("godmode-utility-browser")
 export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
+    private _notificationContext?: UmbNotificationContext;
+
     @state() private _languages: Lang[] = [];
     @state() private _selectedCulture: string | null = null;
     @state() private _busy = false;
@@ -28,6 +32,15 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _warmupCurrentUrl = "";
     @state() private _diagnostics: UtilityDiagnostics | null = null;
     @state() private _warmupResults: WarmupResult[] = [];
+    @state() private _lastResponse: { color: UmbNotificationColor; headline: string; message: string } | null = null;
+
+    constructor() {
+        super();
+
+        this.consumeContext(UMB_NOTIFICATION_CONTEXT, (context) => {
+            this._notificationContext = context;
+        });
+    }
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -56,15 +69,13 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         try {
             const r = await promise;
             const kind = responseKind(r);
-            this.dispatchEvent(
-                new CustomEvent("notify", {
-                    detail: { color: kind.color, message: r.message },
-                    bubbles: true,
-                    composed: true
-                })
-            );
+            this._lastResponse = { color: kind.color, headline: kind.label, message: r.message };
+            this._notificationContext?.peek(kind.color, { data: { headline: kind.label, message: r.message } });
             console.log(`[${kind.label}] ${r.message}`);
         } catch (e) {
+            const message = e instanceof Error ? e.message : "The action failed.";
+            this._lastResponse = { color: "danger", headline: "Error", message };
+            this._notificationContext?.peek("danger", { data: { headline: "Error", message } });
             console.error(e);
         } finally {
             this._busy = false;
@@ -154,6 +165,44 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
     }
 
+    private _explainDiagnosticsSubject() {
+        const diagnostics = this._diagnostics;
+        const warmupFailures = this._warmupResults.filter((result) => !result.ok);
+
+        return {
+            subjectType: "God Mode utilities diagnostics",
+            title: "Utilities environment",
+            data: {
+                environmentName: diagnostics?.app.environmentName,
+                uptime: diagnostics?.app.uptime,
+                processId: diagnostics?.app.processId,
+                godModeVersion: diagnostics?.app.godModeVersion,
+                assetCount: diagnostics?.assets.length ?? 0,
+                missingAssets: diagnostics?.assets.filter((asset) => !asset.exists).map((asset) => asset.label) ?? [],
+                folderCount: diagnostics?.folders.length ?? 0,
+                missingFolders: diagnostics?.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
+                cacheFolderCount: diagnostics?.cache.folders.length ?? 0,
+                missingCacheFolders: diagnostics?.cache.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
+                warmupUrlsChecked: this._warmupResults.length,
+                warmupFailures: warmupFailures.length
+            },
+            context: {
+                diagnostics,
+                warmup: {
+                    selectedCulture: this._selectedCulture,
+                    total: this._warmupResults.length,
+                    failures: warmupFailures,
+                    slowest: [...this._warmupResults].sort((a, b) => b.duration - a.duration).slice(0, 10)
+                },
+                guidance: [
+                    "Explain the current Umbraco environment and operational signals shown in the Utilities browser.",
+                    "Call out missing package assets or folders, unusual cache folder state, and failed or slow warm-up URLs.",
+                    "Explain risks and practical next steps before suggesting destructive actions such as restart or media cache purge."
+                ]
+            }
+        };
+    }
+
     override render() {
         return html`
             <godmode-page heading="Utilities" description="Clear caches, restart the application, warm up templates.">
@@ -161,11 +210,12 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
 
                 <uui-box headline="Caches">
                     <div class="row">
-                        <uui-button look="primary" ?disabled=${this._busy} @click=${() => void this._clearCache("All")}>Clear all caches</uui-button>
-                        <uui-button look="secondary" ?disabled=${this._busy} @click=${() => void this._clearCache("ContentCache")}>Clear content cache</uui-button>
-                        <uui-button look="secondary" ?disabled=${this._busy} @click=${() => void this._clearCache("MediaCache")}>Clear media cache</uui-button>
+                        <uui-button look="primary" ?disabled=${this._busy} @click=${() => void this._clearCache("all")}>Clear all caches</uui-button>
+                        <uui-button look="secondary" ?disabled=${this._busy} @click=${() => void this._clearCache("Runtime")}>Clear runtime cache</uui-button>
+                        <uui-button look="secondary" ?disabled=${this._busy} @click=${() => void this._clearCache("Isolated")}>Clear isolated caches</uui-button>
                         <uui-button look="secondary" color="danger" ?disabled=${this._busy} @click=${() => void this._purgeMediaCache()}>Purge media folder</uui-button>
                     </div>
+                    ${this._renderLastResponse()}
                 </uui-box>
 
                 <uui-box headline="Application" style="margin-top: var(--uui-size-space-3)">
@@ -192,6 +242,59 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
+    private _renderLastResponse() {
+        if (!this._lastResponse) return "";
+
+        return html`
+            <div class="action-feedback ${this._lastResponse.color}" role="status">
+                <strong>${this._lastResponse.headline}</strong>
+                <span>${this._lastResponse.message}</span>
+            </div>
+        `;
+    }
+
+    private _renderCacheDiagnostics(d: UtilityDiagnostics) {
+        const configuredSettings = d.cache.settings.filter((setting) => setting.value !== "Default");
+
+        return html`
+            <h4>Cache</h4>
+            ${configuredSettings.length
+                ? html`
+                      <div class="cache-summary">
+                          <uui-tag color="warning">${configuredSettings.length}</uui-tag>
+                          <span>custom cache ${configuredSettings.length === 1 ? "setting" : "settings"}</span>
+                      </div>
+                      <ul class="plain offset">
+                          ${configuredSettings.map(
+                              (setting) => html`
+                                  <li title=${setting.path}>
+                                      <uui-tag color="warning">${setting.value}</uui-tag>
+                                      <span>${setting.label}</span>
+                                  </li>
+                              `
+                          )}
+                      </ul>
+                  `
+                : html`
+                      <div class="cache-summary">
+                          <uui-tag color="positive">Default</uui-tag>
+                          <span>All cache settings are using Umbraco defaults</span>
+                      </div>
+                  `}
+            <ul class="plain offset">
+                ${d.cache.folders.map(
+                    (folder) => html`
+                        <li title=${folder.path}>
+                            <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
+                            <span>${folder.label}</span>
+                            ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
+                        </li>
+                    `
+                )}
+            </ul>
+        `;
+    }
+
     private _renderDiagnostics() {
         const d = this._diagnostics;
         if (!d) {
@@ -200,6 +303,9 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
 
         return html`
             <uui-box headline="System" class="section">
+                <div class="box-actions">
+                    <godmode-ai-explain-host .subjectProvider=${() => this._explainDiagnosticsSubject()}></godmode-ai-explain-host>
+                </div>
                 <div class="grid">
                     <div>
                         <h4>App</h4>
@@ -243,26 +349,7 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
                         </ul>
                     </div>
                     <div>
-                        <h4>Cache</h4>
-                        <ul class="plain offset">
-                            ${d.cache.settings.map(
-                                (setting) => html`
-                                    <li title=${setting.path}>
-                                        <uui-tag>${setting.value}</uui-tag>
-                                        <span>${setting.label}</span>
-                                    </li>
-                                `
-                            )}
-                            ${d.cache.folders.map(
-                                (folder) => html`
-                                    <li title=${folder.path}>
-                                        <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
-                                        <span>${folder.label}</span>
-                                        ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
-                                    </li>
-                                `
-                            )}
-                        </ul>
+                        ${this._renderCacheDiagnostics(d)}
                     </div>
                     <div>
                         <h4>Database</h4>
@@ -314,7 +401,34 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
             flex-wrap: wrap;
             align-items: center;
         }
+        .action-feedback {
+            display: flex;
+            gap: var(--uui-size-space-2);
+            align-items: center;
+            margin-top: var(--uui-size-space-3);
+            padding: var(--uui-size-space-2) var(--uui-size-space-3);
+            border: 1px solid var(--uui-color-border);
+            border-radius: var(--uui-border-radius);
+            background: var(--uui-color-surface-alt);
+        }
+        .action-feedback.positive {
+            border-color: var(--uui-color-positive);
+            color: var(--uui-color-positive);
+        }
+        .action-feedback.warning {
+            border-color: var(--uui-color-warning);
+            color: var(--uui-color-warning);
+        }
+        .action-feedback.danger {
+            border-color: var(--uui-color-danger);
+            color: var(--uui-color-danger);
+        }
         .section {
+            margin-bottom: var(--uui-size-space-3);
+        }
+        .box-actions {
+            display: flex;
+            justify-content: flex-end;
             margin-bottom: var(--uui-size-space-3);
         }
         .grid {
@@ -348,6 +462,16 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         }
         .offset {
             margin-top: var(--uui-size-space-2);
+        }
+        .cache-summary {
+            display: flex;
+            align-items: center;
+            gap: var(--uui-size-space-2);
+            min-width: 0;
+        }
+        .cache-summary span {
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
         .plain li {
             display: flex;

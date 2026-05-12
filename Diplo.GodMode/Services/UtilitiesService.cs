@@ -59,41 +59,54 @@ namespace Diplo.GodMode.Services
         {
             try
             {
-                if (cache == "Request" || cache == "all")
+                var cacheType = cache?.Trim();
+                var clearAll = string.Equals(cacheType, "all", StringComparison.OrdinalIgnoreCase);
+
+                if (string.Equals(cacheType, "Request", StringComparison.OrdinalIgnoreCase) || clearAll)
                 {
                     caches.RequestCache.Clear();
                 }
-                else if (cache == "Runtime" || cache == "all")
+
+                if (string.Equals(cacheType, "Runtime", StringComparison.OrdinalIgnoreCase) || clearAll)
                 {
                     caches.RuntimeCache.Clear();
                 }
-                else if (cache == "Isolated" || cache == "all")
+
+                if (string.Equals(cacheType, "Isolated", StringComparison.OrdinalIgnoreCase) || clearAll)
                 {
                     caches.IsolatedCaches.ClearAllCaches();
                 }
-                else if (cache == "Partial" || cache == "all")
+
+                if (string.Equals(cacheType, "Partial", StringComparison.OrdinalIgnoreCase) || clearAll)
                 {
                     caches.ClearPartialViewCache();
                 }
-                else if (cache == "Other" || cache == "all")
+
+                if (string.Equals(cacheType, "Other", StringComparison.OrdinalIgnoreCase) || clearAll)
                 {
                     if (this.memoryCache != null)
                     {
                         ClearMemoryCache(this.memoryCache);
                     }
                 }
-                else
+
+                if (!clearAll
+                    && !string.Equals(cacheType, "Request", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(cacheType, "Runtime", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(cacheType, "Isolated", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(cacheType, "Partial", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(cacheType, "Other", StringComparison.OrdinalIgnoreCase))
                 {
                     return new ServerResponse(cache + " Is not a valid cache type", ServerResponseType.Warning);
                 }
 
-                if (cache == "all")
+                if (clearAll)
                 {
                     return new ServerResponse("All Caches were successfully cleared", ServerResponseType.Success);
                 }
                 else
                 {
-                    return new ServerResponse("The " + cache + " Cache was successfully cleared", ServerResponseType.Success);
+                    return new ServerResponse("The " + cacheType + " Cache was successfully cleared", ServerResponseType.Success);
                 }
             }
             catch (Exception ex)
@@ -148,6 +161,30 @@ namespace Diplo.GodMode.Services
             var entryPoint = CreateAssetCheck("Entry point", "/App_Plugins/DiploGodMode/index.js", "App_Plugins/DiploGodMode/index.js", Path.Combine(appPluginsRoot, "index.js"), env.WebRootFileProvider);
             var manifestBundle = CreateAssetCheck("Manifest bundle", "/App_Plugins/DiploGodMode/index2.js", "App_Plugins/DiploGodMode/index2.js", Path.Combine(appPluginsRoot, "index2.js"), env.WebRootFileProvider);
             var packageAssetsPath = packageManifest.Path is not "" ? Path.GetDirectoryName(packageManifest.Path) : appPluginsRoot;
+            var appDataTempFolder = CreateFolderSize("App_Data temp", Path.Combine(env.ContentRootPath, "App_Data", "TEMP"));
+            var folders = new List<FolderSizeInfo>
+            {
+                CreateFolderSize("Umbraco temp", Path.Combine(env.ContentRootPath, "umbraco", "Data", "TEMP")),
+                CreateFolderSize("Media cache", mediaCacheFolder),
+                CreateFolderSize("GodMode assets", packageAssetsPath ?? appPluginsRoot)
+            };
+            var cacheFolders = new List<FolderSizeInfo>
+            {
+                CreateFolderSize("Umbraco temp cache", Path.Combine(env.ContentRootPath, "umbraco", "Data", "TEMP"))
+            };
+
+            if (appDataTempFolder.Exists && appDataTempFolder.FileCount > 0)
+            {
+                folders.Add(appDataTempFolder);
+                cacheFolders.Add(new FolderSizeInfo
+                {
+                    Label = "App_Data temp cache",
+                    Path = appDataTempFolder.Path,
+                    Exists = appDataTempFolder.Exists,
+                    Size = appDataTempFolder.Size,
+                    FileCount = appDataTempFolder.FileCount
+                });
+            }
 
             return new UtilityDiagnostics
             {
@@ -169,21 +206,11 @@ namespace Diplo.GodMode.Services
                     entryPoint,
                     manifestBundle
                 ],
-                Folders =
-                [
-                    CreateFolderSize("Umbraco temp", Path.Combine(env.ContentRootPath, "umbraco", "Data", "TEMP")),
-                    CreateFolderSize("App_Data temp", Path.Combine(env.ContentRootPath, "App_Data", "TEMP")),
-                    CreateFolderSize("Media cache", mediaCacheFolder),
-                    CreateFolderSize("GodMode assets", packageAssetsPath ?? appPluginsRoot)
-                ],
+                Folders = folders,
                 Cache = new CacheStatus
                 {
                     Settings = GetCacheSettings(),
-                    Folders =
-                    [
-                        CreateFolderSize("Umbraco temp cache", Path.Combine(env.ContentRootPath, "umbraco", "Data", "TEMP")),
-                        CreateFolderSize("App_Data temp cache", Path.Combine(env.ContentRootPath, "App_Data", "TEMP"))
-                    ]
+                    Folders = cacheFolders
                 },
                 Database = databaseService.GetDatabaseHealthRows()
             };
