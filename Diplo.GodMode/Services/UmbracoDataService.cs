@@ -748,10 +748,8 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all media
         /// </summary>
-        public Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC")
+        public Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, long? minSizeBytes = null, string orderBy = "Id", string orderByDir = "ASC")
         {
-            string tempExt;
-
             IQuery<IMedia> criteria = new Query<IMedia>(this.scopeProvider.SqlContext);
 
             if (!string.IsNullOrEmpty(name))
@@ -771,21 +769,14 @@ namespace Diplo.GodMode.Services
 
             var order = new Ordering(orderBy, orderByDir == "ASC" ? Direction.Ascending : Direction.Descending);
 
-            var media = this.mediaService.GetPagedDescendants(-1, page - 1, pageSize, out long totalRecords, filter: criteria, ordering: order).
-                Select(x => new MediaMap()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Alias = x.ContentType.Name,
-                    Ext = tempExt = FileTypeHelper.GetExtensionFromMedia(x),
-                    Type = FileTypeHelper.GetFileTypeName(tempExt, x),
-                    Size = FileTypeHelper.GetFileSize(x),
-                    Udi = x.Key,
-                    CreateDate = x.CreateDate,
-                    UpdateDate = x.UpdateDate == default ? x.CreateDate : x.UpdateDate,
-                    Path = x.Path
-                }
-            ).ToList();
+            if (minSizeBytes.GetValueOrDefault() > 0)
+            {
+                return this.GetMediaPagedBySize(page, pageSize, minSizeBytes.Value, criteria, order);
+            }
+
+            var media = this.mediaService.GetPagedDescendants(-1, page - 1, pageSize, out long totalRecords, filter: criteria, ordering: order)
+                .Select(ToMediaMap)
+                .ToList();
 
             var paged = new Page<MediaMap>()
             {
@@ -797,6 +788,61 @@ namespace Diplo.GodMode.Services
             };
 
             return paged;
+        }
+
+        private Page<MediaMap> GetMediaPagedBySize(long page, int pageSize, long minSizeBytes, IQuery<IMedia> criteria, Ordering order)
+        {
+            const int scanPageSize = 500;
+            var matching = new List<MediaMap>();
+            var scanPage = 0L;
+            long totalRecords;
+
+            do
+            {
+                var batch = this.mediaService.GetPagedDescendants(-1, scanPage, scanPageSize, out totalRecords, filter: criteria, ordering: order)
+                    .Select(ToMediaMap)
+                    .Where(media => media.Size >= minSizeBytes);
+
+                matching.AddRange(batch);
+                scanPage++;
+            }
+            while (scanPage * scanPageSize < totalRecords);
+
+            var totalItems = matching.Count;
+            var items = matching
+                .Skip((int)((page - 1) * pageSize))
+                .Take(pageSize)
+                .ToList();
+
+            return new Page<MediaMap>
+            {
+                CurrentPage = page,
+                Items = items,
+                ItemsPerPage = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (long)Math.Ceiling(totalItems / (decimal)pageSize)
+            };
+        }
+
+        private static MediaMap ToMediaMap(IMedia media)
+        {
+            var extension = FileTypeHelper.GetExtensionFromMedia(media);
+
+            return new MediaMap
+            {
+                Id = media.Id,
+                Name = media.Name,
+                Alias = media.ContentType.Name,
+                MediaTypeAlias = media.ContentType.Alias,
+                MediaTypeIcon = media.ContentType.Icon,
+                Ext = extension,
+                Type = FileTypeHelper.GetFileTypeName(extension, media),
+                Size = FileTypeHelper.GetFileSize(media),
+                Udi = media.Key,
+                CreateDate = media.CreateDate,
+                UpdateDate = media.UpdateDate == default ? media.CreateDate : media.UpdateDate,
+                Path = media.Path
+            };
         }
 
         public async Task<ContentMediaDetail?> GetContentDetail(int id)
@@ -816,6 +862,7 @@ namespace Diplo.GodMode.Services
                 ContentTypeName = content.ContentType.Name ?? string.Empty,
                 ContentTypeAlias = content.ContentType.Alias,
                 Path = content.Path,
+                Ancestors = this.ContentAncestors(content.Path, content.Id),
                 ParentId = content.ParentId,
                 Level = content.Level,
                 Trashed = content.Trashed,
@@ -860,6 +907,7 @@ namespace Diplo.GodMode.Services
                 ContentTypeName = media.ContentType.Name ?? string.Empty,
                 ContentTypeAlias = media.ContentType.Alias,
                 Path = media.Path,
+                Ancestors = this.MediaAncestors(media.Path, media.Id),
                 ParentId = media.ParentId,
                 Level = media.Level,
                 Trashed = media.Trashed,
@@ -900,6 +948,91 @@ namespace Diplo.GodMode.Services
                     .OrderBy(x => x)
             }).OrderBy(x => x.Alias);
 
+        private IEnumerable<AncestorPathItem> ContentAncestors(string path, int currentId)
+        {
+            var pathIds = ParsePathIds(path).ToList();
+            var items = this.contentService.GetByIds(pathIds.Where(id => id > 0)).ToDictionary(item => item.Id);
+
+            return pathIds.Select(id =>
+            {
+                if (id == -1)
+                {
+                    return RootAncestor(id, currentId);
+                }
+
+                if (!items.TryGetValue(id, out var item))
+                {
+                    return MissingAncestor(id, currentId);
+                }
+
+                return new AncestorPathItem
+                {
+                    Id = item.Id,
+                    Key = item.Key,
+                    Name = item.Name ?? $"#{item.Id}",
+                    Alias = item.ContentType.Alias,
+                    Level = item.Level,
+                    IsCurrent = item.Id == currentId
+                };
+            });
+        }
+
+        private IEnumerable<AncestorPathItem> MediaAncestors(string path, int currentId)
+        {
+            var pathIds = ParsePathIds(path).ToList();
+            var items = this.mediaService.GetByIds(pathIds.Where(id => id > 0)).ToDictionary(item => item.Id);
+
+            return pathIds.Select(id =>
+            {
+                if (id == -1)
+                {
+                    return RootAncestor(id, currentId);
+                }
+
+                if (!items.TryGetValue(id, out var item))
+                {
+                    return MissingAncestor(id, currentId);
+                }
+
+                return new AncestorPathItem
+                {
+                    Id = item.Id,
+                    Key = item.Key,
+                    Name = item.Name ?? $"#{item.Id}",
+                    Alias = item.ContentType.Alias,
+                    Level = item.Level,
+                    IsCurrent = item.Id == currentId
+                };
+            });
+        }
+
+        private static IEnumerable<int> ParsePathIds(string path)
+            => (path ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(value => int.TryParse(value, out var id) ? id : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value);
+
+        private static AncestorPathItem RootAncestor(int id, int currentId)
+            => new()
+            {
+                Id = id,
+                Name = "Root",
+                Alias = "root",
+                Level = 0,
+                IsRoot = true,
+                IsCurrent = id == currentId
+            };
+
+        private static AncestorPathItem MissingAncestor(int id, int currentId)
+            => new()
+            {
+                Id = id,
+                Name = $"Missing item #{id}",
+                Alias = "missing",
+                IsCurrent = id == currentId
+            };
+
         private bool IsEmptyPropertyValue(object? value)
             => value is null || (value is string stringValue && string.IsNullOrWhiteSpace(stringValue));
 
@@ -932,16 +1065,46 @@ namespace Diplo.GodMode.Services
         }
 
         private async Task<IEnumerable<AuditSummary>> AuditSummaries(int id)
-            => (await this.auditService.GetItemsByEntityAsync(id, 0, 10, Direction.Descending, [], null))
+        {
+            var items = (await this.auditService.GetItemsByEntityAsync(id, 0, 10, Direction.Descending, [], null))
                 .Items
-                .Select(item => new AuditSummary
-                {
-                    AuditType = item.AuditType.ToString(),
-                    EntityType = item.EntityType ?? string.Empty,
-                    UserId = item.UserId,
-                    Comment = item.Comment ?? string.Empty,
-                    Parameters = item.Parameters ?? string.Empty
-                });
+                .ToList();
+            var userNames = this.UserNamesById(items.Select(item => item.UserId));
+
+            return items.Select(item => new AuditSummary
+            {
+                AuditType = item.AuditType.ToString(),
+                EntityType = item.EntityType ?? string.Empty,
+                UserId = item.UserId,
+                UserName = userNames.TryGetValue(item.UserId, out var userName) ? userName : UserLabel(item.UserId),
+                Comment = item.Comment ?? string.Empty,
+                Parameters = item.Parameters ?? string.Empty
+            });
+        }
+
+        private Dictionary<int, string> UserNamesById(IEnumerable<int> userIds)
+        {
+            var ids = userIds.Where(id => id > 0).Distinct().ToArray();
+            if (ids.Length == 0)
+            {
+                return [];
+            }
+
+            using var scope = this.scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<UserLookup>("SELECT id, userName FROM umbracoUser WHERE id IN (@0)", ids)
+                .Where(user => !string.IsNullOrWhiteSpace(user.UserName))
+                .ToDictionary(user => user.Id, user => user.UserName);
+        }
+
+        private static string UserLabel(int userId)
+            => userId <= 0 ? "System" : $"User #{userId}";
+
+        private class UserLookup
+        {
+            public int Id { get; set; }
+
+            public string UserName { get; set; } = string.Empty;
+        }
 
         public IEnumerable<ItemBase> GetMediaTypes()
         {

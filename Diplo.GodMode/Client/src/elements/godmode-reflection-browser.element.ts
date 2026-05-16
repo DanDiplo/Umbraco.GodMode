@@ -23,6 +23,7 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
     @state() private _loading = true;
     @state() private _search = "";
     @state() private _ns = "";
+    @state() private _origin = "";
     @state() private _sort: SortState = { column: "name", reverse: false };
 
     override connectedCallback(): void {
@@ -51,6 +52,7 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
         const matched = this._items.filter((c) => {
             if (q && !c.name.toLowerCase().includes(q) && !(c.loadableName ?? "").toLowerCase().includes(q)) return false;
             if (this._ns && c.namespace !== this._ns) return false;
+            if (this._origin && c.origin !== this._origin) return false;
             return true;
         });
         return applySort(matched as unknown as Array<Record<string, unknown>>, this._sort) as unknown as TypeMap[];
@@ -63,6 +65,10 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
     override render() {
         const namespaces = uniqueBy(this._items, "namespace")
             .map((x) => x.namespace)
+            .filter(Boolean)
+            .sort();
+        const origins = uniqueBy(this._items, "origin")
+            .map((x) => x.origin)
             .filter(Boolean)
             .sort();
         const results = this._filtered();
@@ -86,6 +92,13 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
                             <select @change=${(e: Event) => (this._ns = (e.target as HTMLSelectElement).value)}>
                                 <option value="">Any</option>
                                 ${namespaces.map((n) => html`<option value=${n}>${n}</option>`)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Origin</label>
+                            <select @change=${(e: Event) => (this._origin = (e.target as HTMLSelectElement).value)}>
+                                <option value="">Any</option>
+                                ${origins.map((origin) => html`<option value=${origin}>${origin}</option>`)}
                             </select>
                         </div>
                     </div>
@@ -128,12 +141,14 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
                         ? html`
                               <godmode-sort-header column="name" .sort=${this._sort}>Name</godmode-sort-header>
                               <godmode-sort-header column="namespace" .sort=${this._sort}>Namespace</godmode-sort-header>
+                              <godmode-sort-header column="origin" .sort=${this._sort}>Origin</godmode-sort-header>
                               <godmode-sort-header column="assembly" .sort=${this._sort}>Assembly</godmode-sort-header>
                               <godmode-sort-header column="baseType" .sort=${this._sort}>Base</godmode-sort-header>
                           `
                         : html`
                               <uui-table-head-cell>Name</uui-table-head-cell>
                               <uui-table-head-cell>Namespace</uui-table-head-cell>
+                              <uui-table-head-cell>Origin</uui-table-head-cell>
                               <uui-table-head-cell>Assembly</uui-table-head-cell>
                               <uui-table-head-cell>Base</uui-table-head-cell>
                           `}
@@ -143,6 +158,7 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
                         <uui-table-row>
                             <uui-table-cell><strong>${c.name}</strong></uui-table-cell>
                             <uui-table-cell><code>${c.namespace}</code></uui-table-cell>
+                            <uui-table-cell><span class="origin">${c.origin}</span></uui-table-cell>
                             <uui-table-cell><code>${c.assembly}</code></uui-table-cell>
                             <uui-table-cell>${c.baseType}</uui-table-cell>
                         </uui-table-row>
@@ -155,7 +171,7 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
     static override styles = css`
         .filters {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2fr 1fr minmax(140px, 0.5fr);
             gap: var(--uui-size-space-4);
         }
         .filters label {
@@ -185,6 +201,17 @@ export class GodModeReflectionBrowserElement extends UmbElementMixin(LitElement)
         h3 span {
             color: var(--uui-color-text-alt);
             font-weight: 400;
+        }
+        .origin {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            padding: 0 var(--uui-size-space-2);
+            border-radius: 999px;
+            background: var(--uui-color-surface-alt);
+            color: var(--uui-color-text);
+            font-size: 12px;
+            white-space: nowrap;
         }
     `;
 }

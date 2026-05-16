@@ -5,6 +5,7 @@ import "../shared";
 import type { ContentItem, ContentMediaDetail, Lang, Page } from "../shared/types";
 import { truncate } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
+import { openEvidenceDrawer } from "../shared/evidence-drawer";
 
 type CultureState = {
     iso: string;
@@ -132,6 +133,86 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                 })}
             </div>
         `;
+    }
+
+    private async _openDetails(content: ContentItem, e: Event) {
+        const detail = await godmodeGet<ContentMediaDetail>(`content/${content.id}/detail`);
+        const ancestorPath = this._ancestorPath(detail);
+
+        openEvidenceDrawer(
+            this,
+            {
+                title: `Content: ${detail.name}`,
+                subtitle: `${detail.contentTypeName} (${detail.contentTypeAlias})`,
+                summary: [
+                    { label: "Id", value: detail.id },
+                    { label: "Key", value: detail.key },
+                    { label: "Document Type", value: detail.contentTypeName },
+                    { label: "Alias", value: detail.contentTypeAlias },
+                    { label: "Location", value: ancestorPath },
+                    { label: "Depth", value: Math.max(detail.ancestors.length - 1, 0) },
+                    { label: "Published", value: detail.state.published },
+                    { label: "Edited", value: detail.state.edited },
+                    { label: "Trashed", value: detail.trashed }
+                ],
+                sections: [
+                    {
+                        heading: "Location",
+                        items: {
+                            name: detail.name,
+                            location: ancestorPath,
+                            rawPath: detail.path,
+                            parentId: detail.parentId,
+                            level: detail.level,
+                            created: truncate(detail.createDate, 22),
+                            updated: truncate(detail.updateDate, 22)
+                        }
+                    },
+                    {
+                        heading: "Ancestor Path",
+                        description: "Decoded from the Umbraco path IDs, including missing ancestors if an ID cannot be resolved.",
+                        items: detail.ancestors.map((ancestor, index) => ({
+                            position: index,
+                            id: ancestor.id,
+                            name: ancestor.name,
+                            alias: ancestor.alias,
+                            level: ancestor.level,
+                            current: ancestor.isCurrent
+                        }))
+                    },
+                    {
+                        heading: "Publishing",
+                        items: {
+                            published: detail.state.published,
+                            edited: detail.state.edited,
+                            templateId: detail.state.templateId,
+                            publishedVersionId: detail.state.publishedVersionId,
+                            publishDate: truncate(detail.state.publishDate ?? "", 22),
+                            availableCultures: detail.state.availableCultures,
+                            publishedCultures: detail.state.publishedCultures,
+                            editedCultures: detail.state.editedCultures
+                        }
+                    },
+                    {
+                        heading: "Recent Audit Trail",
+                        description: "Latest entity audit entries from Umbraco, including the backoffice user where it can be resolved.",
+                        items: detail.auditTrail.map((entry) => ({
+                            action: entry.auditType,
+                            user: entry.userName,
+                            userId: entry.userId,
+                            entityType: entry.entityType,
+                            comment: entry.comment,
+                            parameters: entry.parameters
+                        }))
+                    }
+                ]
+            },
+            e
+        );
+    }
+
+    private _ancestorPath(detail: ContentMediaDetail) {
+        return detail.ancestors.length ? detail.ancestors.map((ancestor) => ancestor.name).join(" / ") : detail.path;
     }
 
     private async _explainSubject(content: ContentItem) {
@@ -263,7 +344,6 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                                 <a href=${editUrl("content", c.udi)} @click=${(e: Event) => openEditorModal(this, "content", c.udi, e)}
                                                     ><strong>${c.name}</strong></a
                                                 >
-                                                <small style="display:block;color:var(--uui-color-text-alt)">${c.path}</small>
                                             </uui-table-cell>
                                             <uui-table-cell><code>${c.alias}</code></uui-table-cell>
                                             <uui-table-cell>${this._renderCultureStates(c)}</uui-table-cell>
@@ -271,7 +351,10 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                             <uui-table-cell><small>${truncate(c.updateDate, 22)}</small></uui-table-cell>
                                             <uui-table-cell><godmode-yes-no .value=${c.trashed}></godmode-yes-no></uui-table-cell>
                                             <uui-table-cell class="action-cell">
-                                                <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(c)}></godmode-ai-explain-host>
+                                                <div class="action-wrap">
+                                                    <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetails(c, e)}>Details</uui-button>
+                                                    <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(c)}></godmode-ai-explain-host>
+                                                </div>
                                             </uui-table-cell>
                                         </uui-table-row>
                                     `
@@ -351,9 +434,16 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
         }
         .action-cell {
             text-align: right;
-            width: 7rem;
+            width: 10rem;
         }
-        .action-cell godmode-ai-explain-host {
+        .action-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: var(--uui-size-space-2);
+            min-height: 2rem;
+        }
+        .action-wrap godmode-ai-explain-host {
             display: inline-flex;
             justify-content: flex-end;
         }

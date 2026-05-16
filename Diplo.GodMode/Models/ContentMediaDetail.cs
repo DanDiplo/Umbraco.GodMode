@@ -19,6 +19,8 @@ namespace Diplo.GodMode.Models
 
         public string Path { get; set; } = string.Empty;
 
+        public IEnumerable<AncestorPathItem> Ancestors { get; set; } = [];
+
         public int ParentId { get; set; }
 
         public int Level { get; set; }
@@ -44,6 +46,23 @@ namespace Diplo.GodMode.Models
         public IEnumerable<ReferenceEdge> Uses { get; set; } = [];
 
         public IEnumerable<AuditSummary> AuditTrail { get; set; } = [];
+    }
+
+    public class AncestorPathItem
+    {
+        public int Id { get; set; }
+
+        public Guid? Key { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public string Alias { get; set; } = string.Empty;
+
+        public int Level { get; set; }
+
+        public bool IsRoot { get; set; }
+
+        public bool IsCurrent { get; set; }
     }
 
     public class ContentStateDetail
@@ -123,6 +142,8 @@ namespace Diplo.GodMode.Models
         public string EntityType { get; set; } = string.Empty;
 
         public int UserId { get; set; }
+
+        public string UserName { get; set; } = string.Empty;
 
         public string Comment { get; set; } = string.Empty;
 

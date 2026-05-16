@@ -119,6 +119,8 @@ export interface ContentItem {
 export interface MediaMap extends ItemBase {
     ext: string;
     type: string;
+    mediaTypeAlias: string;
+    mediaTypeIcon: string | null;
     size: number;
     createDate: string;
     updateDate: string;
@@ -133,6 +135,15 @@ export interface ContentMediaDetail {
     contentTypeName: string;
     contentTypeAlias: string;
     path: string;
+    ancestors: Array<{
+        id: number;
+        key?: string | null;
+        name: string;
+        alias: string;
+        level: number;
+        isRoot: boolean;
+        isCurrent: boolean;
+    }>;
     parentId: number;
     level: number;
     trashed: boolean;
@@ -191,6 +202,7 @@ export interface ContentMediaDetail {
         auditType: string;
         entityType: string;
         userId: number;
+        userName: string;
         comment: string;
         parameters: string;
     }>;
@@ -270,11 +282,18 @@ export interface NameValue {
 export interface TypeMap {
     module: string;
     assembly: string;
+    origin: string;
     name: string;
     namespace: string;
     baseType: string;
     loadableName: string;
     isUmbraco: boolean;
+    implementationCount: number;
+}
+
+export interface TypeDetail extends TypeMap {
+    inheritanceChain: TypeMap[];
+    interfaces: TypeMap[];
 }
 
 export interface RegisteredService {

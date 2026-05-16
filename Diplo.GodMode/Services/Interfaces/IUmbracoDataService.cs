@@ -27,7 +27,7 @@ namespace Diplo.GodMode.Services.Interfaces
 
         Task<IEnumerable<ConfigurationDriftFinding>> GetConfigurationDriftFindings();
 
-        Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, string orderBy = "Id", string orderByDir = "ASC");
+        Page<MediaMap> GetMediaPaged(long page = 1, int pageSize = 3, string name = null, int? id = null, int? mediaTypeId = null, long? minSizeBytes = null, string orderBy = "Id", string orderByDir = "ASC");
 
         Task<ContentMediaDetail?> GetContentDetail(int id);
 

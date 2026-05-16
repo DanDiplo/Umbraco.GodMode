@@ -72,6 +72,47 @@ namespace Diplo.GodMode.Helpers
             return GetTypesAssignableFrom(myType).Select(t => new TypeMap(t));
         }
 
+        public static IEnumerable<TypeMap> GetInterfaceTypeMapWithImplementationCounts(Assembly assembly)
+        {
+            var loadableTypes = GetLoadableTypes().ToArray();
+
+            return GetNonGenericInterfaces(assembly)
+                .Select(i =>
+                {
+                    var interfaceType = Type.GetType(i.LoadableName);
+                    i.ImplementationCount = interfaceType is null
+                        ? 0
+                        : loadableTypes.Count(t => IsAssignableClassFromPredicate(interfaceType, t));
+                    return i;
+                });
+        }
+
+        public static TypeDetail? GetTypeDetail(string loadableName)
+        {
+            var type = Type.GetType(loadableName);
+            if (type is null)
+            {
+                return null;
+            }
+
+            var chain = new List<TypeMap>();
+            var baseType = type.BaseType;
+            while (baseType is not null)
+            {
+                chain.Add(new TypeMap(baseType));
+                baseType = baseType.BaseType;
+            }
+
+            return new TypeDetail(type)
+            {
+                InheritanceChain = chain,
+                Interfaces = type.GetInterfaces()
+                    .Where(i => i.IsPublic)
+                    .OrderBy(i => i.FullName)
+                    .Select(i => new TypeMap(i))
+            };
+        }
+
         public static IEnumerable<TypeMap> GetTypeMapFromOpenGeneric(Type openGenericType)
         {
             return GetAllTypesImplementingOpenGenericType(openGenericType)

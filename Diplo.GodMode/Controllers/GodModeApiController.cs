@@ -144,9 +144,10 @@ public class GodModeApiController : ManagementApiControllerBase
         string? name = null,
         int? id = null,
         int? mediaTypeId = null,
+        long? minSizeBytes = null,
         string orderBy = "Id",
         string orderByDir = "ASC")
-        => Ok(dataService.GetMediaPaged(page, pageSize, name, id, mediaTypeId, orderBy, orderByDir));
+        => Ok(dataService.GetMediaPaged(page, pageSize, name, id, mediaTypeId, minSizeBytes, orderBy, orderByDir));
 
     [HttpGet("media/{id:int}/detail")]
     [ProducesResponseType<ContentMediaDetail>(StatusCodes.Status200OK)]
@@ -328,6 +329,15 @@ public class GodModeApiController : ManagementApiControllerBase
         return Ok(t is null ? [] : ReflectionHelper.GetTypeMapFrom(t));
     }
 
+    [HttpGet("reflection/type-detail")]
+    [ProducesResponseType<TypeDetail>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public ActionResult<TypeDetail> GetTypeDetail([FromQuery] string loadableName)
+    {
+        var detail = ReflectionHelper.GetTypeDetail(loadableName);
+        return detail is null ? NotFound() : Ok(detail);
+    }
+
     // ─── Diagnostics ─────────────────────────────────────────────────
 
     [HttpGet("diagnostics")]
@@ -412,7 +422,7 @@ public class GodModeApiController : ManagementApiControllerBase
     [HttpGet("assemblies/{assembly}/interfaces")]
     [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<TypeMap>> GetInterfacesFrom(string assembly)
-        => Ok(ReflectionHelper.GetNonGenericInterfaces(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>());
+        => Ok(ReflectionHelper.GetInterfaceTypeMapWithImplementationCounts(Assembly.Load(assembly)).OrderBy(i => i.Name) ?? Enumerable.Empty<TypeMap>());
 
     [HttpGet("assemblies/{assembly}/types")]
     [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]

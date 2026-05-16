@@ -11,6 +11,10 @@ namespace Diplo.GodMode.Models
 
         public string Type { get; set; }
 
+        public string MediaTypeAlias { get; set; }
+
+        public string MediaTypeIcon { get; set; }
+
         public int Size { get; set; }
 
         public DateTime CreateDate { get; set; }
