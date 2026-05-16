@@ -463,6 +463,32 @@ export interface GodModeLogEvent {
     rawJson: string;
 }
 
+export interface GodModeLogInsight {
+    id: string;
+    level: string;
+    title: string;
+    count: number;
+    firstSeen: string | null;
+    lastSeen: string | null;
+    sourceContext: string;
+    requestPaths: string[];
+    exceptionType: string;
+    normalizedMessage: string;
+    sample?: GodModeLogEvent | null;
+    samples: GodModeLogEvent[];
+}
+
+export interface GodModeLogLevelCount {
+    level: string;
+    count: number;
+}
+
+export interface GodModeSavedLogQuery {
+    id: string;
+    name: string;
+    query: string;
+}
+
 export interface Page<T> {
     currentPage: number;
     totalPages: number;

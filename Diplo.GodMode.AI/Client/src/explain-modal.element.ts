@@ -23,7 +23,7 @@ export class GodModeAiExplainModalElement extends LitElement {
       <uui-dialog-layout headline=${subject?.title || "AI Explanation"}>
         ${this._loading ? html`<uui-loader></uui-loader>` : ""}
         ${this._error ? html`<p class="error">${this._error}</p>` : ""}
-        ${this._result ? this._renderResult(this._result) : ""}
+        ${this._result ? this._renderResult(this._result, subject?.subjectType) : ""}
         <uui-button slot="actions" look="secondary" label="Close" @click=${this._close}>Close</uui-button>
       </uui-dialog-layout>
     `;
@@ -46,16 +46,41 @@ export class GodModeAiExplainModalElement extends LitElement {
     }
   }
 
-  private _renderResult(result: GodModeAiExplainResponse) {
+  private _renderResult(result: GodModeAiExplainResponse, subjectType?: string) {
+    const isLogEvent = subjectType === "Umbraco Log Event";
+    const isLogInsight = subjectType === "Umbraco Log Insight";
+    const subjectLevel = String(this.data?.subject?.data?.level ?? "");
+    const hasException = Boolean(this.data?.subject?.data?.exception);
+    const hasStackFrames = Array.isArray(this.data?.subject?.data?.stackFrames) && this.data?.subject?.data?.stackFrames.length > 0;
+    const isErrorLikeLogEvent = (isLogEvent || isLogInsight) && (hasException || hasStackFrames || subjectLevel === "Error" || subjectLevel === "Fatal");
+
     return html`
       <div class="content">
         ${result.summary ? html`<p class="summary">${result.summary}</p>` : ""}
-        ${this._section("What It Is", result.whatItIs)}
-        ${this._section("Why It Matters", result.whyItMatters)}
+        ${isLogEvent || isLogInsight
+          ? html`
+              ${this._section(isLogInsight ? "Pattern Diagnosis" : isErrorLikeLogEvent ? "Primary Diagnosis" : "What Happened", result.primaryDiagnosis)}
+              ${this._section(isErrorLikeLogEvent || isLogInsight ? "Where To Look" : "Relevant Context", result.whereToLook, "code")}
+              ${this._section(isLogInsight ? "Likely Shared Cause" : isErrorLikeLogEvent ? "Likely Cause" : "Likely Trigger", result.likelyCause)}
+              ${result.howToFix?.length
+                ? html`
+                    <section>
+                      <h2>${isLogInsight ? "Triage / Fix Plan" : isErrorLikeLogEvent ? "How To Fix" : "Recommended Action"}</h2>
+                      <ul>
+                        ${result.howToFix.map((step) => html`<li>${step}</li>`)}
+                      </ul>
+                    </section>
+                  `
+                : ""}
+            `
+          : html`
+              ${this._section("What It Is", result.whatItIs)}
+              ${this._section("Why It Matters", result.whyItMatters)}
+            `}
         ${result.observedDetails?.length
           ? html`
               <section>
-                <h2>Observed Details</h2>
+                <h2>${isLogEvent || isLogInsight ? "Supporting Evidence" : "Observed Details"}</h2>
                 <ul>
                   ${result.observedDetails.map((detail) => html`<li>${detail}</li>`)}
                 </ul>
@@ -77,12 +102,12 @@ export class GodModeAiExplainModalElement extends LitElement {
     `;
   }
 
-  private _section(label: string, value: string) {
+  private _section(label: string, value?: string, kind: "text" | "code" = "text") {
     return value
       ? html`
           <section>
             <h2>${label}</h2>
-            <p>${value}</p>
+            ${kind === "code" ? html`<p><code>${value}</code></p>` : html`<p>${value}</p>`}
           </section>
         `
       : "";
@@ -117,6 +142,10 @@ export class GodModeAiExplainModalElement extends LitElement {
       margin: 0;
       color: var(--uui-color-text-alt);
       line-height: 1.5;
+    }
+    code {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
     }
     .error {
       color: var(--uui-color-danger);

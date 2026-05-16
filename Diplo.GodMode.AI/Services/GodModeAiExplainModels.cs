@@ -17,6 +17,14 @@ namespace Diplo.GodMode.AI.Services
     {
         public string Summary { get; set; } = string.Empty;
 
+        public string PrimaryDiagnosis { get; set; } = string.Empty;
+
+        public string WhereToLook { get; set; } = string.Empty;
+
+        public string LikelyCause { get; set; } = string.Empty;
+
+        public List<string> HowToFix { get; set; } = [];
+
         public string WhatItIs { get; set; } = string.Empty;
 
         public string WhyItMatters { get; set; } = string.Empty;

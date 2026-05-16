@@ -1,4 +1,4 @@
-import { LitElement, customElement, html, property, state } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, css, customElement, html, property, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import type { GodModeAiExplainSubject } from "./api";
 import { openExplainModal } from "./explain-modal";
@@ -31,12 +31,24 @@ export class GodModeAiExplainButtonElement extends UmbElementMixin(LitElement) {
     if (!this.subject && !this.subjectProvider) return html``;
 
     return html`
-      <uui-button compact look="secondary" label="Explain" title="Explain this item with AI" ?disabled=${this._loading} @click=${this._open}>
+      <uui-button class="explain-button" compact look="secondary" label="Explain" title="Explain this item with AI" ?disabled=${this._loading} @click=${this._open}>
         <uui-icon name="icon-help-alt"></uui-icon>
         ${this._loading ? "Loading..." : "Explain"}
       </uui-button>
     `;
   }
+
+  static override styles = [
+    css`
+      :host {
+        display: contents;
+      }
+
+      .explain-button {
+        --uui-button-contrast: var(--uui-palette-space-cadet, #00003c);
+      }
+    `
+  ];
 }
 
 export default GodModeAiExplainButtonElement;

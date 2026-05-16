@@ -464,8 +464,31 @@ public class GodModeApiController : ManagementApiControllerBase
         DateTimeOffset? from = null,
         DateTimeOffset? to = null,
         string? level = null,
-        string? search = null)
-        => Ok(logService.GetLogs(page, pageSize, from, to, level, search));
+        string? search = null,
+        string? queryExpression = null)
+        => Ok(logService.GetLogs(page, pageSize, from, to, level, search, queryExpression));
+
+    [HttpGet("logs/insights")]
+    [ProducesResponseType<IEnumerable<GodModeLogInsight>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<GodModeLogInsight>> GetLogInsights(
+        DateTimeOffset? from = null,
+        DateTimeOffset? to = null,
+        int take = 8)
+        => Ok(logService.GetInsights(from, to, take));
+
+    [HttpGet("logs/level-counts")]
+    [ProducesResponseType<IEnumerable<GodModeLogLevelCount>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<GodModeLogLevelCount>> GetLogLevelCounts(
+        DateTimeOffset? from = null,
+        DateTimeOffset? to = null,
+        string? search = null,
+        string? queryExpression = null)
+        => Ok(logService.GetLevelCounts(from, to, search, queryExpression));
+
+    [HttpGet("logs/saved-queries")]
+    [ProducesResponseType<IEnumerable<GodModeSavedLogQuery>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<GodModeSavedLogQuery>> GetSavedLogQueries()
+        => Ok(logService.GetSavedQueries());
 
     // ─── Config / usage / tags ───────────────────────────────────────
 

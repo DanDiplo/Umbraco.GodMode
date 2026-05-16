@@ -12,6 +12,10 @@ export interface GodModeAiExplainSubject {
 
 export interface GodModeAiExplainResponse {
   summary: string;
+  primaryDiagnosis?: string;
+  whereToLook?: string;
+  likelyCause?: string;
+  howToFix?: string[];
   whatItIs: string;
   whyItMatters: string;
   observedDetails: string[];

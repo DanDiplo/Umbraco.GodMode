@@ -3,8 +3,10 @@ using System.Text;
 using System.Text.Json;
 using Diplo.GodMode.Models;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NPoco;
+using Umbraco.Cms.Infrastructure.Scoping;
 
 namespace Diplo.GodMode.Services;
 
@@ -15,11 +17,15 @@ public sealed class GodModeLogService : IGodModeLogService
 
     private readonly IWebHostEnvironment env;
     private readonly ILogger<GodModeLogService> logger;
+    private readonly IMemoryCache memoryCache;
+    private readonly IScopeProvider scopeProvider;
 
-    public GodModeLogService(IWebHostEnvironment env, ILogger<GodModeLogService> logger)
+    public GodModeLogService(IWebHostEnvironment env, ILogger<GodModeLogService> logger, IMemoryCache memoryCache, IScopeProvider scopeProvider)
     {
         this.env = env;
         this.logger = logger;
+        this.memoryCache = memoryCache;
+        this.scopeProvider = scopeProvider;
     }
 
     public GodModeLogOverview GetOverview()
@@ -34,7 +40,7 @@ public sealed class GodModeLogService : IGodModeLogService
         };
     }
 
-    public Page<GodModeLogEvent> GetLogs(long page, long pageSize, DateTimeOffset? from, DateTimeOffset? to, string? level, string? search)
+    public Page<GodModeLogEvent> GetLogs(long page, long pageSize, DateTimeOffset? from, DateTimeOffset? to, string? level, string? search, string? queryExpression)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
@@ -48,6 +54,7 @@ public sealed class GodModeLogService : IGodModeLogService
             .Where(log => MatchesDate(log, fromUtc, toUtc))
             .Where(log => string.IsNullOrWhiteSpace(normalizedLevel) || string.Equals(NormalizeLevel(log.Level), normalizedLevel, StringComparison.OrdinalIgnoreCase))
             .Where(log => MatchesSearch(log, normalizedSearch))
+            .Where(log => MatchesQueryExpression(log, queryExpression))
             .OrderByDescending(log => log.Timestamp ?? DateTimeOffset.MinValue)
             .ThenByDescending(log => log.LogFile)
             .ToList();
@@ -66,6 +73,63 @@ public sealed class GodModeLogService : IGodModeLogService
             TotalPages = (long)Math.Ceiling(total / (decimal)pageSize),
             Items = items
         };
+    }
+
+    public IEnumerable<GodModeLogInsight> GetInsights(DateTimeOffset? from, DateTimeOffset? to, int take)
+    {
+        take = Math.Clamp(take, 1, 20);
+
+        var fromUtc = from?.ToUniversalTime();
+        var toUtc = to?.ToUniversalTime();
+        var cacheKey = $"godmode:logs:insights:{fromUtc?.Ticks.ToString() ?? "null"}:{toUtc?.Ticks.ToString() ?? "null"}:{take}:{GetLogFileSignature()}";
+
+        return memoryCache.GetOrCreate(cacheKey, entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+            entry.SlidingExpiration = TimeSpan.FromMinutes(1);
+
+            return ReadEvents()
+                .Where(log => MatchesDate(log, fromUtc, toUtc))
+                .Where(log => IsInsightLevel(log.Level))
+                .GroupBy(CreateInsightKey)
+                .Select(group => CreateInsight(group))
+                .OrderByDescending(insight => InsightSeverityScore(insight.Level))
+                .ThenByDescending(insight => insight.Count)
+                .ThenByDescending(insight => insight.LastSeen ?? DateTimeOffset.MinValue)
+                .Take(take)
+                .ToList();
+        }) ?? [];
+    }
+
+    public IEnumerable<GodModeLogLevelCount> GetLevelCounts(DateTimeOffset? from, DateTimeOffset? to, string? search, string? queryExpression)
+    {
+        var fromUtc = from?.ToUniversalTime();
+        var toUtc = to?.ToUniversalTime();
+        var normalizedSearch = search?.Trim();
+
+        return ReadEvents()
+            .Where(log => MatchesDate(log, fromUtc, toUtc))
+            .Where(log => MatchesSearch(log, normalizedSearch))
+            .Where(log => MatchesQueryExpression(log, queryExpression))
+            .GroupBy(log => NormalizeLevel(log.Level))
+            .Select(group => new GodModeLogLevelCount { Level = group.Key, Count = group.Count() })
+            .OrderByDescending(count => InsightSeverityScore(count.Level))
+            .ThenBy(count => count.Level)
+            .ToList();
+    }
+
+    public IEnumerable<GodModeSavedLogQuery> GetSavedQueries()
+    {
+        try
+        {
+            using var scope = scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<GodModeSavedLogQuery>("SELECT CAST(id AS TEXT) AS id, name, query FROM umbracoLogViewerQuery ORDER BY name");
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Unable to read saved Umbraco log viewer queries.");
+            return [];
+        }
     }
 
     private IEnumerable<GodModeLogEvent> ReadEvents()
@@ -90,6 +154,24 @@ public sealed class GodModeLogService : IGodModeLogService
                 yield return logEvent;
             }
         }
+    }
+
+    private string GetLogFileSignature()
+    {
+        var folder = GetLogFolder();
+
+        if (!Directory.Exists(folder))
+        {
+            return "missing";
+        }
+
+        var signature = Directory.EnumerateFiles(folder, "*.json")
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(file => file.LastWriteTimeUtc)
+            .Take(MaxFilesToScan)
+            .Select(file => $"{file.Name}:{file.Length}:{file.LastWriteTimeUtc.Ticks}");
+
+        return CreateId("files", string.Join("|", signature));
     }
 
     private List<GodModeLogEvent> ReadFileEvents(FileInfo file)
@@ -227,6 +309,69 @@ public sealed class GodModeLogService : IGodModeLogService
             || log.Properties.Any(property => Contains(property.Key, search) || Contains(property.Value?.ToString(), search));
     }
 
+    private static bool MatchesQueryExpression(GodModeLogEvent log, string? queryExpression)
+    {
+        if (string.IsNullOrWhiteSpace(queryExpression))
+        {
+            return true;
+        }
+
+        var parts = System.Text.RegularExpressions.Regex.Split(queryExpression, @"\s+and\s+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+            .Where(part => !string.IsNullOrWhiteSpace(part))
+            .ToList();
+
+        return parts.Count == 0 || parts.All(part => MatchesQueryPart(log, part.Trim()));
+    }
+
+    private static bool MatchesQueryPart(GodModeLogEvent log, string expression)
+    {
+        var startsWith = System.Text.RegularExpressions.Regex.Match(expression, @"^StartsWith\(\s*(?<property>@?\w+)\s*,\s*'(?<value>[^']*)'\s*\)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (startsWith.Success)
+        {
+            return GetLogValue(log, startsWith.Groups["property"].Value)?.StartsWith(startsWith.Groups["value"].Value, StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        var has = System.Text.RegularExpressions.Regex.Match(expression, @"^Has\(\s*(?<property>@?\w+)\s*\)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (has.Success)
+        {
+            return !string.IsNullOrWhiteSpace(GetLogValue(log, has.Groups["property"].Value));
+        }
+
+        var like = System.Text.RegularExpressions.Regex.Match(expression, @"^(?<property>@?\w+)\s+like\s+'(?<value>[^']*)'$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (like.Success)
+        {
+            var needle = like.Groups["value"].Value.Trim('%');
+            return Contains(GetLogValue(log, like.Groups["property"].Value), needle);
+        }
+
+        var equals = System.Text.RegularExpressions.Regex.Match(expression, @"^(?<property>@?\w+)\s*=\s*'?(?<value>[^']*)'?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (equals.Success)
+        {
+            return string.Equals(GetLogValue(log, equals.Groups["property"].Value), equals.Groups["value"].Value, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return MatchesSearch(log, expression);
+    }
+
+    private static string? GetLogValue(GodModeLogEvent log, string property)
+    {
+        var name = property.TrimStart('@');
+        return name switch
+        {
+            "Message" or "m" => log.Message,
+            "MessageTemplate" or "mt" => log.MessageTemplate,
+            "Level" or "l" => NormalizeLevel(log.Level),
+            "Exception" or "x" => log.Exception,
+            "SourceContext" => log.SourceContext,
+            "RequestId" => log.RequestId,
+            "RequestPath" => log.RequestPath,
+            "MachineName" or "Machine" => log.MachineName,
+            "ProcessId" => log.ProcessId?.ToString(),
+            "ThreadId" => log.ThreadId?.ToString(),
+            _ => log.Properties.TryGetValue(name, out var value) ? value?.ToString() : null
+        };
+    }
+
     private static bool Contains(string? value, string search)
         => value?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
 
@@ -285,6 +430,101 @@ public sealed class GodModeLogService : IGodModeLogService
             "Error" => "Error",
             "Fatal" => "Fatal",
             _ => level?.Trim() ?? string.Empty
+        };
+
+    private static bool IsInsightLevel(string? level)
+    {
+        var normalized = NormalizeLevel(level);
+        return normalized is "Warning" or "Error" or "Fatal";
+    }
+
+    private static string CreateInsightKey(GodModeLogEvent log)
+    {
+        var exceptionType = ExtractExceptionType(log.Exception);
+        var message = NormalizeForGrouping(!string.IsNullOrWhiteSpace(log.MessageTemplate) ? log.MessageTemplate : log.Message);
+        var source = log.SourceContext.Trim();
+        var exceptionMessage = NormalizeForGrouping(ExtractFirstExceptionLine(log.Exception));
+
+        return string.Join("|", NormalizeLevel(log.Level), source, exceptionType, message, exceptionMessage);
+    }
+
+    private static GodModeLogInsight CreateInsight(IGrouping<string, GodModeLogEvent> group)
+    {
+        var events = group
+            .OrderByDescending(log => log.Timestamp ?? DateTimeOffset.MinValue)
+            .ToList();
+        var sample = events.First();
+        var exceptionType = ExtractExceptionType(sample.Exception);
+        var normalizedMessage = NormalizeForGrouping(!string.IsNullOrWhiteSpace(sample.MessageTemplate) ? sample.MessageTemplate : sample.Message);
+
+        return new GodModeLogInsight
+        {
+            Id = CreateId("insight", group.Key),
+            Level = NormalizeLevel(sample.Level),
+            Title = BuildInsightTitle(sample, exceptionType, normalizedMessage),
+            Count = events.Count,
+            FirstSeen = events.Min(log => log.Timestamp),
+            LastSeen = events.Max(log => log.Timestamp),
+            SourceContext = sample.SourceContext,
+            RequestPaths = events
+                .Select(log => log.RequestPath)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(8)
+                .ToList(),
+            ExceptionType = exceptionType,
+            NormalizedMessage = normalizedMessage,
+            Sample = sample,
+            Samples = events.Take(3).ToList()
+        };
+    }
+
+    private static string BuildInsightTitle(GodModeLogEvent sample, string exceptionType, string normalizedMessage)
+        => !string.IsNullOrWhiteSpace(exceptionType)
+            ? $"{exceptionType}: {normalizedMessage}"
+            : normalizedMessage.Length > 0
+                ? normalizedMessage
+                : sample.Message;
+
+    private static string ExtractExceptionType(string? exception)
+    {
+        if (string.IsNullOrWhiteSpace(exception))
+        {
+            return string.Empty;
+        }
+
+        var firstLine = ExtractFirstExceptionLine(exception);
+        var marker = firstLine.IndexOf(':');
+        return marker > 0 ? firstLine[..marker].Trim() : firstLine.Trim();
+    }
+
+    private static string ExtractFirstExceptionLine(string? exception)
+        => exception?
+            .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(line => !line.TrimStart().StartsWith("at ", StringComparison.Ordinal))?
+            .Trim() ?? string.Empty;
+
+    private static string NormalizeForGrouping(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var normalized = value.Trim();
+        normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"\b[0-9a-fA-F]{8}\b-[0-9a-fA-F-]{27,}\b", "{guid}");
+        normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"\b\d+\b", "{number}");
+        normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"\s+", " ");
+        return normalized.Length > 220 ? normalized[..220] : normalized;
+    }
+
+    private static int InsightSeverityScore(string? level)
+        => NormalizeLevel(level) switch
+        {
+            "Fatal" => 3,
+            "Error" => 2,
+            "Warning" => 1,
+            _ => 0
         };
 
     private static string CreateId(string fileName, string json)

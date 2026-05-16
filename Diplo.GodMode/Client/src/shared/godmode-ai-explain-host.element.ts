@@ -1,4 +1,4 @@
-import { LitElement, customElement, html, property, state } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, css, customElement, html, property, state } from "@umbraco-cms/backoffice/external/lit";
 
 export interface GodModeAiExplainSubject {
     subjectType: string;
@@ -33,6 +33,14 @@ export class GodModeAiExplainHostElement extends LitElement {
 
         return html`<godmode-ai-explain-button .subject=${this.subject} .subjectProvider=${this.subjectProvider}></godmode-ai-explain-button>`;
     }
+
+    static override styles = [
+        css`
+            :host {
+                display: contents;
+            }
+        `
+    ];
 }
 
 export default GodModeAiExplainHostElement;

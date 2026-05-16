@@ -41,3 +41,46 @@ public sealed class GodModeLogOverview
 
     public int FileCount { get; set; }
 }
+
+public sealed class GodModeLogInsight
+{
+    public string Id { get; set; } = string.Empty;
+
+    public string Level { get; set; } = string.Empty;
+
+    public string Title { get; set; } = string.Empty;
+
+    public int Count { get; set; }
+
+    public DateTimeOffset? FirstSeen { get; set; }
+
+    public DateTimeOffset? LastSeen { get; set; }
+
+    public string SourceContext { get; set; } = string.Empty;
+
+    public List<string> RequestPaths { get; set; } = [];
+
+    public string ExceptionType { get; set; } = string.Empty;
+
+    public string NormalizedMessage { get; set; } = string.Empty;
+
+    public GodModeLogEvent? Sample { get; set; }
+
+    public List<GodModeLogEvent> Samples { get; set; } = [];
+}
+
+public sealed class GodModeLogLevelCount
+{
+    public string Level { get; set; } = string.Empty;
+
+    public int Count { get; set; }
+}
+
+public sealed class GodModeSavedLogQuery
+{
+    public string Id { get; set; } = string.Empty;
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Query { get; set; } = string.Empty;
+}
