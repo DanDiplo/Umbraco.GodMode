@@ -71,6 +71,14 @@ export interface ContentTypeData extends ItemBase {
     selected: boolean;
 }
 
+export interface ContentTypeCompositionData extends ContentTypeData {
+    isElement: boolean;
+    variesBy: string;
+    variesByCulture: boolean;
+    propertyCount: number;
+    propertyGroupCount: number;
+}
+
 /**
  * `ContentVariation` is a C# enum. Umbraco's management-API JSON config emits
  * enums as strings ("Nothing" | "Culture" | "Segment" | "CultureAndSegment"),
@@ -83,7 +91,7 @@ export interface ContentTypeMap extends ContentTypeData {
     properties: PropertyTypeMap[];
     compositionProperties: PropertyTypeMap[];
     allProperties: PropertyTypeMap[];
-    compositions: ContentTypeData[];
+    compositions: ContentTypeCompositionData[];
     propertyGroups: string[];
     hasTemplates: boolean;
     isListView: boolean;

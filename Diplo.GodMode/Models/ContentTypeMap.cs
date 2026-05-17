@@ -14,7 +14,7 @@ namespace Diplo.GodMode.Models
 
         public IEnumerable<PropertyTypeMap> AllProperties { get; set; }
 
-        public IEnumerable<ContentTypeData> Compositions { get; set; }
+        public IEnumerable<ContentTypeCompositionData> Compositions { get; set; }
 
         public IEnumerable<string> PropertyGroups { get; set; }
 

@@ -14,4 +14,17 @@ namespace Diplo.GodMode.Models
 
         public bool Selected { get; set; }
     }
+
+    public class ContentTypeCompositionData : ContentTypeData
+    {
+        public bool IsElement { get; set; }
+
+        public string VariesBy { get; set; }
+
+        public bool VariesByCulture { get; set; }
+
+        public int PropertyCount { get; set; }
+
+        public int PropertyGroupCount { get; set; }
+    }
 }

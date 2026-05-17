@@ -11,7 +11,7 @@ namespace Diplo.GodMode.Services.Interfaces
     /// </summary>
     public interface IUmbracoDataService
     {
-        IEnumerable<ContentTypeData> GetCompositions();
+        IEnumerable<ContentTypeCompositionData> GetCompositions();
 
         IEnumerable<ContentTypeMap> GetContentTypeMap();
 

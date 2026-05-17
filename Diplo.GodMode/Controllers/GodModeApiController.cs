@@ -85,8 +85,8 @@ public class GodModeApiController : ManagementApiControllerBase
         => Ok(dataService.GetPropertyGroups());
 
     [HttpGet("compositions")]
-    [ProducesResponseType<IEnumerable<ContentTypeData>>(StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<ContentTypeData>> GetCompositions()
+    [ProducesResponseType<IEnumerable<ContentTypeCompositionData>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<ContentTypeCompositionData>> GetCompositions()
         => Ok(dataService.GetCompositions());
 
     [HttpGet("data-types")]

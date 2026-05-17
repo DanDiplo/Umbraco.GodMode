@@ -1,4 +1,4 @@
-import { LitElement, css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, css, customElement, html, state, svg } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
@@ -39,6 +39,7 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _propertyGroup = "";
     @state() private _propertyQuery = "";
     @state() private _open = new Set<number>();
+    @state() private _detailViews = new Map<number, "visual" | "details">();
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -63,6 +64,13 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
         const next = new Set(this._open);
         next.has(id) ? next.delete(id) : next.add(id);
         this._open = next;
+    }
+
+    private _setDetailView(id: number, view: "visual" | "details", e?: Event) {
+        e?.stopPropagation();
+        const next = new Map(this._detailViews);
+        next.set(id, view);
+        this._detailViews = next;
     }
 
     private _matchTri(value: boolean, filter: TriState): boolean {
@@ -271,11 +279,28 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
     }
 
     private _renderDetail(ct: ContentTypeMap) {
+        const view = this._detailViews.get(ct.id) ?? "visual";
         return html`
             <div class="meta">
                 <p>${ct.description ?? ""}</p>
                 <small><span class="label">${ct.id}</span> <code>${ct.udi}</code></small>
             </div>
+            <div class="detail-tabs" role="tablist" aria-label=${`${ct.name} detail views`}>
+                <uui-button compact look=${view === "visual" ? "primary" : "secondary"} label="Visual" @click=${(e: Event) => this._setDetailView(ct.id, "visual", e)}>
+                    <uui-icon name="icon-molecular-network"></uui-icon>
+                    Visual
+                </uui-button>
+                <uui-button compact look=${view === "details" ? "primary" : "secondary"} label="Details" @click=${(e: Event) => this._setDetailView(ct.id, "details", e)}>
+                    <uui-icon name="icon-list"></uui-icon>
+                    Details
+                </uui-button>
+            </div>
+            ${view === "visual" ? this._renderSchemaMap(ct) : this._renderDetailTables(ct)}
+        `;
+    }
+
+    private _renderDetailTables(ct: ContentTypeMap) {
+        return html`
             ${ct.templates?.length
                 ? html`
                       <h5>Templates</h5>
@@ -283,6 +308,11 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                           <uui-table-head>
                               <uui-table-head-cell>Name</uui-table-head-cell>
                               <uui-table-head-cell>Alias</uui-table-head-cell>
+                              <uui-table-head-cell>Kind</uui-table-head-cell>
+                              <uui-table-head-cell>Properties</uui-table-head-cell>
+                              <uui-table-head-cell>Groups</uui-table-head-cell>
+                              <uui-table-head-cell>Varies By</uui-table-head-cell>
+                              <uui-table-head-cell>Composes</uui-table-head-cell>
                           </uui-table-head>
                           ${ct.templates.map(
                               (t) => html`<uui-table-row>
@@ -350,6 +380,11 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                           <uui-table-head>
                               <uui-table-head-cell>Name</uui-table-head-cell>
                               <uui-table-head-cell>Alias</uui-table-head-cell>
+                              <uui-table-head-cell>Kind</uui-table-head-cell>
+                              <uui-table-head-cell>Properties</uui-table-head-cell>
+                              <uui-table-head-cell>Groups</uui-table-head-cell>
+                              <uui-table-head-cell>Varies By</uui-table-head-cell>
+                              <uui-table-head-cell>Composes</uui-table-head-cell>
                           </uui-table-head>
                           ${ct.compositions.map(
                               (c) => html`<uui-table-row>
@@ -359,12 +394,119 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                                       ></uui-table-cell
                                   >
                                   <uui-table-cell><code>${c.alias}</code></uui-table-cell>
+                                  <uui-table-cell>${c.isElement ? "Element" : "Document"}</uui-table-cell>
+                                  <uui-table-cell>${c.propertyCount ?? 0}</uui-table-cell>
+                                  <uui-table-cell>${c.propertyGroupCount ?? 0}</uui-table-cell>
+                                  <uui-table-cell>${c.variesBy ?? ""}</uui-table-cell>
+                                  <uui-table-cell><godmode-yes-no .value=${c.hasCompositions}></godmode-yes-no></uui-table-cell>
                               </uui-table-row>`
                           )}
                       </uui-table>
                   `
                 : ""}
         `;
+    }
+
+    private _renderSchemaMap(ct: ContentTypeMap) {
+        const compositions = (ct.compositions ?? []).slice(0, 5);
+        const templates = (ct.templates ?? []).slice(0, 5);
+        const nativeEditors = this._propertyEditorSummaries(ct.properties ?? []).slice(0, 4);
+        const inheritedEditors = this._propertyEditorSummaries(ct.compositionProperties ?? []).slice(0, 4);
+        const hasMoreCompositions = (ct.compositions?.length ?? 0) > compositions.length;
+        const hasMoreTemplates = (ct.templates?.length ?? 0) > templates.length;
+        const hasMoreNativeEditors = this._propertyEditorSummaries(ct.properties ?? []).length > nativeEditors.length;
+        const hasMoreInheritedEditors = this._propertyEditorSummaries(ct.compositionProperties ?? []).length > inheritedEditors.length;
+        const height = 288 + Math.max(nativeEditors.length, inheritedEditors.length) * 38;
+        const center = { x: 520, y: 102 };
+
+        return html`
+            <div class="schema-map-wrap">
+                ${svg`
+                    <svg viewBox=${`0 0 1040 ${height}`} role="img" aria-label=${`Schema map for ${ct.name}`}>
+                        <defs>
+                            <marker id="godmode-schema-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L7,3 z"></path>
+                            </marker>
+                        </defs>
+                        ${compositions.map((composition, index) => {
+                            const y = this._stackY(index, compositions.length, center.y, 42);
+                            return svg`
+                                <line class="schema-edge composition" x1="258" y1=${y} x2=${center.x - 118} y2=${center.y} marker-end="url(#godmode-schema-arrow)">
+                                    <title>${composition.name} composes ${ct.name}</title>
+                                </line>
+                                ${this._renderSchemaNode(150, y, composition.name, composition.alias, "composition")}
+                            `;
+                        })}
+                        ${templates.map((template, index) => {
+                            const y = this._stackY(index, templates.length, center.y, 42);
+                            return svg`
+                                <line class="schema-edge template" x1=${center.x + 118} y1=${center.y} x2="782" y2=${y} marker-end="url(#godmode-schema-arrow)">
+                                    <title>${ct.name} allows ${template.name}</title>
+                                </line>
+                                ${this._renderSchemaNode(890, y, template.name, template.alias, "template")}
+                            `;
+                        })}
+                        <g class=${`schema-node center ${ct.isElement ? "element" : "document"}`} transform=${`translate(${center.x}, ${center.y})`}>
+                            <rect x="-118" y="-34" width="236" height="68" rx="5"></rect>
+                            <text class="name" y="-11">${ct.name}</text>
+                            <text class="meta" y="7">${ct.isElement ? "Element Type" : "Document Type"} · ${ct.alias}</text>
+                            <text class="meta" y="23">${(ct.properties?.length ?? 0)} native · ${(ct.compositionProperties?.length ?? 0)} inherited</text>
+                            <title>${ct.name} (${ct.alias})</title>
+                        </g>
+                        ${nativeEditors.map((editor, index) => this._renderPropertyEditorNode(322, 208 + index * 38, editor.name, editor.count, "native"))}
+                        ${inheritedEditors.map((editor, index) => this._renderPropertyEditorNode(718, 208 + index * 38, editor.name, editor.count, "inherited"))}
+                        ${nativeEditors.length ? svg`<line class="schema-edge property" x1=${center.x - 36} y1="139" x2="322" y2="185" marker-end="url(#godmode-schema-arrow)"></line>` : ""}
+                        ${inheritedEditors.length ? svg`<line class="schema-edge property inherited" x1=${center.x + 36} y1="139" x2="718" y2="185" marker-end="url(#godmode-schema-arrow)"></line>` : ""}
+                        <text class="lane-label" x="322" y="185">Native property editors</text>
+                        <text class="lane-label" x="718" y="185">Inherited property editors</text>
+                    </svg>
+                `}
+            </div>
+            ${hasMoreCompositions || hasMoreTemplates || hasMoreNativeEditors || hasMoreInheritedEditors
+                ? html`<p class="schema-note">
+                      Map is capped for readability. Full templates, properties and compositions are in the
+                      <button type="button" class="text-link" @click=${(e: Event) => this._setDetailView(ct.id, "details", e)}>Details View</button>.
+                  </p>`
+                : ""}
+        `;
+    }
+
+    private _stackY(index: number, count: number, centerY: number, gap: number): number {
+        return centerY - ((count - 1) * gap) / 2 + index * gap;
+    }
+
+    private _renderSchemaNode(x: number, y: number, name: string, alias: string, kind: "composition" | "template") {
+        return svg`
+            <g class=${`schema-node ${kind}`} transform=${`translate(${x}, ${y})`}>
+                <rect x="-108" y="-20" width="216" height="40" rx="5"></rect>
+                <text class="name" y="-3">${name}</text>
+                <text class="meta" y="12">${alias}</text>
+                <title>${name} (${alias})</title>
+            </g>
+        `;
+    }
+
+    private _renderPropertyEditorNode(x: number, y: number, name: string, count: number, kind: "native" | "inherited") {
+        return svg`
+            <g class=${`schema-node property-editor ${kind}`} transform=${`translate(${x}, ${y})`}>
+                <rect x="-136" y="-17" width="272" height="34" rx="5"></rect>
+                <text class="name" y="-2">${name}</text>
+                <text class="meta" y="11">${count} ${count === 1 ? "property" : "properties"}</text>
+                <title>${name}: ${count} ${count === 1 ? "property" : "properties"}</title>
+            </g>
+        `;
+    }
+
+    private _propertyEditorSummaries(properties: ContentTypeMap["properties"]): Array<{ name: string; count: number }> {
+        const editors = new Map<string, number>();
+        for (const property of properties ?? []) {
+            const editor = property.editorAlias || "Unknown editor";
+            editors.set(editor, (editors.get(editor) ?? 0) + 1);
+        }
+
+        return Array.from(editors.entries())
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
     }
 
     static override styles = css`
@@ -415,11 +557,113 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
             justify-content: space-between;
             margin-bottom: var(--uui-size-space-3);
         }
+        .schema-map-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--uui-color-border);
+            border-radius: var(--uui-border-radius);
+            background: var(--uui-color-surface);
+            margin: var(--uui-size-space-3) 0 var(--uui-size-space-4);
+        }
+        .schema-map-wrap svg {
+            display: block;
+            min-width: 820px;
+            width: 100%;
+        }
+        marker path {
+            fill: var(--uui-color-border-emphasis);
+        }
+        .schema-edge {
+            stroke: var(--uui-color-border-emphasis);
+            stroke-width: 1.4;
+            opacity: 0.58;
+        }
+        .schema-edge.template {
+            stroke: var(--uui-color-selected);
+        }
+        .schema-edge.property {
+            stroke-dasharray: 5 5;
+        }
+        .schema-node rect {
+            fill: var(--uui-color-surface-alt);
+            stroke: var(--uui-color-border);
+        }
+        .schema-node.center rect {
+            fill: var(--uui-color-selected);
+            stroke: var(--uui-color-selected);
+        }
+        .schema-node.element rect {
+            fill: var(--uui-color-positive-emphasis);
+            stroke: var(--uui-color-positive-emphasis);
+        }
+        .schema-node.property-editor rect {
+            fill: var(--uui-color-surface);
+        }
+        .schema-node.inherited rect {
+            stroke-dasharray: 4 4;
+        }
+        .schema-node text,
+        .lane-label {
+            text-anchor: middle;
+            paint-order: stroke;
+            stroke: var(--uui-color-surface);
+            stroke-width: 3px;
+            stroke-linejoin: round;
+        }
+        .schema-node.center text {
+            fill: var(--uui-color-selected-contrast);
+            stroke: transparent;
+        }
+        .schema-node.element text {
+            fill: var(--uui-color-positive-contrast);
+            stroke: transparent;
+        }
+        .schema-node .name {
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .schema-node .meta {
+            font-size: 10px;
+            fill: var(--uui-color-text-alt);
+        }
+        .schema-node.center .meta {
+            fill: currentColor;
+        }
+        .lane-label,
+        .schema-note {
+            color: var(--uui-color-text-alt);
+        }
+        .lane-label {
+            font-size: 11px;
+            font-weight: 700;
+            fill: var(--uui-color-text-alt);
+        }
+        .schema-note {
+            margin: calc(var(--uui-size-space-3) * -1) 0 var(--uui-size-space-3);
+        }
+        .text-link {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: var(--uui-color-interactive);
+            font: inherit;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .text-link:hover,
+        .text-link:focus-visible {
+            color: var(--uui-color-interactive-emphasis);
+        }
         .label {
             background: var(--uui-color-surface-alt);
             padding: 2px 6px;
             border-radius: var(--uui-border-radius);
             font-size: 0.8em;
+        }
+        .detail-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--uui-size-space-2);
+            margin-bottom: var(--uui-size-space-3);
         }
         .row {
             display: flex;

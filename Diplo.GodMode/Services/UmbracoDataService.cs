@@ -89,6 +89,7 @@ namespace Diplo.GodMode.Services
                     {
                         Alias = x.Alias,
                         Id = x.Id,
+                        Udi = x.GetUdi().Guid,
                         Name = x.Name,
                         Path = x.VirtualPath,
                         IsDefault = ct.DefaultTemplate != null && ct.DefaultTemplate.Id == x.Id
@@ -96,13 +97,20 @@ namespace Diplo.GodMode.Services
                     Properties = ct.PropertyTypes != null ? ct.PropertyTypes.Select(p => new PropertyTypeMap(p)) : [],
                     CompositionProperties = ct.CompositionPropertyTypes != null ? ct.CompositionPropertyTypes.Where(p => ct.PropertyTypes != null && !ct.PropertyTypes.Select(x => x.Id).Contains(p.Id)).Select(pt => new PropertyTypeMap(pt)) : [],
                     Compositions = ct.ContentTypeComposition != null ? ct.ContentTypeComposition.
-                    Select(x => new ContentTypeData()
+                    Select(x => new ContentTypeCompositionData()
                     {
                         Alias = x.Alias,
                         Description = x.Description,
                         Id = x.Id,
+                        Udi = x.GetUdi().Guid,
                         Icon = x.Icon,
-                        Name = x.Name
+                        Name = x.Name,
+                        IsElement = x.IsElement,
+                        VariesBy = x.Variations.ToString(),
+                        VariesByCulture = x.VariesByCulture(),
+                        HasCompositions = x.ContentTypeComposition != null && x.ContentTypeComposition.Any(),
+                        PropertyCount = x.PropertyTypes?.Count() ?? 0,
+                        PropertyGroupCount = x.PropertyGroups?.Count() ?? 0
                     }) : []
                 };
 
@@ -130,12 +138,26 @@ namespace Diplo.GodMode.Services
         /// <summary>
         /// Gets all compositions
         /// </summary>
-        public IEnumerable<ContentTypeData> GetCompositions()
+        public IEnumerable<ContentTypeCompositionData> GetCompositions()
         {
             return this.contentTypeService.GetAll().
                 SelectMany(x => x.ContentTypeComposition).
                 DistinctBy(x => x.Id).
-                Select(c => new ContentTypeData() { Id = c.Id, Alias = c.Alias, Name = c.Name }).
+                Select(c => new ContentTypeCompositionData()
+                {
+                    Id = c.Id,
+                    Udi = c.GetUdi().Guid,
+                    Alias = c.Alias,
+                    Name = c.Name,
+                    Icon = c.Icon,
+                    Description = c.Description,
+                    IsElement = c.IsElement,
+                    VariesBy = c.Variations.ToString(),
+                    VariesByCulture = c.VariesByCulture(),
+                    HasCompositions = c.ContentTypeComposition != null && c.ContentTypeComposition.Any(),
+                    PropertyCount = c.PropertyTypes?.Count() ?? 0,
+                    PropertyGroupCount = c.PropertyGroups?.Count() ?? 0
+                }).
                 OrderBy(x => x.Name);
         }
 
