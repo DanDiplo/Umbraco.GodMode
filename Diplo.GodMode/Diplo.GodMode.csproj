@@ -47,6 +47,12 @@
     <PackageReference Include="Umbraco.Cms.Web.Website" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Diplo.GodMode.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <!--
     The Razor SDK auto-includes wwwroot\** as static web assets. When the host
     project (Diplo.GodMode.Testsite) ProjectReferences us, ASP.NET serves these files from

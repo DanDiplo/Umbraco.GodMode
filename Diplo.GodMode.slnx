@@ -9,4 +9,5 @@
   <Project Path="Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj" />
   <Project Path="Diplo.GodMode.AI/Diplo.GodMode.AI.csproj" />
   <Project Path="Diplo.GodMode/Diplo.GodMode.csproj" />
+  <Project Path="Diplo.GodMode.Tests/Diplo.GodMode.Tests.csproj" />
 </Solution>
