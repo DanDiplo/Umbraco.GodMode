@@ -7,6 +7,8 @@ import { uniqueBy } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 import { openUsedByModal } from "../shared/used-by-modal";
 
+type TriState = "any" | "yes" | "no";
+
 @customElement("godmode-template-browser")
 export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _templates: TemplateModel[] = [];
@@ -14,6 +16,11 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _search = "";
     @state() private _masterFilter = "";
     @state() private _partialFilter = "";
+    @state() private _hasScripts: TriState = "any";
+    @state() private _hasCss: TriState = "any";
+    @state() private _hasImages: TriState = "any";
+    @state() private _hasForms: TriState = "any";
+    @state() private _hasMissingAssets: TriState = "any";
     @state() private _open = new Set<number>();
 
     override connectedCallback(): void {
@@ -42,8 +49,18 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
             if (q && ![t.name, t.alias].some((v) => v.toLowerCase().includes(q))) return false;
             if (this._masterFilter && (t.masterAlias ?? "") !== this._masterFilter) return false;
             if (this._partialFilter && !t.partials?.some((p) => p.name === this._partialFilter)) return false;
+            if (!this._matchTri((t.assets ?? []).some((asset) => asset.kind === "Script"), this._hasScripts)) return false;
+            if (!this._matchTri((t.assets ?? []).some((asset) => asset.kind === "Stylesheet" || asset.kind === "Style" || asset.kind === "CssUrl"), this._hasCss)) return false;
+            if (!this._matchTri((t.assets ?? []).some((asset) => asset.kind === "Image"), this._hasImages)) return false;
+            if (!this._matchTri(!!t.forms?.length, this._hasForms)) return false;
+            if (!this._matchTri((t.assets ?? []).some((asset) => asset.isResolved && !asset.exists), this._hasMissingAssets)) return false;
             return true;
         });
+    }
+
+    private _matchTri(value: boolean, filter: TriState): boolean {
+        if (filter === "any") return true;
+        return filter === "yes" ? value : !value;
     }
 
     override render() {
@@ -89,6 +106,26 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
                                 <option value="">Any</option>
                                 ${allPartials.map((p) => html`<option value=${p.name}>${p.name}</option>`)}
                             </select>
+                        </div>
+                        <div>
+                            <label>Has Scripts?</label>
+                            ${this._tri("hasScripts", this._hasScripts, (v) => (this._hasScripts = v))}
+                        </div>
+                        <div>
+                            <label>Has CSS?</label>
+                            ${this._tri("hasCss", this._hasCss, (v) => (this._hasCss = v))}
+                        </div>
+                        <div>
+                            <label>Has Images?</label>
+                            ${this._tri("hasImages", this._hasImages, (v) => (this._hasImages = v))}
+                        </div>
+                        <div>
+                            <label>Has Forms?</label>
+                            ${this._tri("hasForms", this._hasForms, (v) => (this._hasForms = v))}
+                        </div>
+                        <div>
+                            <label>Missing Assets?</label>
+                            ${this._tri("hasMissingAssets", this._hasMissingAssets, (v) => (this._hasMissingAssets = v))}
                         </div>
                     </div>
                 </uui-box>
@@ -191,6 +228,99 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
                                     </uui-table>
                                 `
                               : ""}
+                          ${t.assets?.length
+                              ? html`
+                                    <h5>Assets</h5>
+                                    <uui-table>
+                                        <uui-table-head>
+                                            <uui-table-head-cell>Kind</uui-table-head-cell>
+                                            <uui-table-head-cell>Url</uui-table-head-cell>
+                                            <uui-table-head-cell>Status</uui-table-head-cell>
+                                        </uui-table-head>
+                                        ${t.assets.map(
+                                            (asset) => html`<uui-table-row>
+                                                <uui-table-cell>${asset.kind}${asset.isInline ? " (inline)" : ""}</uui-table-cell>
+                                                <uui-table-cell><code>${asset.url || asset.attributes}</code></uui-table-cell>
+                                                <uui-table-cell>
+                                                    ${asset.isResolved
+                                                        ? asset.exists
+                                                            ? html`<span class="ok">Found</span>`
+                                                            : html`<span class="warning">Missing</span>`
+                                                        : asset.host || (asset.isExternal ? "External" : "Not resolved")}
+                                                    ${asset.warning ? html`<div class="muted">${asset.warning}</div>` : ""}
+                                                </uui-table-cell>
+                                            </uui-table-row>`
+                                        )}
+                                    </uui-table>
+                                `
+                              : ""}
+                          ${t.sections?.length
+                              ? html`
+                                    <h5>Sections</h5>
+                                    <div class="chips">
+                                        ${t.sections.map((section) => html`<span class="label">${section.name}</span>`)}
+                                    </div>
+                                `
+                              : ""}
+                          ${t.forms?.length
+                              ? html`
+                                    <h5>Forms</h5>
+                                    <uui-table>
+                                        <uui-table-head>
+                                            <uui-table-head-cell>Kind</uui-table-head-cell>
+                                            <uui-table-head-cell>Method</uui-table-head-cell>
+                                            <uui-table-head-cell>Target</uui-table-head-cell>
+                                            <uui-table-head-cell>Anti-forgery?</uui-table-head-cell>
+                                        </uui-table-head>
+                                        ${t.forms.map(
+                                            (form) => html`<uui-table-row>
+                                                <uui-table-cell>${form.kind}</uui-table-cell>
+                                                <uui-table-cell><code>${form.method || ""}</code></uui-table-cell>
+                                                <uui-table-cell><code>${[form.controller, form.action].filter(Boolean).join("/")}</code></uui-table-cell>
+                                                <uui-table-cell><godmode-yes-no .value=${form.hasAntiForgeryToken}></godmode-yes-no></uui-table-cell>
+                                            </uui-table-row>`
+                                        )}
+                                    </uui-table>
+                                `
+                              : ""}
+                          ${t.tagHelpers?.length
+                              ? html`
+                                    <h5>Tag Helpers</h5>
+                                    <uui-table>
+                                        <uui-table-head>
+                                            <uui-table-head-cell>Tag</uui-table-head-cell>
+                                            <uui-table-head-cell>Kind</uui-table-head-cell>
+                                            <uui-table-head-cell>Attributes</uui-table-head-cell>
+                                        </uui-table-head>
+                                        ${t.tagHelpers.map(
+                                            (tag) => html`<uui-table-row>
+                                                <uui-table-cell><code>${tag.tagName}</code></uui-table-cell>
+                                                <uui-table-cell>${tag.kind}</uui-table-cell>
+                                                <uui-table-cell><code>${tag.attributes}</code></uui-table-cell>
+                                            </uui-table-row>`
+                                        )}
+                                    </uui-table>
+                                `
+                              : ""}
+                          ${t.umbracoUsages?.length
+                              ? html`
+                                    <h5>Umbraco Usage</h5>
+                                    <uui-table>
+                                        <uui-table-head>
+                                            <uui-table-head-cell>Kind</uui-table-head-cell>
+                                            <uui-table-head-cell>Name</uui-table-head-cell>
+                                            <uui-table-head-cell>Expression</uui-table-head-cell>
+                                        </uui-table-head>
+                                        ${t.umbracoUsages.map(
+                                            (usage) => html`<uui-table-row>
+                                                <uui-table-cell>${usage.kind}</uui-table-cell>
+                                                <uui-table-cell><code>${usage.name}</code></uui-table-cell>
+                                                <uui-table-cell><code>${usage.expression}</code></uui-table-cell>
+                                            </uui-table-row>`
+                                        )}
+                                    </uui-table>
+                                `
+                              : ""}
                       `
                     : ""}
             </uui-box>
@@ -223,15 +353,52 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
                     name: component.name,
                     parameters: component.parameters,
                     tagHelper: component.tagHelper
+                })),
+                assets: (t.assets ?? []).map((asset) => ({
+                    kind: asset.kind,
+                    url: asset.url,
+                    host: asset.host,
+                    isExternal: asset.isExternal,
+                    isInline: asset.isInline,
+                    isResolved: asset.isResolved,
+                    exists: asset.exists,
+                    warning: asset.warning
+                })),
+                sections: (t.sections ?? []).map((section) => section.name),
+                forms: (t.forms ?? []).map((form) => ({
+                    kind: form.kind,
+                    method: form.method,
+                    action: form.action,
+                    controller: form.controller,
+                    hasAntiForgeryToken: form.hasAntiForgeryToken
+                })),
+                tagHelpers: (t.tagHelpers ?? []).map((tag) => ({
+                    tagName: tag.tagName,
+                    kind: tag.kind
+                })),
+                umbracoUsages: (t.umbracoUsages ?? []).map((usage) => ({
+                    kind: usage.kind,
+                    name: usage.name,
+                    expression: usage.expression
                 }))
             }
         };
     }
 
+    private _tri(id: string, value: TriState, set: (v: TriState) => void) {
+        return html`
+            <select id=${id} @change=${(e: Event) => set((e.target as HTMLSelectElement).value as TriState)}>
+                <option value="any" ?selected=${value === "any"}>Any</option>
+                <option value="yes" ?selected=${value === "yes"}>Yes</option>
+                <option value="no" ?selected=${value === "no"}>No</option>
+            </select>
+        `;
+    }
+
     static override styles = css`
         .filters {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
             gap: var(--uui-size-space-4);
         }
         .filters label {
@@ -307,6 +474,23 @@ export class GodModeTemplateBrowserElement extends UmbElementMixin(LitElement) {
         .actions uui-button {
             --uui-button-padding-left-factor: 1;
             --uui-button-padding-right-factor: 1;
+        }
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--uui-size-space-2);
+        }
+        code {
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        .ok {
+            color: var(--uui-color-positive);
+            font-weight: 600;
+        }
+        .warning {
+            color: var(--uui-color-danger);
+            font-weight: 600;
         }
     `;
 }

@@ -45,5 +45,15 @@ namespace Diplo.GodMode.Models
         public IEnumerable<PartialMap> Partials { get; set; }
 
         public IEnumerable<ComponentMap> ViewComponents { get; set; }
+
+        public IEnumerable<ViewAssetMap> Assets { get; set; }
+
+        public IEnumerable<ViewSectionMap> Sections { get; set; }
+
+        public IEnumerable<ViewFormMap> Forms { get; set; }
+
+        public IEnumerable<ViewTagHelperMap> TagHelpers { get; set; }
+
+        public IEnumerable<ViewUmbracoUsageMap> UmbracoUsages { get; set; }
     }
 }

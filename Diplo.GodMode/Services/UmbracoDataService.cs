@@ -3,6 +3,7 @@ using Diplo.GodMode.Controllers;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 using NPoco;
 using Umbraco.Cms.Core;
@@ -38,8 +39,9 @@ namespace Diplo.GodMode.Services
         private readonly IIdKeyMap idKeyMap;
         private readonly IConfigurationEditorJsonSerializer serializer;
         private readonly GodModeConfig godModeConfig;
+        private readonly IWebHostEnvironment webHostEnvironment;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig, IWebHostEnvironment webHostEnvironment)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -56,6 +58,7 @@ namespace Diplo.GodMode.Services
             this.idKeyMap = idKeyMap;
             this.serializer = serializer;
             this.godModeConfig = godModeConfig.Value;
+            this.webHostEnvironment = webHostEnvironment;
         }
 
         /// <summary>
@@ -737,6 +740,11 @@ namespace Diplo.GodMode.Services
                     MasterAlias = template.MasterTemplateAlias,
                     Partials = PartialHelper.GetPartialInfo(template.Content, template.Id, template.Alias),
                     ViewComponents = ViewComponentHelper.GetViewComponentInfo(template.Content, template.Id, template.Alias),
+                    Assets = ViewUsageHelper.GetAssetInfo(template.Content, template.Id, template.Alias, this.webHostEnvironment.WebRootPath),
+                    Sections = ViewUsageHelper.GetSectionInfo(template.Content, template.Id, template.Alias),
+                    Forms = ViewUsageHelper.GetFormInfo(template.Content, template.Id, template.Alias),
+                    TagHelpers = ViewUsageHelper.GetTagHelperInfo(template.Content, template.Id, template.Alias),
+                    UmbracoUsages = ViewUsageHelper.GetUmbracoUsageInfo(template.Content, template.Id, template.Alias),
                     Path = template.Path,
                     VirtualPath = template.VirtualPath,
                     Layout = LayoutHelper.GetTemplateInfo(template),

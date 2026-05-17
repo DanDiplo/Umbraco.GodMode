@@ -48,6 +48,54 @@ export interface PartialMap {
     path: string;
 }
 
+export interface ViewAssetMap {
+    templateId: number;
+    templateAlias: string;
+    kind: string;
+    url: string;
+    host: string;
+    isExternal: boolean;
+    isInline: boolean;
+    isResolved: boolean;
+    exists: boolean;
+    resolvedPath: string;
+    warning: string;
+    attributes: string;
+}
+
+export interface ViewSectionMap {
+    templateId: number;
+    templateAlias: string;
+    name: string;
+    isAsync: boolean;
+}
+
+export interface ViewFormMap {
+    templateId: number;
+    templateAlias: string;
+    kind: string;
+    method: string;
+    action: string;
+    controller: string;
+    hasAntiForgeryToken: boolean;
+}
+
+export interface ViewTagHelperMap {
+    templateId: number;
+    templateAlias: string;
+    tagName: string;
+    kind: string;
+    attributes: string;
+}
+
+export interface ViewUmbracoUsageMap {
+    templateId: number;
+    templateAlias: string;
+    kind: string;
+    name: string;
+    expression: string;
+}
+
 export interface TemplateModel extends ItemBase {
     virtualPath: string;
     createDate: string;
@@ -61,6 +109,11 @@ export interface TemplateModel extends ItemBase {
     layout?: string | null;
     partials: PartialMap[];
     viewComponents: ComponentMap[];
+    assets: ViewAssetMap[];
+    sections: ViewSectionMap[];
+    forms: ViewFormMap[];
+    tagHelpers: ViewTagHelperMap[];
+    umbracoUsages: ViewUmbracoUsageMap[];
 }
 
 export interface ContentTypeData extends ItemBase {
