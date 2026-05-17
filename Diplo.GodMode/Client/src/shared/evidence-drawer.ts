@@ -6,6 +6,7 @@ export const GODMODE_EVIDENCE_DRAWER_ALIAS = "Diplo.Modal.GodMode.Evidence";
 export interface GodModeEvidenceSection {
     heading: string;
     description?: string;
+    visual?: "database-relationship-graph";
     items: unknown;
 }
 

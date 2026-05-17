@@ -68,6 +68,22 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
                 ],
                 sections: [
                     {
+                        heading: "Relationship Map",
+                        description: "Declared foreign-key relationships around this table.",
+                        visual: "database-relationship-graph",
+                        items: {
+                            center: {
+                                name: detail.name,
+                                category: detail.category,
+                                rowCount: detail.rowCount,
+                                countSucceeded: detail.countSucceeded,
+                                warning: detail.warning
+                            },
+                            incoming: detail.incomingRelationships,
+                            outgoing: detail.outgoingRelationships
+                        }
+                    },
+                    {
                         heading: "Columns",
                         items: detail.columns.map((column) => ({
                             name: column.name,
