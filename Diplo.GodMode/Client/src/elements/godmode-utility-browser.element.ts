@@ -4,7 +4,7 @@ import { UmbNotificationContext, UMB_NOTIFICATION_CONTEXT } from "@umbraco-cms/b
 import type { UmbNotificationColor } from "@umbraco-cms/backoffice/notification";
 import { godmodeGet, godmodePost } from "../api/client";
 import "../shared";
-import type { Lang, ServerResponse, UtilityDiagnostics } from "../shared/types";
+import type { DeliveryApiDiagnostics, Lang, ServerResponse, UtilityDiagnostics } from "../shared/types";
 
 interface WarmupResult {
     url: string;
@@ -31,6 +31,7 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _warmupTotal = 0;
     @state() private _warmupCurrentUrl = "";
     @state() private _diagnostics: UtilityDiagnostics | null = null;
+    @state() private _deliveryApiDiagnostics: DeliveryApiDiagnostics | null = null;
     @state() private _warmupResults: WarmupResult[] = [];
     @state() private _lastResponse: { color: UmbNotificationColor; headline: string; message: string } | null = null;
 
@@ -59,6 +60,7 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     private async _loadDiagnostics() {
         try {
             this._diagnostics = await godmodeGet<UtilityDiagnostics>("utilities/diagnostics");
+            this._deliveryApiDiagnostics = await godmodeGet<DeliveryApiDiagnostics>("delivery-api/diagnostics");
         } catch (e) {
             console.error(e);
         }
@@ -184,7 +186,8 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
                 cacheFolderCount: diagnostics?.cache.folders.length ?? 0,
                 missingCacheFolders: diagnostics?.cache.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
                 warmupUrlsChecked: this._warmupResults.length,
-                warmupFailures: warmupFailures.length
+                warmupFailures: warmupFailures.length,
+                deliveryApi: this._deliveryApiDiagnostics
             },
             context: {
                 diagnostics,
@@ -207,6 +210,7 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         return html`
             <godmode-page heading="Utilities" description="Clear caches, restart the application, warm up templates.">
                 ${this._renderDiagnostics()}
+                ${this._renderDeliveryApiDiagnostics()}
 
                 <uui-box headline="Caches">
                     <div class="row">
@@ -370,6 +374,67 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         `;
     }
 
+    private _renderDeliveryApiDiagnostics() {
+        const d = this._deliveryApiDiagnostics;
+        if (!d) {
+            return html`<uui-box headline="Content Delivery API" class="section"><uui-loader></uui-loader></uui-box>`;
+        }
+
+        const exposed = d.contentTypes.filter((item) => item.isExposed);
+        const sensitive = exposed.filter((item) => item.sensitiveAlias);
+
+        return html`
+            <uui-box headline="Content Delivery API" class="section">
+                <div class="delivery-summary">
+                    <uui-tag color=${d.enabled ? "positive" : "default"}>${d.enabled ? "Enabled" : "Disabled"}</uui-tag>
+                    <uui-tag color=${d.publicAccess ? "warning" : "positive"}>${d.publicAccess ? "Public" : "API key required"}</uui-tag>
+                    <uui-tag color=${d.apiKeyConfigured ? "positive" : "default"}>${d.apiKeyConfigured ? "API key configured" : "No API key"}</uui-tag>
+                    <uui-tag color=${sensitive.length ? "danger" : "default"}>${sensitive.length} sensitive exposed</uui-tag>
+                </div>
+                <div class="grid delivery-grid">
+                    <div>
+                        <h4>Exposure</h4>
+                        <dl>
+                            <dt>Document types</dt>
+                            <dd>${d.contentTypes.length}</dd>
+                            <dt>Exposed</dt>
+                            <dd>${exposed.length}</dd>
+                            <dt>Disallowed</dt>
+                            <dd>${d.disallowedContentTypeAliases.length}</dd>
+                            <dt>Cultures</dt>
+                            <dd>${d.availableCultures.join(", ") || "Invariant only"}</dd>
+                        </dl>
+                    </div>
+                    <div>
+                        <h4>Disallowed Aliases</h4>
+                        ${d.disallowedContentTypeAliases.length
+                            ? html`<ul class="plain">${d.disallowedContentTypeAliases.map((alias) => html`<li><code>${alias}</code></li>`)}</ul>`
+                            : html`<p class="muted">None configured.</p>`}
+                    </div>
+                    <div>
+                        <h4>Sample Endpoints</h4>
+                        <ul class="plain endpoints">
+                            ${d.sampleEndpoints.map((endpoint) => html`<li><code>${endpoint}</code></li>`)}
+                        </ul>
+                    </div>
+                </div>
+                ${d.findings.length
+                    ? html`
+                          <h4>Findings</h4>
+                          <uui-table>
+                              ${d.findings.map(
+                                  (finding) => html`<uui-table-row>
+                                      <uui-table-cell><uui-tag color=${finding.severity === "High" ? "danger" : finding.severity === "Medium" ? "warning" : "default"}>${finding.severity}</uui-tag></uui-table-cell>
+                                      <uui-table-cell><strong>${finding.title}</strong><div class="muted">${finding.detail}</div></uui-table-cell>
+                                  </uui-table-row>`
+                              )}
+                          </uui-table>
+                      `
+                    : ""}
+            </uui-box>
+        `;
+    }
+
     private _renderWarmupResults() {
         const failures = this._warmupResults.filter((result) => !result.ok).length;
         const average = Math.round(this._warmupResults.reduce((sum, result) => sum + result.duration, 0) / this._warmupResults.length);
@@ -471,6 +536,23 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         }
         .cache-summary span {
             min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .delivery-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--uui-size-space-2);
+            margin-bottom: var(--uui-size-space-4);
+        }
+        .delivery-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .muted {
+            color: var(--uui-color-text-alt);
+        }
+        .endpoints code,
+        code {
+            white-space: normal;
             overflow-wrap: anywhere;
         }
         .plain li {

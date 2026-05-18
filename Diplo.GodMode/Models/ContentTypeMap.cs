@@ -33,5 +33,11 @@ namespace Diplo.GodMode.Models
         public bool VariesByCulture { get; set; }
 
         public DateTime CreateDate { get; set; }
+
+        public bool DeliveryApiExposed { get; set; }
+
+        public string DeliveryApiExposure { get; set; }
+
+        public bool DeliveryApiSensitiveAlias { get; set; }
     }
 }

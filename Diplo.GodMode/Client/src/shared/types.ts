@@ -154,6 +154,30 @@ export interface ContentTypeMap extends ContentTypeData {
     variesBy: ContentVariation;
     variesByCulture: boolean;
     createDate: string;
+    deliveryApiExposed: boolean;
+    deliveryApiExposure: string;
+    deliveryApiSensitiveAlias: boolean;
+}
+
+export interface DeliveryApiContentTypeExposure {
+    name: string;
+    alias: string;
+    key: string;
+    isElement: boolean;
+    isExposed: boolean;
+    exposure: string;
+    sensitiveAlias: boolean;
+}
+
+export interface DeliveryApiDiagnostics {
+    enabled: boolean;
+    publicAccess: boolean;
+    apiKeyConfigured: boolean;
+    disallowedContentTypeAliases: string[];
+    availableCultures: string[];
+    sampleEndpoints: string[];
+    contentTypes: DeliveryApiContentTypeExposure[];
+    findings: HealthRiskFinding[];
 }
 
 /** Returned by GET /content. The C# class hierarchy is ContentBasic → ContentItem. */

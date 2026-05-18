@@ -35,6 +35,7 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _isListView: TriState = "any";
     @state() private _isElement: TriState = "any";
     @state() private _allowedAtRoot: TriState = "any";
+    @state() private _deliveryApiExposed: TriState = "any";
     @state() private _variesBy = "any";
     @state() private _propertyGroup = "";
     @state() private _propertyQuery = "";
@@ -87,6 +88,7 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
             if (!this._matchTri(ct.isListView, this._isListView)) return false;
             if (!this._matchTri(ct.isElement, this._isElement)) return false;
             if (!this._matchTri(ct.allowedAtRoot, this._allowedAtRoot)) return false;
+            if (!this._matchTri(ct.deliveryApiExposed, this._deliveryApiExposed)) return false;
             if (this._variesBy !== "any" && variesByLabel(ct.variesBy) !== this._variesBy) return false;
             if (this._propertyGroup && !ct.propertyGroups?.includes(this._propertyGroup)) return false;
             if (propQ) {
@@ -132,6 +134,10 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                         <div>
                             <label>Allowed at Root?</label>
                             ${this._tri("allowedAtRoot", this._allowedAtRoot, (v) => (this._allowedAtRoot = v))}
+                        </div>
+                        <div>
+                            <label>Delivery API?</label>
+                            ${this._tri("deliveryApiExposed", this._deliveryApiExposed, (v) => (this._deliveryApiExposed = v))}
                         </div>
                         <div>
                             <label>Varies By</label>
@@ -192,6 +198,8 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                         <strong>${ct.name}</strong>
                         <small>(${ct.alias})</small>
                         ${ct.isElement ? html`<small class="badge">Element</small>` : ""}
+                        ${ct.deliveryApiExposed ? html`<small class="badge api">API</small>` : ""}
+                        ${ct.deliveryApiSensitiveAlias ? html`<small class="badge warning">Sensitive alias</small>` : ""}
                         ${(() => {
                             const v = variesByLabel(ct.variesBy);
                             return v && v !== "Nothing" ? html`<small class="badge">Varies by ${v}</small>` : "";
@@ -242,6 +250,9 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                 isElement: ct.isElement,
                 isListView: ct.isListView,
                 allowedAtRoot: ct.allowedAtRoot,
+                deliveryApiExposed: ct.deliveryApiExposed,
+                deliveryApiExposure: ct.deliveryApiExposure,
+                deliveryApiSensitiveAlias: ct.deliveryApiSensitiveAlias,
                 variesBy: variesByLabel(ct.variesBy),
                 templateCount: ct.templates?.length ?? 0,
                 templates: (ct.templates ?? []).map((template) => ({
@@ -551,6 +562,14 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
             padding: 2px 6px;
             border-radius: var(--uui-border-radius);
             font-size: 0.75em;
+        }
+        .badge.api {
+            background: var(--uui-color-positive-standalone);
+            color: var(--uui-color-surface);
+        }
+        .badge.warning {
+            background: var(--uui-color-warning-standalone);
+            color: var(--uui-color-surface);
         }
         .meta {
             display: flex;

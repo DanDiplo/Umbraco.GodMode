@@ -40,8 +40,9 @@ namespace Diplo.GodMode.Services
         private readonly IConfigurationEditorJsonSerializer serializer;
         private readonly GodModeConfig godModeConfig;
         private readonly IWebHostEnvironment webHostEnvironment;
+        private readonly IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig, IWebHostEnvironment webHostEnvironment)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig, IWebHostEnvironment webHostEnvironment, IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -59,6 +60,7 @@ namespace Diplo.GodMode.Services
             this.serializer = serializer;
             this.godModeConfig = godModeConfig.Value;
             this.webHostEnvironment = webHostEnvironment;
+            this.deliveryApiDiagnosticsService = deliveryApiDiagnosticsService;
         }
 
         /// <summary>
@@ -68,6 +70,9 @@ namespace Diplo.GodMode.Services
         {
 
             var allContentTypes = this.contentTypeService.GetAll() ?? [];
+            var deliveryApiContentTypes = this.deliveryApiDiagnosticsService.GetDiagnosticsAsync().GetAwaiter().GetResult()
+                .ContentTypes
+                .ToDictionary(x => x.Alias, StringComparer.OrdinalIgnoreCase);
 
             var mapping = new List<ContentTypeMap>();
 
@@ -82,6 +87,9 @@ namespace Diplo.GodMode.Services
                     Udi = ct.GetUdi().Guid,
                     Description = ct.Description,
                     VariesBy = ct.Variations,
+                    DeliveryApiExposed = deliveryApiContentTypes.TryGetValue(ct.Alias, out var exposure) && exposure.IsExposed,
+                    DeliveryApiExposure = deliveryApiContentTypes.TryGetValue(ct.Alias, out exposure) ? exposure.Exposure : "Unknown",
+                    DeliveryApiSensitiveAlias = deliveryApiContentTypes.TryGetValue(ct.Alias, out exposure) && exposure.SensitiveAlias,
                     IsListView = ct.ListView is not null,
                     IsElement = ct.IsElement,
                     AllowedAtRoot = ct.AllowedAsRoot,

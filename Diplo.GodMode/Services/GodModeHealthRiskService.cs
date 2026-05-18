@@ -9,15 +9,18 @@ namespace Diplo.GodMode.Services
     {
         private readonly IUmbracoDataService dataService;
         private readonly IUmbracoDatabaseService dataBaseService;
+        private readonly IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService;
         private readonly IOptions<GodModeConfig> godModeConfig;
 
         public GodModeHealthRiskService(
             IUmbracoDataService dataService,
             IUmbracoDatabaseService dataBaseService,
+            IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService,
             IOptions<GodModeConfig> godModeConfig)
         {
             this.dataService = dataService;
             this.dataBaseService = dataBaseService;
+            this.deliveryApiDiagnosticsService = deliveryApiDiagnosticsService;
             this.godModeConfig = godModeConfig;
         }
 
@@ -34,6 +37,7 @@ namespace Diplo.GodMode.Services
             var templates = (await dataService.GetTemplates()).ToList();
             var referenceEdges = (await dataService.GetReferenceGraph()).ToList();
             var driftFindings = (await dataService.GetConfigurationDriftFindings()).ToList();
+            var deliveryApiDiagnostics = await deliveryApiDiagnosticsService.GetDiagnosticsAsync(cancellationToken);
             var usage = dataBaseService.GetContentUsageData().ToList();
             var orphanedTags = dataBaseService.GetOrphanedTags();
             var orphanedMediaCount = dataBaseService.GetOrphanedMediaCount();
@@ -143,6 +147,8 @@ namespace Diplo.GodMode.Services
                     drift.EntityKey,
                     drift.Recommendation));
             }
+
+            findings.AddRange(deliveryApiDiagnostics.Findings);
 
             var referencedTemplateKeys = referenceEdges
                 .Where(x => x.TargetType == "Template")

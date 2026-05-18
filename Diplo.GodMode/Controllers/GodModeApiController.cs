@@ -42,6 +42,7 @@ public class GodModeApiController : ManagementApiControllerBase
     private readonly IDiagnosticService diagnosticService;
     private readonly IGodModeHealthRiskService healthRiskService;
     private readonly IUtilitiesService utilitiesService;
+    private readonly IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService;
     private readonly IGodModeLogService logService;
     private readonly IHostApplicationLifetime applicationLifetime;
     private readonly NuCacheSettings nuCacheSettings;
@@ -54,6 +55,7 @@ public class GodModeApiController : ManagementApiControllerBase
         IDiagnosticService diagnosticService,
         IGodModeHealthRiskService healthRiskService,
         IUtilitiesService utilitiesService,
+        IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService,
         IGodModeLogService logService,
         IHostApplicationLifetime applicationLifetime,
         IOptions<NuCacheSettings> nuCacheSettings,
@@ -65,6 +67,7 @@ public class GodModeApiController : ManagementApiControllerBase
         this.diagnosticService = diagnosticService;
         this.healthRiskService = healthRiskService;
         this.utilitiesService = utilitiesService;
+        this.deliveryApiDiagnosticsService = deliveryApiDiagnosticsService;
         this.logService = logService;
         this.applicationLifetime = applicationLifetime;
         this.nuCacheSettings = nuCacheSettings.Value;
@@ -128,6 +131,11 @@ public class GodModeApiController : ManagementApiControllerBase
     [ProducesResponseType<IEnumerable<HealthRiskFinding>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<HealthRiskFinding>>> GetHealthRiskFindings()
         => Ok(await healthRiskService.BuildHealthRiskFindingsAsync(HttpContext.RequestAborted));
+
+    [HttpGet("delivery-api/diagnostics")]
+    [ProducesResponseType<DeliveryApiDiagnostics>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<DeliveryApiDiagnostics>> GetDeliveryApiDiagnostics()
+        => Ok(await deliveryApiDiagnosticsService.GetDiagnosticsAsync(HttpContext.RequestAborted));
 
     [HttpGet("templates")]
     [ProducesResponseType<IEnumerable<TemplateModel>>(StatusCodes.Status200OK)]
