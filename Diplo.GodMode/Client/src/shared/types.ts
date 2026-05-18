@@ -466,6 +466,15 @@ export interface ServerResponse {
 
 export interface UtilityDiagnostics {
     app: {
+        umbracoVersion: string;
+        umbracoSemanticVersion: string;
+        dotNetVersion: string;
+        runtimeIdentifier: string;
+        operatingSystem: string;
+        processArchitecture: string;
+        webServer: string;
+        applicationMainUrl: string;
+        debugMode: boolean;
         environmentName: string;
         contentRootPath: string;
         webRootPath: string;
@@ -501,6 +510,26 @@ export interface UtilityDiagnostics {
             size: number;
             fileCount: number;
         }>;
+    };
+    serverStats: {
+        memory: {
+            workingSetBytes: number;
+            privateMemoryBytes: number;
+            managedHeapBytes: number;
+            totalAvailableMemoryBytes: number;
+            totalAllocatedBytes: number;
+        };
+        disks: Array<{
+            name: string;
+            format: string;
+            totalBytes: number;
+            freeBytes: number;
+            usedBytes: number;
+            usedPercentage: number;
+        }>;
+        processorCount: number;
+        threadCount: number;
+        handleCount: number;
     };
     database: Array<{
         label: string;
@@ -604,6 +633,9 @@ export interface Page<T> {
 export interface GodModeConfigResponse {
     featuresToHide: string[];
     aliasesToIgnore: string[];
+    deliveryApi: {
+        sensitiveAliasTerms: string[];
+    };
     diagnostics: {
         groupsToHide: string[];
         sectionsToHide: string[];

@@ -14,7 +14,20 @@
 
         public string[] AliasesToIgnore { get; set; } = ["umbracoFile"];
 
+        public DeliveryApiConfig DeliveryApi { get; set; } = new DeliveryApiConfig();
+
         public DiagnosticsConfig Diagnostics { get; set; } = new DiagnosticsConfig();
+
+        /// <summary>
+        /// Config for Content Delivery API reporting.
+        /// </summary>
+        public class DeliveryApiConfig
+        {
+            /// <summary>
+            /// Gets or sets alias terms that flag exposed document types as sensitive-looking.
+            /// </summary>
+            public string[] SensitiveAliasTerms { get; set; } = ["account", "auth", "config", "customer", "member", "profile", "secret", "secure", "setting", "user"];
+        }
 
         /// <summary>
         /// Config for the diagnostics section

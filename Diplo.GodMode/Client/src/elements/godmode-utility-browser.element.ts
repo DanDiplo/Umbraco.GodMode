@@ -4,7 +4,7 @@ import { UmbNotificationContext, UMB_NOTIFICATION_CONTEXT } from "@umbraco-cms/b
 import type { UmbNotificationColor } from "@umbraco-cms/backoffice/notification";
 import { godmodeGet, godmodePost } from "../api/client";
 import "../shared";
-import type { DeliveryApiDiagnostics, Lang, ServerResponse, UtilityDiagnostics } from "../shared/types";
+import type { Lang, ServerResponse } from "../shared/types";
 
 interface WarmupResult {
     url: string;
@@ -30,8 +30,6 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _warmupCurrent = 0;
     @state() private _warmupTotal = 0;
     @state() private _warmupCurrentUrl = "";
-    @state() private _diagnostics: UtilityDiagnostics | null = null;
-    @state() private _deliveryApiDiagnostics: DeliveryApiDiagnostics | null = null;
     @state() private _warmupResults: WarmupResult[] = [];
     @state() private _lastResponse: { color: UmbNotificationColor; headline: string; message: string } | null = null;
 
@@ -46,7 +44,6 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     override connectedCallback(): void {
         super.connectedCallback();
         void this._loadLanguages();
-        void this._loadDiagnostics();
     }
 
     private async _loadLanguages() {
@@ -54,15 +51,6 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
             this._languages = await godmodeGet<Lang[]>("languages");
         } catch {
             // non-fatal
-        }
-    }
-
-    private async _loadDiagnostics() {
-        try {
-            this._diagnostics = await godmodeGet<UtilityDiagnostics>("utilities/diagnostics");
-            this._deliveryApiDiagnostics = await godmodeGet<DeliveryApiDiagnostics>("delivery-api/diagnostics");
-        } catch (e) {
-            console.error(e);
         }
     }
 
@@ -155,63 +143,9 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         this._warmupCurrentUrl = "Done.";
     }
 
-    private _formatBytes(bytes: number): string {
-        if (!bytes) return "0 B";
-        const units = ["B", "KB", "MB", "GB"];
-        let value = bytes;
-        let unit = 0;
-        while (value >= 1024 && unit < units.length - 1) {
-            value /= 1024;
-            unit++;
-        }
-        return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
-    }
-
-    private _explainDiagnosticsSubject() {
-        const diagnostics = this._diagnostics;
-        const warmupFailures = this._warmupResults.filter((result) => !result.ok);
-
-        return {
-            subjectType: "God Mode utilities diagnostics",
-            title: "Utilities environment",
-            data: {
-                environmentName: diagnostics?.app.environmentName,
-                uptime: diagnostics?.app.uptime,
-                processId: diagnostics?.app.processId,
-                godModeVersion: diagnostics?.app.godModeVersion,
-                assetCount: diagnostics?.assets.length ?? 0,
-                missingAssets: diagnostics?.assets.filter((asset) => !asset.exists).map((asset) => asset.label) ?? [],
-                folderCount: diagnostics?.folders.length ?? 0,
-                missingFolders: diagnostics?.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
-                cacheFolderCount: diagnostics?.cache.folders.length ?? 0,
-                missingCacheFolders: diagnostics?.cache.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
-                warmupUrlsChecked: this._warmupResults.length,
-                warmupFailures: warmupFailures.length,
-                deliveryApi: this._deliveryApiDiagnostics
-            },
-            context: {
-                diagnostics,
-                warmup: {
-                    selectedCulture: this._selectedCulture,
-                    total: this._warmupResults.length,
-                    failures: warmupFailures,
-                    slowest: [...this._warmupResults].sort((a, b) => b.duration - a.duration).slice(0, 10)
-                },
-                guidance: [
-                    "Explain the current Umbraco environment and operational signals shown in the Utilities browser.",
-                    "Call out missing package assets or folders, unusual cache folder state, and failed or slow warm-up URLs.",
-                    "Explain risks and practical next steps before suggesting destructive actions such as restart or media cache purge."
-                ]
-            }
-        };
-    }
-
     override render() {
         return html`
             <godmode-page heading="Utilities" description="Clear caches, restart the application, warm up templates.">
-                ${this._renderDiagnostics()}
-                ${this._renderDeliveryApiDiagnostics()}
-
                 <uui-box headline="Caches">
                     <div class="row">
                         <uui-button look="primary" ?disabled=${this._busy} @click=${() => void this._clearCache("all")}>Clear all caches</uui-button>
@@ -254,184 +188,6 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
                 <strong>${this._lastResponse.headline}</strong>
                 <span>${this._lastResponse.message}</span>
             </div>
-        `;
-    }
-
-    private _renderCacheDiagnostics(d: UtilityDiagnostics) {
-        const configuredSettings = d.cache.settings.filter((setting) => setting.value !== "Default");
-
-        return html`
-            <h4>Cache</h4>
-            ${configuredSettings.length
-                ? html`
-                      <div class="cache-summary">
-                          <uui-tag color="warning">${configuredSettings.length}</uui-tag>
-                          <span>custom cache ${configuredSettings.length === 1 ? "setting" : "settings"}</span>
-                      </div>
-                      <ul class="plain offset">
-                          ${configuredSettings.map(
-                              (setting) => html`
-                                  <li title=${setting.path}>
-                                      <uui-tag color="warning">${setting.value}</uui-tag>
-                                      <span>${setting.label}</span>
-                                  </li>
-                              `
-                          )}
-                      </ul>
-                  `
-                : html`
-                      <div class="cache-summary">
-                          <uui-tag color="positive">Default</uui-tag>
-                          <span>All cache settings are using Umbraco defaults</span>
-                      </div>
-                  `}
-            <ul class="plain offset">
-                ${d.cache.folders.map(
-                    (folder) => html`
-                        <li title=${folder.path}>
-                            <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
-                            <span>${folder.label}</span>
-                            ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
-                        </li>
-                    `
-                )}
-            </ul>
-        `;
-    }
-
-    private _renderDiagnostics() {
-        const d = this._diagnostics;
-        if (!d) {
-            return html`<uui-box headline="System" class="section"><uui-loader></uui-loader></uui-box>`;
-        }
-
-        return html`
-            <uui-box headline="System" class="section">
-                <div class="box-actions">
-                    <godmode-ai-explain-host .subjectProvider=${() => this._explainDiagnosticsSubject()}></godmode-ai-explain-host>
-                </div>
-                <div class="grid">
-                    <div>
-                        <h4>App</h4>
-                        <dl>
-                            <dt>Environment</dt>
-                            <dd>${d.app.environmentName}</dd>
-                            <dt>Uptime</dt>
-                            <dd>${d.app.uptime}</dd>
-                            <dt>Process</dt>
-                            <dd>${d.app.processId}</dd>
-                            <dt>GodMode</dt>
-                            <dd>${d.app.godModeVersion}</dd>
-                        </dl>
-                    </div>
-                    <div>
-                        <h4>Package Assets</h4>
-                        <ul class="plain">
-                            ${d.assets.map(
-                                (asset) => html`
-                                    <li>
-                                        <uui-tag color=${asset.exists ? "positive" : "danger"}>${asset.exists ? "Found" : "Missing"}</uui-tag>
-                                        <a href=${asset.url} target="_blank" rel="noopener">${asset.label}</a>
-                                        <span>${this._formatBytes(asset.size)}</span>
-                                    </li>
-                                `
-                            )}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4>Folder Sizes</h4>
-                        <ul class="plain">
-                            ${d.folders.map(
-                                (folder) => html`
-                                    <li title=${folder.path}>
-                                        <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
-                                        <span>${folder.label}</span>
-                                        ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
-                                    </li>
-                                `
-                            )}
-                        </ul>
-                    </div>
-                    <div>
-                        ${this._renderCacheDiagnostics(d)}
-                    </div>
-                    <div>
-                        <h4>Database</h4>
-                        <ul class="plain">
-                            ${d.database.map(
-                                (row) => html`
-                                    <li title=${row.table}>
-                                        <uui-tag color=${row.exists ? "default" : "warning"}>${row.exists ? row.count.toLocaleString() : "Missing"}</uui-tag>
-                                        <span>${row.label}</span>
-                                        <small>${row.table}</small>
-                                    </li>
-                                `
-                            )}
-                        </ul>
-                    </div>
-                </div>
-            </uui-box>
-        `;
-    }
-
-    private _renderDeliveryApiDiagnostics() {
-        const d = this._deliveryApiDiagnostics;
-        if (!d) {
-            return html`<uui-box headline="Content Delivery API" class="section"><uui-loader></uui-loader></uui-box>`;
-        }
-
-        const exposed = d.contentTypes.filter((item) => item.isExposed);
-        const sensitive = exposed.filter((item) => item.sensitiveAlias);
-
-        return html`
-            <uui-box headline="Content Delivery API" class="section">
-                <div class="delivery-summary">
-                    <uui-tag color=${d.enabled ? "positive" : "default"}>${d.enabled ? "Enabled" : "Disabled"}</uui-tag>
-                    <uui-tag color=${d.publicAccess ? "warning" : "positive"}>${d.publicAccess ? "Public" : "API key required"}</uui-tag>
-                    <uui-tag color=${d.apiKeyConfigured ? "positive" : "default"}>${d.apiKeyConfigured ? "API key configured" : "No API key"}</uui-tag>
-                    <uui-tag color=${sensitive.length ? "danger" : "default"}>${sensitive.length} sensitive exposed</uui-tag>
-                </div>
-                <div class="grid delivery-grid">
-                    <div>
-                        <h4>Exposure</h4>
-                        <dl>
-                            <dt>Document types</dt>
-                            <dd>${d.contentTypes.length}</dd>
-                            <dt>Exposed</dt>
-                            <dd>${exposed.length}</dd>
-                            <dt>Disallowed</dt>
-                            <dd>${d.disallowedContentTypeAliases.length}</dd>
-                            <dt>Cultures</dt>
-                            <dd>${d.availableCultures.join(", ") || "Invariant only"}</dd>
-                        </dl>
-                    </div>
-                    <div>
-                        <h4>Disallowed Aliases</h4>
-                        ${d.disallowedContentTypeAliases.length
-                            ? html`<ul class="plain">${d.disallowedContentTypeAliases.map((alias) => html`<li><code>${alias}</code></li>`)}</ul>`
-                            : html`<p class="muted">None configured.</p>`}
-                    </div>
-                    <div>
-                        <h4>Sample Endpoints</h4>
-                        <ul class="plain endpoints">
-                            ${d.sampleEndpoints.map((endpoint) => html`<li><code>${endpoint}</code></li>`)}
-                        </ul>
-                    </div>
-                </div>
-                ${d.findings.length
-                    ? html`
-                          <h4>Findings</h4>
-                          <uui-table>
-                              ${d.findings.map(
-                                  (finding) => html`<uui-table-row>
-                                      <uui-table-cell><uui-tag color=${finding.severity === "High" ? "danger" : finding.severity === "Medium" ? "warning" : "default"}>${finding.severity}</uui-tag></uui-table-cell>
-                                      <uui-table-cell><strong>${finding.title}</strong><div class="muted">${finding.detail}</div></uui-table-cell>
-                                  </uui-table-row>`
-                              )}
-                          </uui-table>
-                      `
-                    : ""}
-            </uui-box>
         `;
     }
 

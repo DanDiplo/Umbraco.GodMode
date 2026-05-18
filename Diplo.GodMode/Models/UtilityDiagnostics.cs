@@ -10,11 +10,31 @@ public class UtilityDiagnostics
 
     public CacheStatus Cache { get; set; } = new();
 
+    public ServerStats ServerStats { get; set; } = new();
+
     public IEnumerable<DatabaseHealthRow> Database { get; set; } = [];
 }
 
 public class AppInfo
 {
+    public string UmbracoVersion { get; set; } = string.Empty;
+
+    public string UmbracoSemanticVersion { get; set; } = string.Empty;
+
+    public string DotNetVersion { get; set; } = string.Empty;
+
+    public string RuntimeIdentifier { get; set; } = string.Empty;
+
+    public string OperatingSystem { get; set; } = string.Empty;
+
+    public string ProcessArchitecture { get; set; } = string.Empty;
+
+    public string WebServer { get; set; } = string.Empty;
+
+    public string ApplicationMainUrl { get; set; } = string.Empty;
+
+    public bool DebugMode { get; set; }
+
     public string EnvironmentName { get; set; } = string.Empty;
 
     public string ContentRootPath { get; set; } = string.Empty;
@@ -70,6 +90,47 @@ public class CacheSettingInfo
     public string Path { get; set; } = string.Empty;
 
     public string Value { get; set; } = string.Empty;
+}
+
+public class ServerStats
+{
+    public MemoryStats Memory { get; set; } = new();
+
+    public IEnumerable<DiskStats> Disks { get; set; } = [];
+
+    public int ProcessorCount { get; set; }
+
+    public int ThreadCount { get; set; }
+
+    public int HandleCount { get; set; }
+}
+
+public class MemoryStats
+{
+    public long WorkingSetBytes { get; set; }
+
+    public long PrivateMemoryBytes { get; set; }
+
+    public long ManagedHeapBytes { get; set; }
+
+    public long TotalAvailableMemoryBytes { get; set; }
+
+    public long TotalAllocatedBytes { get; set; }
+}
+
+public class DiskStats
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string Format { get; set; } = string.Empty;
+
+    public long TotalBytes { get; set; }
+
+    public long FreeBytes { get; set; }
+
+    public long UsedBytes { get; set; }
+
+    public double UsedPercentage { get; set; }
 }
 
 public class DatabaseHealthRow

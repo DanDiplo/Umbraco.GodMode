@@ -1,14 +1,18 @@
 ﻿using System.Reflection;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Extensions;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -36,8 +40,11 @@ namespace Diplo.GodMode.Services
         private readonly IDocumentNavigationQueryService documentNavigation;
         private readonly IConfiguration configuration;
         private readonly IUmbracoDatabaseService databaseService;
+        private readonly IUmbracoVersion umbracoVersion;
+        private readonly IServer webServer;
+        private readonly WebRoutingSettings webRoutingSettings;
 
-        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, IConfiguration configuration, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache, IPublishedContentCache publishedContentCache, IDocumentNavigationQueryService documentNavigation, IUmbracoDatabaseService databaseService)
+        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, IConfiguration configuration, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache, IPublishedContentCache publishedContentCache, IDocumentNavigationQueryService documentNavigation, IUmbracoDatabaseService databaseService, IUmbracoVersion umbracoVersion, IServer webServer, IOptions<WebRoutingSettings> webRoutingSettings)
         {
             this.env = env;
             this.imageCacheSettings = imageCacheSettings;
@@ -49,6 +56,9 @@ namespace Diplo.GodMode.Services
             this.publishedContentCache = publishedContentCache;
             this.documentNavigation = documentNavigation;
             this.databaseService = databaseService;
+            this.umbracoVersion = umbracoVersion;
+            this.webServer = webServer;
+            this.webRoutingSettings = webRoutingSettings.Value;
         }
 
         /// <summary>
@@ -186,10 +196,24 @@ namespace Diplo.GodMode.Services
                 });
             }
 
+            var process = Process.GetCurrentProcess();
+
             return new UtilityDiagnostics
             {
                 App = new AppInfo
                 {
+                    UmbracoVersion = umbracoVersion.Version.ToString(),
+                    UmbracoSemanticVersion = umbracoVersion.SemanticVersion.ToSemanticString(),
+                    DotNetVersion = RuntimeInformation.FrameworkDescription,
+                    RuntimeIdentifier = RuntimeInformation.RuntimeIdentifier,
+                    OperatingSystem = RuntimeInformation.OSDescription,
+                    ProcessArchitecture = RuntimeInformation.ProcessArchitecture.ToString(),
+                    WebServer = webServer.GetType().FullName ?? webServer.GetType().Name,
+                    ApplicationMainUrl = webRoutingSettings.UmbracoApplicationUrl?.ToString()
+                        ?? configuration["Umbraco:CMS:WebRouting:UmbracoApplicationUrl"]
+                        ?? configuration["Umbraco:CMS:WebRouting:ApplicationMainUrl"]
+                        ?? string.Empty,
+                    DebugMode = env.EnvironmentName.InvariantEquals("Development") || GetBoolConfigurationValue("Umbraco:CMS:Debug:DebugMode"),
                     EnvironmentName = env.EnvironmentName,
                     ContentRootPath = env.ContentRootPath,
                     WebRootPath = webRoot,
@@ -212,6 +236,7 @@ namespace Diplo.GodMode.Services
                     Settings = GetCacheSettings(),
                     Folders = cacheFolders
                 },
+                ServerStats = CreateServerStats(process),
                 Database = databaseService.GetDatabaseHealthRows()
             };
         }
@@ -330,6 +355,55 @@ namespace Diplo.GodMode.Services
                 ? $"{(int)duration.TotalDays}d {duration.Hours}h {duration.Minutes}m"
                 : $"{duration.Hours}h {duration.Minutes}m {duration.Seconds}s";
 
+        private static ServerStats CreateServerStats(Process process)
+        {
+            var gcMemory = GC.GetGCMemoryInfo();
+
+            return new ServerStats
+            {
+                Memory = new MemoryStats
+                {
+                    WorkingSetBytes = process.WorkingSet64,
+                    PrivateMemoryBytes = process.PrivateMemorySize64,
+                    ManagedHeapBytes = GC.GetTotalMemory(false),
+                    TotalAvailableMemoryBytes = gcMemory.TotalAvailableMemoryBytes,
+                    TotalAllocatedBytes = GC.GetTotalAllocatedBytes(false)
+                },
+                Disks = DriveInfo.GetDrives()
+                    .Where(drive => drive.IsReady && drive.TotalSize > 0)
+                    .Select(drive =>
+                    {
+                        var used = drive.TotalSize - drive.AvailableFreeSpace;
+
+                        return new DiskStats
+                        {
+                            Name = drive.Name,
+                            Format = drive.DriveFormat,
+                            TotalBytes = drive.TotalSize,
+                            FreeBytes = drive.AvailableFreeSpace,
+                            UsedBytes = used,
+                            UsedPercentage = Math.Round(used / (double)drive.TotalSize * 100, 1)
+                        };
+                    })
+                    .ToList(),
+                ProcessorCount = Environment.ProcessorCount,
+                ThreadCount = process.Threads.Count,
+                HandleCount = SafeGet(() => process.HandleCount)
+            };
+        }
+
+        private static int SafeGet(Func<int> valueFactory)
+        {
+            try
+            {
+                return valueFactory();
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
         private IEnumerable<CacheSettingInfo> GetCacheSettings()
         {
             return
@@ -366,5 +440,8 @@ namespace Diplo.GodMode.Services
                 Value = string.IsNullOrWhiteSpace(value) ? "Default" : value
             };
         }
+
+        private bool GetBoolConfigurationValue(string path)
+            => bool.TryParse(configuration[path], out var value) && value;
     }
 }

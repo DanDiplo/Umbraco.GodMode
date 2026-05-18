@@ -9,23 +9,24 @@ namespace Diplo.GodMode.Services;
 
 public class DeliveryApiDiagnosticsService : IDeliveryApiDiagnosticsService
 {
-    private static readonly string[] SensitiveAliasTerms = ["account", "auth", "config", "customer", "member", "profile", "secret", "secure", "setting", "user"];
-
     private readonly IConfiguration configuration;
     private readonly IContentTypeService contentTypeService;
     private readonly ILanguageService languageService;
     private readonly IOptions<DeliveryApiSettings> deliveryApiSettings;
+    private readonly IOptions<GodModeConfig> godModeConfig;
 
     public DeliveryApiDiagnosticsService(
         IConfiguration configuration,
         IContentTypeService contentTypeService,
         ILanguageService languageService,
-        IOptions<DeliveryApiSettings> deliveryApiSettings)
+        IOptions<DeliveryApiSettings> deliveryApiSettings,
+        IOptions<GodModeConfig> godModeConfig)
     {
         this.configuration = configuration;
         this.contentTypeService = contentTypeService;
         this.languageService = languageService;
         this.deliveryApiSettings = deliveryApiSettings;
+        this.godModeConfig = godModeConfig;
     }
 
     public async Task<DeliveryApiDiagnostics> GetDiagnosticsAsync(CancellationToken cancellationToken = default)
@@ -179,8 +180,61 @@ public class DeliveryApiDiagnosticsService : IDeliveryApiDiagnosticsService
             .Select(x => x.Trim()) ?? [];
     }
 
-    private static bool IsSensitiveAlias(string alias)
-        => SensitiveAliasTerms.Any(term => alias.Contains(term, StringComparison.OrdinalIgnoreCase));
+    private bool IsSensitiveAlias(string alias)
+        => godModeConfig.Value.DeliveryApi.SensitiveAliasTerms
+            .Where(term => !string.IsNullOrWhiteSpace(term))
+            .Any(term => AliasContainsTerm(alias, term.Trim()));
+
+    internal static bool AliasContainsTerm(string alias, string term)
+    {
+        var terms = SplitAliasTerms(alias);
+
+        return terms.Any(part => part.Equals(term, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IEnumerable<string> SplitAliasTerms(string alias)
+    {
+        if (string.IsNullOrWhiteSpace(alias))
+        {
+            yield break;
+        }
+
+        var start = 0;
+
+        for (var i = 1; i < alias.Length; i++)
+        {
+            var previous = alias[i - 1];
+            var current = alias[i];
+
+            if (!char.IsLetterOrDigit(current))
+            {
+                if (i > start)
+                {
+                    yield return alias[start..i];
+                }
+
+                start = i + 1;
+                continue;
+            }
+
+            if (!char.IsLetterOrDigit(previous))
+            {
+                start = i;
+                continue;
+            }
+
+            if (char.IsUpper(current) && (char.IsLower(previous) || char.IsDigit(previous)))
+            {
+                yield return alias[start..i];
+                start = i;
+            }
+        }
+
+        if (start < alias.Length)
+        {
+            yield return alias[start..];
+        }
+    }
 
     private static HealthRiskFinding CreateFinding(string severity, string category, string title, string detail, string entityType, string entityName, string entityAlias, string entityKey, string recommendation)
         => new()

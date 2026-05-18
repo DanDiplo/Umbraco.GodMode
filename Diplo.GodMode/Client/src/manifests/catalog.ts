@@ -318,6 +318,14 @@ export const browsers: BrowserDef[] = [
         element: () => import("../elements/godmode-diagnostic-browser.element")
     },
     {
+        id: "informationBrowser",
+        label: "Information",
+        icon: "icon-info",
+        description: "View key system, package and Content Delivery API information",
+        weight: 575,
+        element: () => import("../elements/godmode-information-browser.element")
+    },
+    {
         id: "keyValueBrowser",
         label: "Key Values",
         icon: "icon-key",
