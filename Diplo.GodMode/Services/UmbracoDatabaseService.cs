@@ -641,6 +641,18 @@ namespace Diplo.GodMode.Services
             ];
         }
 
+        public IEnumerable<DatabaseHealthRow> GetCacheHealthRows()
+        {
+            return
+            [
+                CountTableRows("Persisted content cache", "cmsContentNu"),
+                CountTableRows("Cache instructions", "umbracoCacheInstruction"),
+                CountTableRows("Repository cache versions", "umbracoRepositoryCacheVersion"),
+                CountTableRows("Last synced markers", "umbracoLastSynced"),
+                CountTableRows("Registered servers", "umbracoServer")
+            ];
+        }
+
         public IEnumerable<DatabaseTableInfo> GetDatabaseTables()
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))

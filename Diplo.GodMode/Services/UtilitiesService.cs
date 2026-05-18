@@ -43,8 +43,9 @@ namespace Diplo.GodMode.Services
         private readonly IUmbracoVersion umbracoVersion;
         private readonly IServer webServer;
         private readonly WebRoutingSettings webRoutingSettings;
+        private readonly NuCacheSettings nuCacheSettings;
 
-        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, IConfiguration configuration, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache, IPublishedContentCache publishedContentCache, IDocumentNavigationQueryService documentNavigation, IUmbracoDatabaseService databaseService, IUmbracoVersion umbracoVersion, IServer webServer, IOptions<WebRoutingSettings> webRoutingSettings)
+        public UtilitiesService(IWebHostEnvironment env, IOptions<ImagingCacheSettings> imageCacheSettings, IConfiguration configuration, AppCaches caches, ILogger<UtilitiesService> logger, IUmbracoContextFactory umbracoContextFactory, IMemoryCache memoryCache, IPublishedContentCache publishedContentCache, IDocumentNavigationQueryService documentNavigation, IUmbracoDatabaseService databaseService, IUmbracoVersion umbracoVersion, IServer webServer, IOptions<WebRoutingSettings> webRoutingSettings, IOptions<NuCacheSettings> nuCacheSettings)
         {
             this.env = env;
             this.imageCacheSettings = imageCacheSettings;
@@ -59,6 +60,7 @@ namespace Diplo.GodMode.Services
             this.umbracoVersion = umbracoVersion;
             this.webServer = webServer;
             this.webRoutingSettings = webRoutingSettings.Value;
+            this.nuCacheSettings = nuCacheSettings.Value;
         }
 
         /// <summary>
@@ -233,8 +235,11 @@ namespace Diplo.GodMode.Services
                 Folders = folders,
                 Cache = new CacheStatus
                 {
+                    PublishedContentCacheType = publishedContentCache.GetType().FullName ?? publishedContentCache.GetType().Name,
+                    NuCacheSerializerType = nuCacheSettings.NuCacheSerializerType.ToString(),
                     Settings = GetCacheSettings(),
-                    Folders = cacheFolders
+                    Folders = cacheFolders,
+                    DatabaseRows = databaseService.GetCacheHealthRows()
                 },
                 ServerStats = CreateServerStats(process),
                 Database = databaseService.GetDatabaseHealthRows()

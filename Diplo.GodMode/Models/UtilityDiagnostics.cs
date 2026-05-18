@@ -78,9 +78,15 @@ public class FolderSizeInfo
 
 public class CacheStatus
 {
+    public string PublishedContentCacheType { get; set; } = string.Empty;
+
+    public string NuCacheSerializerType { get; set; } = string.Empty;
+
     public IEnumerable<CacheSettingInfo> Settings { get; set; } = [];
 
     public IEnumerable<FolderSizeInfo> Folders { get; set; } = [];
+
+    public IEnumerable<DatabaseHealthRow> DatabaseRows { get; set; } = [];
 }
 
 public class CacheSettingInfo

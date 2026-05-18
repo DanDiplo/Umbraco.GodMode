@@ -58,6 +58,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                 missingFolders: diagnostics?.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
                 cacheFolderCount: diagnostics?.cache.folders.length ?? 0,
                 missingCacheFolders: diagnostics?.cache.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
+                cacheDatabaseRows: diagnostics?.cache.databaseRows,
                 serverStats: diagnostics?.serverStats,
                 deliveryApi: this._deliveryApiDiagnostics
             },
@@ -86,6 +87,12 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
 
         return html`
             <h4>Cache</h4>
+            <dl class="compact-dl">
+                <dt>Published cache</dt>
+                <dd>${d.cache.publishedContentCacheType || "Unavailable"}</dd>
+                <dt>NuCache serializer</dt>
+                <dd>${d.cache.nuCacheSerializerType || "Default"}</dd>
+            </dl>
             ${configuredSettings.length
                 ? html`
                       <div class="cache-summary">
@@ -116,6 +123,18 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                             <uui-tag color=${folder.exists ? "default" : "warning"}>${folder.exists ? this._formatBytes(folder.size) : "Missing"}</uui-tag>
                             <span>${folder.label}</span>
                             ${folder.exists ? html`<small>${folder.fileCount} files</small>` : ""}
+                        </li>
+                    `
+                )}
+            </ul>
+            <h4 class="subheading">Database Cache</h4>
+            <ul class="plain offset">
+                ${d.cache.databaseRows.map(
+                    (row) => html`
+                        <li title=${row.table}>
+                            <uui-tag color=${row.exists ? "default" : "warning"}>${row.exists ? row.count.toLocaleString() : "Missing"}</uui-tag>
+                            <span>${row.label}</span>
+                            <small>${row.table}</small>
                         </li>
                     `
                 )}
@@ -435,11 +454,17 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
         h4 {
             margin: 0 0 var(--uui-size-space-2);
         }
+        .subheading {
+            margin-top: var(--uui-size-space-4);
+        }
         dl {
             display: grid;
             grid-template-columns: max-content minmax(0, 1fr);
             gap: var(--uui-size-space-1) var(--uui-size-space-3);
             margin: 0;
+        }
+        .compact-dl {
+            margin-bottom: var(--uui-size-space-3);
         }
         dt,
         .muted,

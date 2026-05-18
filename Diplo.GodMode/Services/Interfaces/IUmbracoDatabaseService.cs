@@ -64,6 +64,8 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<DatabaseHealthRow> GetDatabaseHealthRows();
 
+        IEnumerable<DatabaseHealthRow> GetCacheHealthRows();
+
         IEnumerable<DatabaseTableInfo> GetDatabaseTables();
 
         DatabaseTableDetail? GetDatabaseTableDetail(string tableName);

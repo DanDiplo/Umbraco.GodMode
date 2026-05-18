@@ -498,6 +498,8 @@ export interface UtilityDiagnostics {
         fileCount: number;
     }>;
     cache: {
+        publishedContentCacheType: string;
+        nuCacheSerializerType: string;
         settings: Array<{
             label: string;
             path: string;
@@ -509,6 +511,12 @@ export interface UtilityDiagnostics {
             exists: boolean;
             size: number;
             fileCount: number;
+        }>;
+        databaseRows: Array<{
+            label: string;
+            table: string;
+            count: number;
+            exists: boolean;
         }>;
     };
     serverStats: {
