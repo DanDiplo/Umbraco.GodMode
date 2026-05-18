@@ -213,6 +213,10 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Search</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by name, ID or key"
                                 .value=${this._name}
                                 @change=${(e: Event) => {

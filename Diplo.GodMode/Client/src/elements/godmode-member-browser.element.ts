@@ -186,6 +186,10 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Search</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by name, email, username, ID or key"
                                 .value=${this._search}
                                 @change=${(e: Event) => {

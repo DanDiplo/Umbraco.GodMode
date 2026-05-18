@@ -71,6 +71,10 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Tag Name</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by tag"
                                 .value=${this._tagName}
                                 @input=${(e: Event) => (this._tagName = (e.target as HTMLInputElement).value)}
@@ -80,6 +84,10 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Tag Group</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by group"
                                 .value=${this._tagGroup}
                                 @input=${(e: Event) => (this._tagGroup = (e.target as HTMLInputElement).value)}
@@ -89,6 +97,10 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Content</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter tagged content"
                                 .value=${this._tagContent}
                                 @input=${(e: Event) => (this._tagContent = (e.target as HTMLInputElement).value)}

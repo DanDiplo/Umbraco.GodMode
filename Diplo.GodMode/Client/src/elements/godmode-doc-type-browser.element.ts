@@ -114,6 +114,10 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Search</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by name, alias or udi"
                                 .value=${this._search}
                                 @input=${(e: Event) => (this._search = (e.target as HTMLInputElement).value)}
@@ -160,6 +164,10 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Property Search</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by property name/alias"
                                 .value=${this._propertyQuery}
                                 @input=${(e: Event) => (this._propertyQuery = (e.target as HTMLInputElement).value)}
@@ -333,6 +341,11 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                                       ></uui-table-cell
                                   >
                                   <uui-table-cell><code>${t.alias}</code></uui-table-cell>
+                                  <uui-table-cell>Template</uui-table-cell>
+                                  <uui-table-cell></uui-table-cell>
+                                  <uui-table-cell></uui-table-cell>
+                                  <uui-table-cell></uui-table-cell>
+                                  <uui-table-cell></uui-table-cell>
                               </uui-table-row>`
                           )}
                       </uui-table>
@@ -428,7 +441,7 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
         const hasMoreNativeEditors = this._propertyEditorSummaries(ct.properties ?? []).length > nativeEditors.length;
         const hasMoreInheritedEditors = this._propertyEditorSummaries(ct.compositionProperties ?? []).length > inheritedEditors.length;
         const height = 288 + Math.max(nativeEditors.length, inheritedEditors.length) * 38;
-        const center = { x: 520, y: 102 };
+        const center = { x: 520, y: 112 };
 
         return html`
             <div class="schema-map-wrap">
@@ -464,12 +477,12 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <text class="meta" y="23">${(ct.properties?.length ?? 0)} native · ${(ct.compositionProperties?.length ?? 0)} inherited</text>
                             <title>${ct.name} (${ct.alias})</title>
                         </g>
-                        ${nativeEditors.map((editor, index) => this._renderPropertyEditorNode(322, 208 + index * 38, editor.name, editor.count, "native"))}
-                        ${inheritedEditors.map((editor, index) => this._renderPropertyEditorNode(718, 208 + index * 38, editor.name, editor.count, "inherited"))}
-                        ${nativeEditors.length ? svg`<line class="schema-edge property" x1=${center.x - 36} y1="139" x2="322" y2="185" marker-end="url(#godmode-schema-arrow)"></line>` : ""}
-                        ${inheritedEditors.length ? svg`<line class="schema-edge property inherited" x1=${center.x + 36} y1="139" x2="718" y2="185" marker-end="url(#godmode-schema-arrow)"></line>` : ""}
-                        <text class="lane-label" x="322" y="185">Native property editors</text>
-                        <text class="lane-label" x="718" y="185">Inherited property editors</text>
+                        ${nativeEditors.map((editor, index) => this._renderPropertyEditorNode(322, 218 + index * 38, editor.name, editor.count, "native"))}
+                        ${inheritedEditors.map((editor, index) => this._renderPropertyEditorNode(718, 218 + index * 38, editor.name, editor.count, "inherited"))}
+                        ${nativeEditors.length ? svg`<line class="schema-edge property" x1=${center.x - 36} y1="149" x2="322" y2="195" marker-end="url(#godmode-schema-arrow)"></line>` : ""}
+                        ${inheritedEditors.length ? svg`<line class="schema-edge property inherited" x1=${center.x + 36} y1="149" x2="718" y2="195" marker-end="url(#godmode-schema-arrow)"></line>` : ""}
+                        ${nativeEditors.length ? svg`<text class="lane-label" x="322" y="195">Native property editors</text>` : ""}
+                        ${inheritedEditors.length ? svg`<text class="lane-label" x="718" y="195">Inherited property editors</text>` : ""}
                     </svg>
                 `}
             </div>
@@ -645,7 +658,12 @@ export class GodModeDocTypeBrowserElement extends UmbElementMixin(LitElement) {
             fill: var(--uui-color-text-alt);
         }
         .schema-node.center .meta {
-            fill: currentColor;
+            fill: var(--uui-color-selected-contrast);
+            opacity: 0.92;
+        }
+        .schema-node.element .meta {
+            fill: var(--uui-color-positive-contrast);
+            opacity: 0.92;
         }
         .lane-label,
         .schema-note {

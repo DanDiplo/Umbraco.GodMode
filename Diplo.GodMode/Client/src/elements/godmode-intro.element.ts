@@ -112,7 +112,8 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
 
                             return html`
                                 <uui-table-row class="section-row">
-                                    <uui-table-cell colspan="2">${section.label}</uui-table-cell>
+                                    <uui-table-cell>${section.label}</uui-table-cell>
+                                    <uui-table-cell></uui-table-cell>
                                 </uui-table-row>
                                 ${pages.map(
                                     (p) => html`

@@ -185,6 +185,10 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Search</label>
                             <uui-input
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by service or implementation type"
                                 .value=${this._search}
                                 @input=${(e: Event) => (this._search = (e.target as HTMLInputElement).value)}

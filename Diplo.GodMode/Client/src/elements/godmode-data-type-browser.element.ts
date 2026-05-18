@@ -96,6 +96,10 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                             <uui-input
                                 id="search"
                                 type="search"
+                                autocomplete="off"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 placeholder="Filter by name, id or udi"
                                 .value=${this._search}
                                 @input=${(e: Event) => (this._search = (e.target as HTMLInputElement).value)}

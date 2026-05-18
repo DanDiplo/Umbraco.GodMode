@@ -57,6 +57,10 @@ export class GodModeUsageBrowserElement extends UmbElementMixin(LitElement) {
                     <label>Search</label>
                     <uui-input
                         type="search"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
                         placeholder="Filter by name or alias"
                         .value=${this._search}
                         @input=${(e: Event) => (this._search = (e.target as HTMLInputElement).value)}
@@ -114,7 +118,7 @@ export class GodModeUsageBrowserElement extends UmbElementMixin(LitElement) {
         const top = [...results].sort((a, b) => b.nodeCount - a.nodeCount || a.alias.localeCompare(b.alias)).slice(0, 20);
         const max = Math.max(...top.map((item) => item.nodeCount), 1);
         const rowHeight = 34;
-        const height = 48 + top.length * rowHeight;
+        const height = 76 + top.length * rowHeight;
         const chartLeft = 250;
         const chartWidth = 690;
 
@@ -123,16 +127,16 @@ export class GodModeUsageBrowserElement extends UmbElementMixin(LitElement) {
                 <div class="chart-wrap">
                     ${svg`
                         <svg viewBox=${`0 0 980 ${height}`} role="img" aria-label="Content type usage chart">
-                            <text class="chart-title" x="0" y="18">Highest usage by content type</text>
+                            <text class="chart-title" x="16" y="28">Highest usage by content type</text>
                             ${top.map((item, index) => {
-                                const y = 42 + index * rowHeight;
+                                const y = 58 + index * rowHeight;
                                 const barWidth = Math.max(2, (item.nodeCount / max) * chartWidth);
                                 return svg`
-                                    <text class="bar-label" x="0" y=${y + 16}>${item.alias}</text>
-                                    <rect class=${`bar ${this._typeClass(item.type)}`} x=${chartLeft} y=${y} width=${barWidth} height="22" rx="4">
+                                    <text class="bar-label" x="16" y=${y + 16}>${item.alias}</text>
+                                    <rect class=${`bar ${this._typeClass(item.type)}`} x=${chartLeft + 16} y=${y} width=${barWidth} height="22" rx="4">
                                         <title>${item.alias}: ${item.nodeCount.toLocaleString()} ${item.nodeCount === 1 ? "instance" : "instances"}</title>
                                     </rect>
-                                    <text class="bar-value" x=${chartLeft + barWidth + 8} y=${y + 16}>${item.nodeCount.toLocaleString()}</text>
+                                    <text class="bar-value" x=${chartLeft + 16 + barWidth + 8} y=${y + 16}>${item.nodeCount.toLocaleString()}</text>
                                 `;
                             })}
                         </svg>
