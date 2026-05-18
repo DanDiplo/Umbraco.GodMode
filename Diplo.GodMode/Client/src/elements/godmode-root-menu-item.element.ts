@@ -11,7 +11,39 @@ interface ChildEntry {
     children?: ReadonlyArray<ChildEntry>;
 }
 
+interface ChildGroup {
+    label: string;
+    ids: ReadonlyArray<string>;
+}
+
 const TYPES_BROWSER_ID = "typesIntro";
+
+const CHILD_GROUPS: ReadonlyArray<ChildGroup> = [
+    {
+        label: "Overview",
+        ids: ["informationBrowser"]
+    },
+    {
+        label: "Health & operations",
+        ids: ["healthRisk", "configurationDrift", "diagnosticBrowser", "logBrowser", "databaseBrowser"]
+    },
+    {
+        label: "Content & schema",
+        ids: ["contentBrowser", "docTypeBrowser", "dataTypeBrowser", "templateBrowser", "partialBrowser", "mediaBrowser", "memberBrowser", "tagBrowser"]
+    },
+    {
+        label: "Relationships & usage",
+        ids: ["referenceGraph", "usageBrowser"]
+    },
+    {
+        label: "Developer & runtime",
+        ids: ["typesIntro", "serviceBrowser", "extensionExplorer"]
+    },
+    {
+        label: "Data & actions",
+        ids: ["keyValueBrowser", "utilityBrowser"]
+    }
+];
 
 const TYPE_CHILDREN: ReadonlyArray<ChildEntry> = browsers
     .filter((browser) => browser.skipMenuItem)
@@ -22,15 +54,20 @@ const TYPE_CHILDREN: ReadonlyArray<ChildEntry> = browsers
         icon: browser.icon
     }));
 
-const CHILDREN: ReadonlyArray<ChildEntry> = browsers
+const CHILDREN_BY_ID = new Map<string, ChildEntry>(browsers
     .filter((browser) => browser.id !== "intro" && !browser.skipMenuItem)
-    .sort((a, b) => b.weight - a.weight)
     .map((browser) => ({
         id: browser.id,
         label: browser.label,
         icon: browser.icon,
         children: browser.id === TYPES_BROWSER_ID ? TYPE_CHILDREN : undefined
-    }));
+    }))
+    .map((child): [string, ChildEntry] => [child.id, child]));
+
+const GROUPS = CHILD_GROUPS.map((group) => ({
+    ...group,
+    children: group.ids.map((id) => CHILDREN_BY_ID.get(id)).filter((child): child is ChildEntry => !!child)
+})).filter((group) => group.children.length);
 
 @customElement("godmode-root-menu-item")
 export class GodModeRootMenuItemElement extends UmbElementMixin(LitElement) {
@@ -77,7 +114,14 @@ export class GodModeRootMenuItemElement extends UmbElementMixin(LitElement) {
                 ?has-children=${true}
                 @click=${this._toggleRoot}
             ></umb-menu-item-layout>
-            ${this._open ? html`<div class="children">${CHILDREN.map((child) => this._renderChild(child))}</div>` : ""}
+            ${this._open ? html`<div class="children">${GROUPS.map((group) => this._renderGroup(group))}</div>` : ""}
+        `;
+    }
+
+    private _renderGroup(group: { label: string; children: ReadonlyArray<ChildEntry> }) {
+        return html`
+            <div class="group-label">${group.label}</div>
+            ${group.children.map((child) => this._renderChild(child))}
         `;
     }
 
@@ -122,6 +166,14 @@ export class GodModeRootMenuItemElement extends UmbElementMixin(LitElement) {
         .children {
             display: block;
             padding-left: var(--uui-size-space-4);
+        }
+
+        .group-label {
+            margin: var(--uui-size-space-3) 0 var(--uui-size-space-1);
+            color: var(--uui-color-text-alt);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
         .nested {

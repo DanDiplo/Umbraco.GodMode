@@ -16,14 +16,53 @@ interface PageInfo {
     desc: string;
 }
 
-const PAGES: ReadonlyArray<PageInfo> = browsers
+interface PageGroup {
+    label: string;
+    ids: ReadonlyArray<string>;
+}
+
+const PAGE_GROUPS: ReadonlyArray<PageGroup> = [
+    {
+        label: "Overview",
+        ids: ["informationBrowser"]
+    },
+    {
+        label: "Health & operations",
+        ids: ["healthRisk", "configurationDrift", "diagnosticBrowser", "logBrowser", "databaseBrowser"]
+    },
+    {
+        label: "Content & schema",
+        ids: ["contentBrowser", "docTypeBrowser", "dataTypeBrowser", "templateBrowser", "partialBrowser", "mediaBrowser", "memberBrowser", "tagBrowser"]
+    },
+    {
+        label: "Relationships & usage",
+        ids: ["referenceGraph", "usageBrowser"]
+    },
+    {
+        label: "Developer & runtime",
+        ids: ["typesIntro", "serviceBrowser", "extensionExplorer"]
+    },
+    {
+        label: "Data & actions",
+        ids: ["keyValueBrowser", "utilityBrowser"]
+    }
+];
+
+const PAGES_BY_ID = new Map(browsers
     .filter((browser) => browser.id !== "intro" && !browser.skipMenuItem)
-    .sort((a, b) => b.weight - a.weight)
     .map((browser) => ({
         name: browser.label,
         id: browser.id,
         desc: browser.description ?? ""
-    }));
+    }))
+    .map((page) => [page.id, page] as const));
+
+const PAGE_SECTIONS = PAGE_GROUPS.map((group) => ({
+    ...group,
+    pages: group.ids.map((id) => PAGES_BY_ID.get(id)).filter((page): page is PageInfo => !!page)
+})).filter((group) => group.pages.length);
+
+const PAGES: ReadonlyArray<PageInfo> = PAGE_SECTIONS.flatMap((group) => group.pages);
 
 @customElement("godmode-intro")
 export class GodModeIntroElement extends UmbElementMixin(LitElement) {
@@ -67,16 +106,26 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
                             <uui-table-head-cell style="width: 30%">Action</uui-table-head-cell>
                             <uui-table-head-cell>Description</uui-table-head-cell>
                         </uui-table-head>
-                        ${this._pages.map(
-                            (p) => html`
-                                <uui-table-row>
-                                    <uui-table-cell>
-                                        <a href=${this._hrefFor(p.id)}><strong>${p.name}</strong></a>
-                                    </uui-table-cell>
-                                    <uui-table-cell>${p.desc}</uui-table-cell>
+                        ${PAGE_SECTIONS.map((section) => {
+                            const pages = section.pages.filter((page) => this._pages.some((visiblePage) => visiblePage.id === page.id));
+                            if (!pages.length) return "";
+
+                            return html`
+                                <uui-table-row class="section-row">
+                                    <uui-table-cell colspan="2">${section.label}</uui-table-cell>
                                 </uui-table-row>
-                            `
-                        )}
+                                ${pages.map(
+                                    (p) => html`
+                                        <uui-table-row>
+                                            <uui-table-cell>
+                                                <a href=${this._hrefFor(p.id)}><strong>${p.name}</strong></a>
+                                            </uui-table-cell>
+                                            <uui-table-cell>${p.desc}</uui-table-cell>
+                                        </uui-table-row>
+                                    `
+                                )}
+                            `;
+                        })}
                     </uui-table>
                 </uui-box>
                 <uui-box style="margin-top: var(--uui-size-space-4)">
@@ -94,6 +143,13 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
     static override styles = css`
         .muted {
             color: var(--uui-color-text-alt);
+        }
+        .section-row {
+            background: var(--uui-color-surface-alt);
+            color: var(--uui-color-text-alt);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-transform: uppercase;
         }
         a {
             color: var(--uui-color-interactive);

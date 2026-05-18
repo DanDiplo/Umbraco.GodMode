@@ -790,11 +790,6 @@ namespace Diplo.GodMode.Services
         {
             IQuery<IMedia> criteria = new Query<IMedia>(this.scopeProvider.SqlContext);
 
-            if (!string.IsNullOrEmpty(name))
-            {
-                criteria = criteria.Where(m => m.Name.Contains(name));
-            }
-
             if (id.HasValue)
             {
                 criteria = criteria.Where(m => m.Id == id.Value);
@@ -806,6 +801,11 @@ namespace Diplo.GodMode.Services
             }
 
             var order = new Ordering(orderBy, orderByDir == "ASC" ? Direction.Ascending : Direction.Descending);
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                return this.GetMediaPagedBySearch(page, pageSize, name, minSizeBytes.GetValueOrDefault(), criteria, order);
+            }
 
             if (minSizeBytes.GetValueOrDefault() > 0)
             {
@@ -826,6 +826,41 @@ namespace Diplo.GodMode.Services
             };
 
             return paged;
+        }
+
+        private Page<MediaMap> GetMediaPagedBySearch(long page, int pageSize, string search, long minSizeBytes, IQuery<IMedia> criteria, Ordering order)
+        {
+            const int scanPageSize = 500;
+            var matching = new List<MediaMap>();
+            var scanPage = 0L;
+            long totalRecords;
+
+            do
+            {
+                var batch = this.mediaService.GetPagedDescendants(-1, scanPage, scanPageSize, out totalRecords, filter: criteria, ordering: order)
+                    .Select(ToMediaMap)
+                    .Where(media => MediaMatchesSearch(media, search))
+                    .Where(media => minSizeBytes <= 0 || media.Size >= minSizeBytes);
+
+                matching.AddRange(batch);
+                scanPage++;
+            }
+            while (scanPage * scanPageSize < totalRecords);
+
+            var totalItems = matching.Count;
+            var items = matching
+                .Skip((int)((page - 1) * pageSize))
+                .Take(pageSize)
+                .ToList();
+
+            return new Page<MediaMap>
+            {
+                CurrentPage = page,
+                Items = items,
+                ItemsPerPage = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (long)Math.Ceiling(totalItems / (decimal)pageSize)
+            };
         }
 
         private Page<MediaMap> GetMediaPagedBySize(long page, int pageSize, long minSizeBytes, IQuery<IMedia> criteria, Ordering order)
@@ -882,6 +917,29 @@ namespace Diplo.GodMode.Services
                 Path = media.Path
             };
         }
+
+        private static bool MediaMatchesSearch(MediaMap media, string search)
+        {
+            var trimmedSearch = search.Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmedSearch))
+            {
+                return true;
+            }
+
+            if (int.TryParse(trimmedSearch, out var id) && media.Id == id)
+            {
+                return true;
+            }
+
+            return Contains(media.Name, trimmedSearch)
+                || Contains(media.Udi.ToString(), trimmedSearch)
+                || Contains(media.MediaTypeAlias, trimmedSearch)
+                || Contains(media.Alias, trimmedSearch);
+        }
+
+        private static bool Contains(string? value, string search)
+            => value?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
 
         public async Task<ContentMediaDetail?> GetContentDetail(int id)
         {

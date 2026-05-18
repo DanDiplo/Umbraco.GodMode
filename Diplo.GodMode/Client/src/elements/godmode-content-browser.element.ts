@@ -259,10 +259,10 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                 <uui-box>
                     <div class="filters">
                         <div>
-                            <label>Name</label>
+                            <label>Search</label>
                             <uui-input
                                 type="search"
-                                placeholder="Filter by name"
+                                placeholder="Filter by name, ID or key"
                                 .value=${this._name}
                                 @change=${(e: Event) => this._filterChange(() => (this._name = (e.target as HTMLInputElement).value))}
                             ></uui-input>
@@ -327,7 +327,6 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                             ></godmode-pager>
                             <uui-table>
                                 <uui-table-head>
-                                    <uui-table-head-cell>Id</uui-table-head-cell>
                                     <uui-table-head-cell>Name</uui-table-head-cell>
                                     <uui-table-head-cell>Doc Type</uui-table-head-cell>
                                     <uui-table-head-cell>Cultures</uui-table-head-cell>
@@ -339,7 +338,6 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                 ${this._page.items.map(
                                     (c) => html`
                                         <uui-table-row>
-                                            <uui-table-cell><strong>${c.id}</strong></uui-table-cell>
                                             <uui-table-cell>
                                                 <a href=${editUrl("content", c.udi)} @click=${(e: Event) => openEditorModal(this, "content", c.udi, e)}
                                                     ><strong>${c.name}</strong></a

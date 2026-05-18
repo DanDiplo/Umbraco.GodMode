@@ -110,9 +110,14 @@ namespace Diplo.GodMode.Services
                     query = query.Append(" AND CT.alias = @0", criteria.Alias);
                 }
 
-                if (!string.IsNullOrEmpty(criteria.Name))
+                if (!string.IsNullOrWhiteSpace(criteria.Name))
                 {
-                    query = query.Append(" AND N.text LIKE @0", "%" + criteria.Name + "%");
+                    var search = criteria.Name.Trim();
+                    var likeSearch = "%" + search + "%";
+
+                    query = int.TryParse(search, out var searchId)
+                        ? query.Append(" AND (N.text LIKE @0 OR N.id = @1 OR N.uniqueID LIKE @0)", likeSearch, searchId)
+                        : query.Append(" AND (N.text LIKE @0 OR N.uniqueID LIKE @0)", likeSearch);
                 }
 
                 if (!string.IsNullOrEmpty(criteria.Id))
@@ -414,7 +419,15 @@ namespace Diplo.GodMode.Services
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                memberQuery.Append(" AND (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0)", "%" + search + "%");
+                var trimmedSearch = search.Trim();
+                var likeSearch = "%" + trimmedSearch + "%";
+
+                memberQuery.Append(
+                    int.TryParse(trimmedSearch, out var searchId)
+                        ? " AND (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0 OR MN.uniqueId LIKE @0 OR M.nodeId = @1)"
+                        : " AND (MN.text LIKE @0 OR M.Email LIKE @0 OR M.LoginName LIKE @0 OR MN.uniqueId LIKE @0)",
+                    likeSearch,
+                    searchId);
             }
 
             memberQuery.OrderBy(string.IsNullOrWhiteSpace(orderBy) ? "MN.text" : orderBy);

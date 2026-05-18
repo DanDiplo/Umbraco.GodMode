@@ -26,7 +26,7 @@ export const browsers: BrowserDef[] = [
         label: "DocType Browser",
         icon: "icon-item-arrangement",
         description: "Browse, filter and search document types and see where they are used",
-        weight: 990,
+        weight: 890,
         element: () => import("../elements/godmode-doc-type-browser.element")
     },
     {
@@ -34,7 +34,7 @@ export const browsers: BrowserDef[] = [
         label: "Template Browser",
         icon: "icon-newspaper-alt",
         description: "Filter, browse and search the template hierarchy and see what partials they use",
-        weight: 980,
+        weight: 870,
         element: () => import("../elements/godmode-template-browser.element")
     },
     {
@@ -42,7 +42,7 @@ export const browsers: BrowserDef[] = [
         label: "Partial Browser",
         icon: "icon-article",
         description: "Browse partial views and see whether they are cached",
-        weight: 970,
+        weight: 860,
         element: () => import("../elements/godmode-partial-browser.element")
     },
     {
@@ -50,7 +50,7 @@ export const browsers: BrowserDef[] = [
         label: "DataType Browser",
         icon: "icon-autofill",
         description: "Browse data types, see whether they are used and by which editor",
-        weight: 960,
+        weight: 880,
         element: () => import("../elements/godmode-data-type-browser.element")
     },
     {
@@ -58,7 +58,7 @@ export const browsers: BrowserDef[] = [
         label: "Content Browser",
         icon: "icon-umb-content",
         description: "Browse, search and filter all your content pages",
-        weight: 950,
+        weight: 900,
         element: () => import("../elements/godmode-content-browser.element")
     },
     {
@@ -66,7 +66,7 @@ export const browsers: BrowserDef[] = [
         label: "Media Browser",
         icon: "icon-picture",
         description: "Search your media and filter by type",
-        weight: 940,
+        weight: 850,
         element: () => import("../elements/godmode-media-browser.element")
     },
     {
@@ -74,7 +74,7 @@ export const browsers: BrowserDef[] = [
         label: "Member Browser",
         icon: "icon-umb-members",
         description: "Search members and see what groups they have been assigned to",
-        weight: 930,
+        weight: 840,
         element: () => import("../elements/godmode-member-browser.element")
     },
     {
@@ -82,7 +82,7 @@ export const browsers: BrowserDef[] = [
         label: "Tag Browser",
         icon: "icon-tags",
         description: "View all tags and see what content they are assigned to",
-        weight: 920,
+        weight: 830,
         element: () => import("../elements/godmode-tag-browser.element")
     },
     {
@@ -90,7 +90,7 @@ export const browsers: BrowserDef[] = [
         label: "Usage Browser",
         icon: "icon-chart-curve",
         description: "See how your content types are used and how many instances have been made",
-        weight: 910,
+        weight: 790,
         element: () => import("../elements/godmode-usage-browser.element")
     },
     {
@@ -98,7 +98,7 @@ export const browsers: BrowserDef[] = [
         label: "Database Browser",
         icon: "icon-database",
         description: "Inspect database tables, row counts, columns and declared relationships",
-        weight: 907,
+        weight: 960,
         element: () => import("../elements/godmode-database-browser.element")
     },
     {
@@ -106,7 +106,7 @@ export const browsers: BrowserDef[] = [
         label: "Log Browser",
         icon: "icon-script",
         description: "Inspect Umbraco JSON logs and explain individual entries with AI",
-        weight: 906,
+        weight: 970,
         element: () => import("../elements/godmode-log-browser.element")
     },
     {
@@ -114,7 +114,7 @@ export const browsers: BrowserDef[] = [
         label: "Reference Graph",
         icon: "icon-link",
         description: "Trace relationships between types, templates, data types and block elements",
-        weight: 905,
+        weight: 800,
         element: () => import("../elements/godmode-reference-graph.element")
     },
     {
@@ -122,7 +122,7 @@ export const browsers: BrowserDef[] = [
         label: "Health & Risk",
         icon: "icon-alert",
         description: "Surface schema drift, broken references and cleanup opportunities",
-        weight: 902,
+        weight: 990,
         element: () => import("../elements/godmode-health-risk-browser.element")
     },
     {
@@ -130,7 +130,7 @@ export const browsers: BrowserDef[] = [
         label: "Configuration Drift",
         icon: "icon-merge",
         description: "Compare similar data types, content models and property aliases for suspicious drift",
-        weight: 901.5,
+        weight: 985,
         element: () => import("../elements/godmode-configuration-drift.element")
     },
     {
@@ -138,7 +138,7 @@ export const browsers: BrowserDef[] = [
         label: "Extension Explorer",
         icon: "icon-code",
         description: "Inspect registered backoffice extension manifests, conditions, weights and sources",
-        weight: 901,
+        weight: 680,
         element: () => import("../elements/godmode-extension-explorer.element")
     },
     {
@@ -306,7 +306,7 @@ export const browsers: BrowserDef[] = [
         label: "Services",
         icon: "icon-console",
         description: "Browse injected services registered with the IOC container.",
-        weight: 700,
+        weight: 690,
         element: () => import("../elements/godmode-service-browser.element")
     },
     {
@@ -314,7 +314,7 @@ export const browsers: BrowserDef[] = [
         label: "Diagnostics",
         icon: "icon-settings",
         description: "View Umbraco settings and configuration, Server settings and much more...",
-        weight: 600,
+        weight: 980,
         element: () => import("../elements/godmode-diagnostic-browser.element")
     },
     {
@@ -322,7 +322,7 @@ export const browsers: BrowserDef[] = [
         label: "Information",
         icon: "icon-info",
         description: "View key system, package and Content Delivery API information",
-        weight: 575,
+        weight: 1000,
         element: () => import("../elements/godmode-information-browser.element")
     },
     {
@@ -330,7 +330,7 @@ export const browsers: BrowserDef[] = [
         label: "Key Values",
         icon: "icon-key",
         description: "Edit and delete rows in the umbracoKeyValue table",
-        weight: 550,
+        weight: 600,
         element: () => import("../elements/godmode-key-value-browser.element")
     },
     {
@@ -338,7 +338,7 @@ export const browsers: BrowserDef[] = [
         label: "Utilities",
         icon: "icon-wrench",
         description: "Inspect and clear caches, restart application pool and warm-up your little templates",
-        weight: 500,
+        weight: 590,
         element: () => import("../elements/godmode-utility-browser.element")
     }
 ];

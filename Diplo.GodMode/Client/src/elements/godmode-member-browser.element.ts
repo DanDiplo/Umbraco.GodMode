@@ -5,6 +5,7 @@ import "../shared";
 import type { MemberGroupModel, MemberModel, Page } from "../shared/types";
 import { truncate } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
+import { openEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-member-browser")
 export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
@@ -88,6 +89,55 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
             : [];
     }
 
+    private _openDetails(member: MemberModel, e: Event) {
+        const groups = this._groupNames(member);
+
+        openEvidenceDrawer(
+            this,
+            {
+                title: `Member: ${member.name}`,
+                subtitle: `${member.memberTypeName} (${member.memberTypeAlias})`,
+                summary: [
+                    { label: "Id", value: member.id },
+                    { label: "Key", value: member.udi },
+                    { label: "Username", value: member.username },
+                    { label: "Email", value: member.email },
+                    { label: "Member Type", value: member.memberTypeName },
+                    { label: "Approved", value: member.isApproved },
+                    { label: "Locked Out", value: member.isLockedOut },
+                    { label: "2FA", value: member.usesTwoFactor }
+                ],
+                sections: [
+                    {
+                        heading: "Account",
+                        items: {
+                            name: member.name,
+                            username: member.username,
+                            email: member.email,
+                            created: truncate(member.createDate, 22),
+                            approved: member.isApproved,
+                            lockedOut: member.isLockedOut,
+                            usesTwoFactor: member.usesTwoFactor
+                        }
+                    },
+                    {
+                        heading: "Type",
+                        items: {
+                            memberTypeId: member.memberTypeId,
+                            memberTypeName: member.memberTypeName,
+                            memberTypeAlias: member.memberTypeAlias
+                        }
+                    },
+                    {
+                        heading: "Groups",
+                        items: groups.length ? groups : ["None"]
+                    }
+                ]
+            },
+            e
+        );
+    }
+
     private _explainSubject(member: MemberModel) {
         return {
             subjectType: "Umbraco member",
@@ -136,7 +186,7 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                             <label>Search</label>
                             <uui-input
                                 type="search"
-                                placeholder="Filter by name, email, username"
+                                placeholder="Filter by name, email, username, ID or key"
                                 .value=${this._search}
                                 @change=${(e: Event) => {
                                     this._search = (e.target as HTMLInputElement).value;
@@ -198,7 +248,6 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                             ></godmode-pager>
                             <uui-table>
                                 <uui-table-head>
-                                    <uui-table-head-cell>Id</uui-table-head-cell>
                                     <uui-table-head-cell>Name</uui-table-head-cell>
                                     <uui-table-head-cell>Username</uui-table-head-cell>
                                     <uui-table-head-cell>Email</uui-table-head-cell>
@@ -211,7 +260,6 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                                 ${this._page.items.map(
                                     (m) => html`
                                         <uui-table-row>
-                                            <uui-table-cell>${m.id}</uui-table-cell>
                                             <uui-table-cell>
                                                 <a href=${editUrl("member", m.udi)} @click=${(e: Event) => openEditorModal(this, "member", m.udi, e)}
                                                     ><strong>${m.name}</strong></a
@@ -238,7 +286,10 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                                             </uui-table-cell>
                                             <uui-table-cell><small>${truncate(m.createDate, 22)}</small></uui-table-cell>
                                             <uui-table-cell class="action-cell">
-                                                <godmode-ai-explain-host .subject=${this._explainSubject(m)}></godmode-ai-explain-host>
+                                                <div class="action-wrap">
+                                                    <uui-button compact look="secondary" label="Details" @click=${(e: Event) => this._openDetails(m, e)}>Details</uui-button>
+                                                    <godmode-ai-explain-host .subject=${this._explainSubject(m)}></godmode-ai-explain-host>
+                                                </div>
                                             </uui-table-cell>
                                         </uui-table-row>
                                     `
@@ -311,7 +362,13 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
         }
         .action-cell {
             text-align: right;
-            width: 7rem;
+            width: 10rem;
+        }
+        .action-wrap {
+            display: inline-flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: var(--uui-size-space-2);
         }
         .action-cell godmode-ai-explain-host {
             display: inline-flex;

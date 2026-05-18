@@ -166,21 +166,21 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
                     const editableType = item.type === "Media" ? "media" : "content";
                     return html`
                         <uui-table-row>
-                            <uui-table-cell>
+                            <uui-table-cell class="name-cell">
                                 <a href=${editUrl(editableType, item.udi)} @click=${(e: Event) => openEditorModal(this, editableType, item.udi, e)}>
                                     <strong>${item.name}</strong>
                                 </a>
                             </uui-table-cell>
-                            <uui-table-cell>
+                            <uui-table-cell class="type-cell">
                                 <span class="type">
                                     ${item.icon ? html`<umb-icon name=${item.icon}></umb-icon>` : ""}
                                     ${item.alias}
                                 </span>
                             </uui-table-cell>
-                            <uui-table-cell>
+                            <uui-table-cell class="tags-cell">
                                 <span class="tags">${(item.tags ?? []).map((tag) => html`<span class="tag-pill">${tag.text}</span>`)}</span>
                             </uui-table-cell>
-                            <uui-table-cell>
+                            <uui-table-cell class="id-cell">
                                 <span>${item.id}</span>
                                 <code>${item.udi}</code>
                             </uui-table-cell>
@@ -307,6 +307,30 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
         .tag-content {
             margin-top: var(--uui-size-space-4);
         }
+        .tag-content uui-table-row {
+            display: grid;
+            grid-template-columns: minmax(14rem, 2fr) minmax(8rem, 0.8fr) minmax(14rem, 1.4fr) minmax(18rem, 1.8fr);
+            align-items: center;
+        }
+        .tag-content uui-table-cell {
+            min-width: 0;
+        }
+        .tag-content .name-cell,
+        .tag-content .type-cell,
+        .tag-content .tags-cell,
+        .tag-content .id-cell {
+            width: auto;
+        }
+        .tag-content .name-cell a,
+        .tag-content .type,
+        .tag-content .tags,
+        .tag-content .id-cell code {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .tag-content .tags {
+            flex-wrap: wrap;
+        }
         a {
             color: var(--uui-color-interactive);
             text-decoration: none;
@@ -326,6 +350,11 @@ export class GodModeTagBrowserElement extends UmbElementMixin(LitElement) {
         @media (max-width: 900px) {
             .filters {
                 grid-template-columns: 1fr;
+            }
+            .tag-content uui-table-row {
+                grid-template-columns: 1fr;
+                gap: var(--uui-size-space-1);
+                padding: var(--uui-size-space-3) 0;
             }
         }
     `;

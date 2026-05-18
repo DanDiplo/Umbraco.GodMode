@@ -226,12 +226,12 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                           <p class="results"><strong>${results.length}</strong> / <strong>${this._items.length}</strong></p>
                           <uui-table @sort-change=${this._onSortChange}>
                               <uui-table-head>
-                                  <godmode-sort-header column="name" .sort=${this._sort}>Service</godmode-sort-header>
-                                  <godmode-sort-header column="implementName" .sort=${this._sort}>Implementation</godmode-sort-header>
-                                  <godmode-sort-header column="lifetime" .sort=${this._sort}>Lifetime</godmode-sort-header>
-                                  <uui-table-head-cell>Flags</uui-table-head-cell>
-                                  <godmode-sort-header column="key" .sort=${this._sort}>Key</godmode-sort-header>
-                                  <uui-table-head-cell>Actions</uui-table-head-cell>
+                                  <godmode-sort-header class="service-col" column="name" .sort=${this._sort}>Service</godmode-sort-header>
+                                  <godmode-sort-header class="implementation-col" column="implementName" .sort=${this._sort}>Implementation</godmode-sort-header>
+                                  <godmode-sort-header class="lifetime-col" column="lifetime" .sort=${this._sort}>Lifetime</godmode-sort-header>
+                                  <uui-table-head-cell class="flags-col">Flags</uui-table-head-cell>
+                                  <godmode-sort-header class="key-col" column="key" .sort=${this._sort}>Key</godmode-sort-header>
+                                  <uui-table-head-cell class="action-head">Actions</uui-table-head-cell>
                               </uui-table-head>
                               ${results.map((s, index) => this._renderRow(s, index, multiRegisteredNames, possibleOverrideNames))}
                           </uui-table>
@@ -248,10 +248,12 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
 
         return html`
             <uui-table-row class=${this._expanded.has(id) ? "expanded" : ""} @click=${() => this._toggleExpanded(id)}>
-                <uui-table-cell><code>${s.name}</code></uui-table-cell>
-                <uui-table-cell><code>${s.implementName ?? "Factory / instance"}</code></uui-table-cell>
-                <uui-table-cell>${s.lifetime}</uui-table-cell>
-                <uui-table-cell>
+                <uui-table-cell class="type-cell service-col" title=${s.fullName ?? s.name ?? ""}><code>${s.name}</code></uui-table-cell>
+                <uui-table-cell class="type-cell implementation-col" title=${s.implementFullName ?? s.implementName ?? ""}>
+                    <code>${s.implementName ?? "Factory / instance"}</code>
+                </uui-table-cell>
+                <uui-table-cell class="lifetime-col">${s.lifetime}</uui-table-cell>
+                <uui-table-cell class="flags-col">
                     <span class="flags">
                         <span class="pill">${source}</span>
                         ${s.key ? html`<span class="pill accent">Keyed</span>` : ""}
@@ -260,7 +262,7 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                         ${s.isPublic ? "" : html`<span class="pill">Internal</span>`}
                     </span>
                 </uui-table-cell>
-                <uui-table-cell><small>${s.key ?? ""}</small></uui-table-cell>
+                <uui-table-cell class="key-col" title=${s.key ?? ""}><small>${s.key ?? ""}</small></uui-table-cell>
                 <uui-table-cell class="action-cell" @click=${(e: Event) => e.stopPropagation()}>
                     <godmode-ai-explain-host .subject=${this._explainSubject(s, source, isMultiRegistered, isPossibleOverride)}></godmode-ai-explain-host>
                 </uui-table-cell>
@@ -268,18 +270,41 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
             ${this._expanded.has(id)
                 ? html`
                       <uui-table-row class="details">
-                          <uui-table-cell colspan="6">
-                              <dl>
-                                  <dt>Service namespace</dt>
-                                  <dd>${s.namespace ?? ""}</dd>
-                                  <dt>Implementation namespace</dt>
-                                  <dd>${s.implementNamespace ?? ""}</dd>
-                                  <dt>Service full name</dt>
-                                  <dd><code>${s.fullName ?? ""}</code></dd>
-                                  <dt>Implementation full name</dt>
-                                  <dd><code>${s.implementFullName ?? ""}</code></dd>
-                              </dl>
+                          <uui-table-cell class="detail-item">
+                              <strong>Service namespace</strong>
+                              <code>${s.namespace ?? ""}</code>
                           </uui-table-cell>
+                          <uui-table-cell class="detail-item">
+                              <strong>Implementation namespace</strong>
+                              <code>${s.implementNamespace ?? ""}</code>
+                          </uui-table-cell>
+                          <uui-table-cell class="detail-item">
+                              <strong>Lifetime</strong>
+                              <span>${s.lifetime}</span>
+                          </uui-table-cell>
+                          <uui-table-cell class="detail-item">
+                              <strong>Source</strong>
+                              <span>${source}</span>
+                          </uui-table-cell>
+                          <uui-table-cell class="detail-item">
+                              <strong>Key</strong>
+                              <code>${s.key ?? ""}</code>
+                          </uui-table-cell>
+                          <uui-table-cell></uui-table-cell>
+                      </uui-table-row>
+                      <uui-table-row class="details details-full">
+                          <uui-table-cell class="detail-item">
+                              <strong>Service full name</strong>
+                              <code>${s.fullName ?? ""}</code>
+                          </uui-table-cell>
+                          <uui-table-cell class="detail-item">
+                              <strong>Implementation full name</strong>
+                              <code>${s.implementFullName ?? ""}</code>
+                          </uui-table-cell>
+                          <uui-table-cell></uui-table-cell>
+                          <uui-table-cell></uui-table-cell>
+                          <uui-table-cell></uui-table-cell>
+                          <uui-table-cell></uui-table-cell>
                       </uui-table-row>
                   `
                 : ""}
@@ -357,6 +382,45 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
             margin: var(--uui-size-space-3) 0;
             color: var(--uui-color-text-alt);
         }
+        uui-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+        .service-col {
+            width: 29%;
+        }
+        .implementation-col {
+            width: 31%;
+        }
+        .lifetime-col {
+            width: 8rem;
+        }
+        .flags-col {
+            width: 13rem;
+        }
+        .key-col {
+            width: 9rem;
+        }
+        .action-head,
+        .action-cell {
+            width: 5.5rem;
+        }
+        .type-cell {
+            min-width: 0;
+        }
+        .type-cell code {
+            display: inline;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            line-height: 1.35;
+        }
+        .key-col small {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .help {
             color: var(--uui-color-text-alt);
             margin: var(--uui-size-space-4) 0 0;
@@ -369,6 +433,7 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
             display: flex;
             flex-wrap: wrap;
             gap: var(--uui-size-space-1);
+            max-width: 100%;
         }
         .pill {
             border-radius: 3px;
@@ -377,6 +442,8 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
             padding: 1px var(--uui-size-space-1);
             font-size: 0.75rem;
             font-weight: 600;
+            max-width: 100%;
+            overflow-wrap: anywhere;
         }
         .pill.accent {
             background: var(--uui-color-positive);
@@ -394,29 +461,30 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
             cursor: default;
             background: var(--uui-color-surface-alt);
         }
+        .detail-item {
+            vertical-align: top;
+        }
+        .detail-item strong {
+            display: block;
+            margin-bottom: var(--uui-size-space-1);
+            color: var(--uui-color-text-alt);
+            font-size: 0.78rem;
+        }
         .action-cell {
             cursor: default;
             text-align: right;
-            width: 7rem;
         }
         .action-cell godmode-ai-explain-host {
             --uui-button-padding-left-factor: 1;
             --uui-button-padding-right-factor: 1;
         }
-        dl {
-            display: grid;
-            grid-template-columns: 180px minmax(0, 1fr);
-            gap: var(--uui-size-space-2) var(--uui-size-space-4);
-            margin: var(--uui-size-space-3) 0;
-        }
-        dt {
-            font-weight: 700;
-            color: var(--uui-color-text-alt);
-        }
-        dd {
-            margin: 0;
-            min-width: 0;
+        .detail-item code,
+        .detail-item span {
+            display: block;
+            white-space: normal;
             overflow-wrap: anywhere;
+            word-break: break-word;
+            line-height: 1.35;
         }
         @media (max-width: 1000px) {
             .filters {
