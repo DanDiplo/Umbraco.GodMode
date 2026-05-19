@@ -2,6 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet, godmodePost } from "../api/client";
 import "../shared";
+import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared/ai-availability";
 import type { DiagnosticGroup } from "../shared/types";
 
 const REVEAL_PASSWORD_SESSION_KEY = "diplo.godmode.diagnostics.revealPassword";
@@ -16,10 +17,21 @@ export class GodModeDiagnosticBrowserElement extends UmbElementMixin(LitElement)
     @state() private _revealed = false;
     @state() private _revealPassword = sessionStorage.getItem(REVEAL_PASSWORD_SESSION_KEY) ?? "";
     @state() private _revealError = "";
+    @state() private _isAiExplainAvailable = isGodModeAiExplainAvailable();
+    private _disposeAvailabilityObserver?: () => void;
 
     override connectedCallback(): void {
         super.connectedCallback();
+        this._disposeAvailabilityObserver = observeGodModeAiExplainAvailability(() => {
+            this._isAiExplainAvailable = true;
+        });
         void this._load();
+    }
+
+    override disconnectedCallback(): void {
+        this._disposeAvailabilityObserver?.();
+        this._disposeAvailabilityObserver = undefined;
+        super.disconnectedCallback();
     }
 
     private async _load() {
@@ -162,18 +174,22 @@ export class GodModeDiagnosticBrowserElement extends UmbElementMixin(LitElement)
                                         <uui-table-head>
                                             <uui-table-head-cell style="width:35%">Key</uui-table-head-cell>
                                             <uui-table-head-cell>Value</uui-table-head-cell>
-                                            <uui-table-head-cell>Actions</uui-table-head-cell>
+                                            ${this._isAiExplainAvailable ? html`<uui-table-head-cell>Actions</uui-table-head-cell>` : ""}
                                         </uui-table-head>
                                         ${matched.map(
                                             (d) => html`
                                                 <uui-table-row>
                                                     <uui-table-cell><strong>${d.key}</strong></uui-table-cell>
                                                     <uui-table-cell class="value-cell"><code>${d.value == null ? "—" : String(d.value)}</code></uui-table-cell>
-                                                    <uui-table-cell class="action-cell">
-                                                        <godmode-ai-explain-host
-                                                            .subject=${this._explainSubject(group.title, sec.heading, d)}
-                                                        ></godmode-ai-explain-host>
-                                                    </uui-table-cell>
+                                                    ${this._isAiExplainAvailable
+                                                        ? html`
+                                                              <uui-table-cell class="action-cell">
+                                                                  <godmode-ai-explain-host
+                                                                      .subject=${this._explainSubject(group.title, sec.heading, d)}
+                                                                  ></godmode-ai-explain-host>
+                                                              </uui-table-cell>
+                                                          `
+                                                        : ""}
                                                 </uui-table-row>
                                             `
                                         )}

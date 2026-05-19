@@ -1,0 +1,80 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Diplo God Mode AI",
+  "AlternatePackageNames": [
+    "God Mode AI",
+    "Diplo.GodMode.AI",
+    "Diplo GodMode AI",
+    "GodMode AI"
+  ],
+  "AuthorDetails": {
+    "Name": "Dan 'Diplo' Booth",
+    "Description": "Dan is an Umbraco MVP and has been releasing packages for Umbraco since Umbraco 6",
+    "Url": "https://www.diplo.co.uk/",
+    "ImageUrl": "https://pbs.twimg.com/profile_images/794295655846002688/S8SQ_XFM_400x400.jpg"
+  },
+  "Category": "Artificial Intelligence",
+  "Description": "God Mode AI is the optional Umbraco.AI companion package for Diplo God Mode. It adds contextual Explain buttons to supported God Mode views so developers can ask for concise explanations of diagnostics, log patterns, service registrations, data types, templates, content metadata, and other implementation details.",
+  "DocumentationUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v17/README.md#optional-ai-add-on",
+  "LicenseTypes": [
+    "Free"
+  ],
+  "IssueTrackerUrl": "https://github.com/DanDiplo/Umbraco.GodMode/issues",
+  "IsSubPackageOf": "Diplo.GodMode",
+  "PackageType": "Package",
+  "PackagesByAuthor": [
+    "Diplo.GodMode",
+    "Diplo.AuditLogViewer",
+    "Diplo.MediaDownloader",
+    "Diplo.Translator",
+    "Diplo.DictionaryEditor",
+    "DiploTraceLogViewer"
+  ],
+  "RelatedPackages": [
+    {
+      "PackageId": "Diplo.GodMode",
+      "GroupTitle": "Required Package",
+      "Description": "God Mode AI augments the main Diplo God Mode developer tools package."
+    }
+  ],
+  "Tags": [
+    "ai",
+    "artificial intelligence",
+    "umbraco ai",
+    "developer",
+    "diagnostics",
+    "explain",
+    "developer tools",
+    "god mode"
+  ],
+  "Screenshots": [
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/AI-provider-setup.png",
+      "Caption": "Umbraco AI provider setup"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/diagnostic-explain.png",
+      "Caption": "Diagnostic explanation"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/log-analyser.png",
+      "Caption": "Log Insights analysis"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/log-error.png",
+      "Caption": "Log error explanation"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/datatype-explain.png",
+      "Caption": "Data Type explanation"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/health-explain.png",
+      "Caption": "Health check explanation"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/key-value-explain.png",
+      "Caption": "Key value explanation"
+    }
+  ]
+}

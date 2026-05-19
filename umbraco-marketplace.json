@@ -29,6 +29,13 @@
     "Diplo.DictionaryEditor",
     "DiploTraceLogViewer"
   ],
+  "RelatedPackages": [
+    {
+      "PackageId": "Diplo.GodMode.AI",
+      "GroupTitle": "Optional Add-Ons",
+      "Description": "Adds contextual AI explanations to God Mode using Umbraco.AI."
+    }
+  ],
   "Tags": [
     "developer",
     "insight",
@@ -53,6 +60,10 @@
       "Caption": "Document Type Browser"
     },
     {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser-visual.png",
+      "Caption": "Document Type visual browser"
+    },
+    {
       "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatypes.png",
       "Caption": "Data Type Browser"
     },
@@ -63,6 +74,14 @@
     {
       "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reference-graph.png",
       "Caption": "Reference Graph"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-browser.png",
+      "Caption": "Database Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-table-schema.png",
+      "Caption": "Database Table Schema"
     },
     {
       "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics.png",
@@ -85,6 +104,14 @@
       "Caption": "IOC (DI) Services Browser"
     },
     {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/log-browser.png",
+      "Caption": "Log Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/media-browser.png",
+      "Caption": "Media Browser"
+    },
+    {
       "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/members.png",
       "Caption": "Member Browser"
     },
@@ -95,6 +122,18 @@
     {
       "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/key-value-editor.png",
       "Caption": "Key Value Editor"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/templates.png",
+      "Caption": "Template Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/usage.png",
+      "Caption": "Usage Browser"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reverse-lookup.png",
+      "Caption": "Reverse Lookup"
     }
   ],
   "VideoUrl": "https://www.youtube.com/watch?v=xLjTV5LMp44"

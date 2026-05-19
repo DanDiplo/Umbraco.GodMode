@@ -4,6 +4,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Diplo.GodMode?color=004880&logo=nuget&label=NuGet)](https://www.nuget.org/packages/Diplo.GodMode/)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Diplo.GodMode?color=cc9900&label=downloads)](https://www.nuget.org/packages/Diplo.GodMode/)
+[![God Mode AI](https://img.shields.io/nuget/v/Diplo.GodMode.AI?color=5b2d90&logo=nuget&label=God%20Mode%20AI)](https://www.nuget.org/packages/Diplo.GodMode.AI/)
 [![Umbraco](https://img.shields.io/badge/Umbraco-17-3544b1?logo=umbraco)](https://umbraco.com/)
 [![.NET](https://img.shields.io/badge/.NET-10-512bd4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://licenses.nuget.org/MIT)
@@ -23,6 +24,36 @@ It gives developers fast access to site structure, diagnostics, configuration, c
 - View content, members and media in searchable/filterable tables.
 - Inspect diagnostics and configuration values, with optional redaction for sensitive settings.
 - Inspect and clear Umbraco caches and restart the app where supported.
+- Optionally add contextual AI explanations with the separate `Diplo.GodMode.AI` companion package.
+
+## Optional AI Add-On
+
+The core `Diplo.GodMode` package does not depend on the AI add-on. If `Diplo.GodMode.AI` is not installed, AI controls are not rendered and God Mode does not reserve empty columns or spacing for them.
+
+When installed, God Mode AI uses Umbraco.AI to add contextual **Explain** buttons in supported God Mode views. To use it:
+
+1. Install and configure Umbraco.AI in your Umbraco site.
+2. Add an AI provider package, such as the OpenAI provider.
+3. Create a connection for your provider in the Umbraco backoffice.
+4. Create an AI profile that uses that connection and select a model, for example `gpt-4.1-nano` for OpenAI.
+5. Restart the site and open God Mode in the backoffice.
+
+Umbraco.AI setup docs:
+
+- [Getting started](https://docs.umbraco.com/ai-in-umbraco/getting-started/getting-started)
+- [Installation](https://docs.umbraco.com/ai-in-umbraco/getting-started/installation)
+- [First connection](https://docs.umbraco.com/ai-in-umbraco/getting-started/first-connection)
+- [First profile](https://docs.umbraco.com/ai-in-umbraco/getting-started/first-profile)
+
+### AI Screenshots
+
+![Umbraco AI provider setup](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/AI-provider-setup.png)
+
+![Diagnostic explanation](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/diagnostic-explain.png)
+
+![Log Insights analysis](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/log-analyser.png)
+
+![Data Type explanation](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/datatype-explain.png)
 
 ## Screenshots
 
@@ -30,11 +61,17 @@ It gives developers fast access to site structure, diagnostics, configuration, c
 
 ![Document Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser.png)
 
+![Document Type visual browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser-visual.png)
+
 ![Data Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatypes.png)
 
 ![Reference graph](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reference-graph.png)
 
+![Database Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-browser.png)
+
 ![Diagnostics](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics.png)
+
+![Log Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/log-browser.png)
 
 ![Services](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/services.png)
 
@@ -116,6 +153,7 @@ When the variable is present, the diagnostics screen shows a password field. Ent
 The v17 branch contains two projects in one solution:
 
 - `Diplo.GodMode/Diplo.GodMode.csproj` - the Umbraco 17 package source.
+- `Diplo.GodMode.AI/Diplo.GodMode.AI.csproj` - the optional Umbraco.AI companion package.
 - `Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj` - a local Umbraco 17 demo/test site that references the package project.
 
 Build everything from the repository root:
@@ -128,6 +166,12 @@ Build the package project only:
 
 ```powershell
 dotnet build Diplo.GodMode/Diplo.GodMode.csproj
+```
+
+Build the AI add-on only:
+
+```powershell
+dotnet build Diplo.GodMode.AI/Diplo.GodMode.AI.csproj
 ```
 
 Run the demo site:
@@ -146,9 +190,28 @@ From the repository root:
 
 ```powershell
 dotnet pack Diplo.GodMode/Diplo.GodMode.csproj -c Release
+dotnet pack Diplo.GodMode.AI/Diplo.GodMode.AI.csproj -c Release
 ```
 
 The package ships the compiled assembly and static web assets under `App_Plugins/DiploGodMode`, including `umbraco-package.json`.
+
+Release checklist:
+
+```powershell
+npm run type-check --prefix Diplo.GodMode/Client
+npm run type-check --prefix Diplo.GodMode.AI/Client
+dotnet build Diplo.GodMode.slnx
+dotnet pack Diplo.GodMode/Diplo.GodMode.csproj -c Release
+dotnet pack Diplo.GodMode.AI/Diplo.GodMode.AI.csproj -c Release
+```
+
+Before publishing, inspect the generated `.nupkg` files and confirm:
+
+- `Diplo.GodMode` contains `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
+- `Diplo.GodMode.AI` contains `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
+- `Diplo.GodMode.AI` declares a dependency on `Diplo.GodMode` `17.1.0`.
+
+Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. The Umbraco Marketplace reads package details from NuGet and augments them with the root `umbraco-marketplace.json` file for God Mode and `umbraco-marketplace-diplo.godmode.ai.json` for the AI add-on.
 
 ## Thanks
 

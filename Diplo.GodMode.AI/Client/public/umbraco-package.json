@@ -1,7 +1,8 @@
 {
   "$schema": "../../../Diplo.GodMode.Testsite/umbraco-package-schema.json",
+  "id": "Diplo.GodMode.AI",
   "name": "Diplo.GodMode.AI",
-  "version": "17.0.0",
+  "version": "1.0.0",
   "allowTelemetry": true,
   "extensions": [
     {

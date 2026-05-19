@@ -16,6 +16,7 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 * List tags and the content associated with each tag, including orphaned tags.
 * Inspect diagnostics, server details, and configuration values, with optional redaction for sensitive settings.
 * Clear Umbraco caches and restart the app where supported.
+* Add contextual AI explanations by installing the separate `Diplo.GodMode.AI` companion package.
 
 ## Requirements and Dependencies
 
@@ -33,7 +34,9 @@ The NuGet package declares dependencies on the Umbraco 17 packages used by God M
 * `Umbraco.Cms.Web.Common`
 * `Umbraco.Cms.Web.Website`
 
-The package project currently builds against Umbraco `17.3.5`. Client-side build tooling such as Vite, TypeScript, and `@umbraco-cms/backoffice` is used only when building this repository and is not required by consuming Umbraco sites.
+The package supports Umbraco `17.x` and declares its Umbraco CMS dependencies as `[17.0.0,18.0.0)`. Client-side build tooling such as Vite, TypeScript, and `@umbraco-cms/backoffice` is used only when building this repository and is not required by consuming Umbraco sites.
+
+The core package does not depend on `Diplo.GodMode.AI`. Without the AI add-on installed, God Mode renders no AI controls and reserves no AI-only layout space.
 
 Version guide:
 
@@ -58,17 +61,36 @@ After installation, restart the site and open the Umbraco backoffice. God Mode a
 /App_Plugins/DiploGodMode/umbraco-package.json
 ```
 
+## Optional God Mode AI Add-On
+
+The optional God Mode AI add-on adds contextual **Explain** buttons powered by Umbraco.AI.
+
+To use it, configure Umbraco.AI with a provider connection and profile first. For example, install the OpenAI provider, create an OpenAI connection in the Umbraco backoffice, then create a profile that uses a model such as `gpt-4.1-nano`.
+
+Useful Umbraco.AI docs:
+
+* Getting started: https://docs.umbraco.com/ai-in-umbraco/getting-started/getting-started
+* Installation: https://docs.umbraco.com/ai-in-umbraco/getting-started/installation
+* First connection: https://docs.umbraco.com/ai-in-umbraco/getting-started/first-connection
+* First profile: https://docs.umbraco.com/ai-in-umbraco/getting-started/first-profile
+
 ## Screenshots
 
 ![God Mode welcome](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/welcome.png)
 
 ![Document Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser.png)
 
+![Document Type visual browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser-visual.png)
+
 ![Data Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatypes.png)
 
 ![Data Type usage](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/datatype-usedby.png)
 
 ![Reference graph](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reference-graph.png)
+
+![Database Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-browser.png)
+
+![Database Table Schema](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-table-schema.png)
 
 ![Diagnostics](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics.png)
 
@@ -78,6 +100,10 @@ After installation, restart the site and open the Umbraco backoffice. God Mode a
 
 ![Services](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/services.png)
 
+![Log Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/log-browser.png)
+
+![Media Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/media-browser.png)
+
 ![Members](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/members.png)
 
 ![Tags](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/tags.png)
@@ -85,6 +111,10 @@ After installation, restart the site and open the Umbraco backoffice. God Mode a
 ![Types](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/types.png)
 
 ![Key value editor](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/key-value-editor.png)
+
+![Template Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/templates.png)
+
+![Reverse Lookup](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/reverse-lookup.png)
 
 ## Configuration
 
@@ -97,3 +127,4 @@ https://github.com/DanDiplo/Umbraco.GodMode/tree/v17
 * GitHub: https://github.com/DanDiplo/Umbraco.GodMode
 * Umbraco Marketplace: https://marketplace.umbraco.com/package/diplo.godmode
 * NuGet: https://www.nuget.org/packages/Diplo.GodMode
+* God Mode AI NuGet: https://www.nuget.org/packages/Diplo.GodMode.AI

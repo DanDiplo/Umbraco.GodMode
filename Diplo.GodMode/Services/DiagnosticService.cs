@@ -151,7 +151,9 @@ namespace Diplo.GodMode.Services
                 .Add(DiagnosticSection.FromOptions<ExceptionFilterSettings>("Exception Filter Settings", factory))
                 .Add(DiagnosticSection.FromOptions<BasicAuthSettings>("Basic Auth Settings", factory))
                 .Add(DiagnosticSection.FromOptions<DeliveryApiSettings>("Delivery API Settings", factory))
-                .Add(DiagnosticSection.FromOptions<DictionarySettings>("Dictionary Settings", factory))
+                .AddIfNotNull(CreateOptionalOptionsSection(
+                    "Dictionary Settings",
+                    "Umbraco.Cms.Core.Configuration.Models.DictionarySettings, Umbraco.Cms.Core"))
                 .Add(DiagnosticSection.FromOptions<LongRunningOperationsSettings>("Long Running Ops Settings", factory))
                 .Add(DiagnosticSection.FromOptions<MediaPropertySettings>("Media Property Settings", factory))
                 .Add(DiagnosticSection.FromProperties("Disabled Features", features.Disabled, ignoreProperties))
@@ -662,7 +664,31 @@ namespace Diplo.GodMode.Services
                 .Add(DiagnosticSection.FromAssignableTypes("Manifest Filters", typeof(Umbraco.Cms.Core.Manifest.IPackageManifestService)))
                 .Add(DiagnosticSection.FromAssignableTypes("Property Value Converters", typeof(Umbraco.Cms.Core.PropertyEditors.IPropertyValueConverter)))
                 .Add(DiagnosticSection.FromAssignableTypes("Value Validators", typeof(Umbraco.Cms.Core.PropertyEditors.IValueValidator)))
-                .Add(DiagnosticSection.FromAssignableTypes("Sort Handlers", typeof(Umbraco.Cms.Core.PropertyEditors.IDataValueSortable)));
+                .AddIfNotNull(CreateOptionalAssignableTypesSection(
+                    "Sort Handlers",
+                    "Umbraco.Cms.Core.PropertyEditors.IDataValueSortable, Umbraco.Cms.Core"));
+        }
+
+        private DiagnosticSection? CreateOptionalOptionsSection(string heading, string assemblyQualifiedTypeName)
+        {
+            var optionsType = Type.GetType(assemblyQualifiedTypeName);
+            if (optionsType == null)
+            {
+                return null;
+            }
+
+            var serviceType = typeof(IOptions<>).MakeGenericType(optionsType);
+            var settings = factory.GetService(serviceType);
+            var value = settings?.GetType().GetProperty(nameof(IOptions<object>.Value))?.GetValue(settings);
+
+            return value == null ? null : DiagnosticSection.From(heading, value);
+        }
+
+        private static DiagnosticSection? CreateOptionalAssignableTypesSection(string heading, string assemblyQualifiedTypeName)
+        {
+            var type = Type.GetType(assemblyQualifiedTypeName);
+
+            return type == null ? null : DiagnosticSection.FromAssignableTypes(heading, type);
         }
 
         private static string ToDiagnosticHeading(string name)

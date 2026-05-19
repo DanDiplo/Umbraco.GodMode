@@ -5,6 +5,7 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
     <File Path="umbraco-marketplace.json" />
+    <File Path="umbraco-marketplace-diplo.godmode.ai.json" />
   </Folder>
   <Project Path="Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj" />
   <Project Path="Diplo.GodMode.AI/Diplo.GodMode.AI.csproj" />

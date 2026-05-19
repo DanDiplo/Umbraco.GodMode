@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.0.0</VersionPrefix>
+    <VersionPrefix>17.1.0</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Umbraco 17 / .NET 10 rewrite. Backoffice rebuilt with Lit + TypeScript.</PackageReleaseNotes>
+    <PackageReleaseNotes>Release readiness update for Umbraco 17, with optional God Mode AI integration kept invisible unless the companion package is installed.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->
@@ -75,6 +75,15 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="..\Screenshots\welcome.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\doc-type-browser.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\doc-type-browser-visual.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\datatypes.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\database-browser.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\diagnostics.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\services.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\log-browser.png" Pack="true" PackagePath="screenshots\" />
+    <None Include="..\Screenshots\media-browser.png" Pack="true" PackagePath="screenshots\" />
     <None Include="Client\public\umbraco-package.json" Pack="false" />
     <None Include="Client\vite.config.ts" Pack="false" />
     <None Include="Client\tsconfig.json" Pack="false" />

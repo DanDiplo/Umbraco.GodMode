@@ -2,6 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
+import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared/ai-availability";
 import type { RegisteredService } from "../shared/types";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
 
@@ -18,10 +19,21 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _overridesOnly = false;
     @state() private _expanded = new Set<string>();
     @state() private _sort: SortState = { column: "name", reverse: false };
+    @state() private _isAiExplainAvailable = isGodModeAiExplainAvailable();
+    private _disposeAvailabilityObserver?: () => void;
 
     override connectedCallback(): void {
         super.connectedCallback();
+        this._disposeAvailabilityObserver = observeGodModeAiExplainAvailability(() => {
+            this._isAiExplainAvailable = true;
+        });
         void this._load();
+    }
+
+    override disconnectedCallback(): void {
+        this._disposeAvailabilityObserver?.();
+        this._disposeAvailabilityObserver = undefined;
+        super.disconnectedCallback();
     }
 
     private async _load() {
@@ -235,7 +247,7 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                                   <godmode-sort-header class="lifetime-col" column="lifetime" .sort=${this._sort}>Lifetime</godmode-sort-header>
                                   <uui-table-head-cell class="flags-col">Flags</uui-table-head-cell>
                                   <godmode-sort-header class="key-col" column="key" .sort=${this._sort}>Key</godmode-sort-header>
-                                  <uui-table-head-cell class="action-head">Actions</uui-table-head-cell>
+                                  ${this._isAiExplainAvailable ? html`<uui-table-head-cell class="action-head">Actions</uui-table-head-cell>` : ""}
                               </uui-table-head>
                               ${results.map((s, index) => this._renderRow(s, index, multiRegisteredNames, possibleOverrideNames))}
                           </uui-table>
@@ -267,9 +279,13 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                     </span>
                 </uui-table-cell>
                 <uui-table-cell class="key-col" title=${s.key ?? ""}><small>${s.key ?? ""}</small></uui-table-cell>
-                <uui-table-cell class="action-cell" @click=${(e: Event) => e.stopPropagation()}>
-                    <godmode-ai-explain-host .subject=${this._explainSubject(s, source, isMultiRegistered, isPossibleOverride)}></godmode-ai-explain-host>
-                </uui-table-cell>
+                ${this._isAiExplainAvailable
+                    ? html`
+                          <uui-table-cell class="action-cell" @click=${(e: Event) => e.stopPropagation()}>
+                              <godmode-ai-explain-host .subject=${this._explainSubject(s, source, isMultiRegistered, isPossibleOverride)}></godmode-ai-explain-host>
+                          </uui-table-cell>
+                      `
+                    : ""}
             </uui-table-row>
             ${this._expanded.has(id)
                 ? html`
@@ -294,7 +310,7 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                               <strong>Key</strong>
                               <code>${s.key ?? ""}</code>
                           </uui-table-cell>
-                          <uui-table-cell></uui-table-cell>
+                          ${this._isAiExplainAvailable ? html`<uui-table-cell></uui-table-cell>` : ""}
                       </uui-table-row>
                       <uui-table-row class="details details-full">
                           <uui-table-cell class="detail-item">
@@ -305,7 +321,7 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
                               <strong>Implementation full name</strong>
                               <code>${s.implementFullName ?? ""}</code>
                           </uui-table-cell>
-                          <uui-table-cell></uui-table-cell>
+                          ${this._isAiExplainAvailable ? html`<uui-table-cell></uui-table-cell>` : ""}
                           <uui-table-cell></uui-table-cell>
                           <uui-table-cell></uui-table-cell>
                           <uui-table-cell></uui-table-cell>
@@ -404,6 +420,10 @@ export class GodModeServiceBrowserElement extends UmbElementMixin(LitElement) {
         }
         .key-col {
             width: 9rem;
+        }
+        .action-head:empty,
+        .action-cell:empty {
+            display: none;
         }
         .action-head,
         .action-cell {

@@ -2,6 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
+import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared/ai-availability";
 import type { GodModeAiExplainSubject } from "../shared/godmode-ai-explain-host.element";
 import type { GodModeLogEvent, GodModeLogInsight, GodModeLogLevelCount, GodModeLogOverview, GodModeSavedLogQuery, Page } from "../shared/types";
 
@@ -22,10 +23,21 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _toDate = this._dateInputValue(new Date());
     @state() private _currentPage = 1;
     @state() private _expandedId = "";
+    @state() private _isAiExplainAvailable = isGodModeAiExplainAvailable();
+    private _disposeAvailabilityObserver?: () => void;
 
     override connectedCallback(): void {
         super.connectedCallback();
+        this._disposeAvailabilityObserver = observeGodModeAiExplainAvailability(() => {
+            this._isAiExplainAvailable = true;
+        });
         void this._load();
+    }
+
+    override disconnectedCallback(): void {
+        this._disposeAvailabilityObserver?.();
+        this._disposeAvailabilityObserver = undefined;
+        super.disconnectedCallback();
     }
 
     private async _load(page = this._currentPage) {
@@ -196,9 +208,13 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
 
         return html`
             <div class="details" @click=${(e: Event) => e.stopPropagation()}>
-                <div class="detail-actions">
-                    <godmode-ai-explain-host .subject=${this._explainSubject(log)}></godmode-ai-explain-host>
-                </div>
+                ${this._isAiExplainAvailable
+                    ? html`
+                          <div class="detail-actions">
+                              <godmode-ai-explain-host .subject=${this._explainSubject(log)}></godmode-ai-explain-host>
+                          </div>
+                      `
+                    : ""}
                 ${log.exception ? html`<pre class="exception">${log.exception}</pre>` : ""}
                 <div class="properties">
                     ${rows.map(
@@ -345,7 +361,7 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                         <span>Level</span>
                         <span>Pattern</span>
                         <span>Last Seen</span>
-                        <span>Analyze</span>
+                        ${this._isAiExplainAvailable ? html`<span>Analyze</span>` : ""}
                     </div>
                     ${this._insights.map(
                         (insight) => html`
@@ -357,9 +373,13 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                                     <small>${insight.sourceContext || "Unknown source"}${insight.requestPaths.length ? ` · ${insight.requestPaths[0]}` : ""}</small>
                                 </div>
                                 <time>${this._formatDate(insight.lastSeen)}</time>
-                                <div @click=${(e: Event) => e.stopPropagation()}>
-                                    <godmode-ai-explain-host .subject=${this._insightSubject(insight)}></godmode-ai-explain-host>
-                                </div>
+                                ${this._isAiExplainAvailable
+                                    ? html`
+                                          <div @click=${(e: Event) => e.stopPropagation()}>
+                                              <godmode-ai-explain-host .subject=${this._insightSubject(insight)}></godmode-ai-explain-host>
+                                          </div>
+                                      `
+                                    : ""}
                             </div>
                         `
                     )}
@@ -540,11 +560,15 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
         .insight-head,
         .insight-row {
             display: grid;
-            grid-template-columns: 5rem 7rem minmax(0, 1fr) 11rem 9rem;
+            grid-template-columns: 5rem 7rem minmax(0, 1fr) 11rem;
             align-items: center;
             gap: var(--uui-size-space-3);
             padding: var(--uui-size-space-3);
             border-bottom: 1px solid var(--uui-color-border);
+        }
+        .insight-head:has(> :nth-child(5)),
+        .insight-row:has(> :nth-child(5)) {
+            grid-template-columns: 5rem 7rem minmax(0, 1fr) 11rem 9rem;
         }
         .insight-head {
             font-weight: 700;

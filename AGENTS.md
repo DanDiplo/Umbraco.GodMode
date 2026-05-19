@@ -40,6 +40,7 @@ The AI companion manifest must be discoverable at `/App_Plugins/DiploGodModeAI/u
 - Prefer augmenting existing God Mode views over adding standalone AI tree items. Historical AI-only views such as schema analysis and fix plans were removed because they were token-heavy and less useful than contextual augmentation.
 - When adding AI context, prefer lazy providers and evidence payloads. Expensive detail data should be fetched only when the AI button or evidence drawer is opened, not during normal list rendering.
 - The reusable core host is `<godmode-ai-explain-host>`. It should render nothing until the AI package registers `<godmode-ai-explain-button>`, so core views remain quiet when the AI add-on is not installed.
+- When an AI action would be the only content in a table column, header, or action container, guard that layout with the shared AI availability helper so the core package does not show empty AI-only columns or gaps.
 - The AI prompt should use both row data and additional context/evidence. Avoid prompts that tell the model to ignore context.
 - Be careful with generated folders. Do not commit `bin/`, `obj/`, `node_modules/`, local database files, or package output artifacts unless explicitly requested.
 
@@ -63,6 +64,18 @@ npm run type-check --prefix Diplo.GodMode/Client
 npm run type-check --prefix Diplo.GodMode.AI/Client
 ```
 
+Release validation:
+
+```powershell
+npm run type-check --prefix Diplo.GodMode/Client
+npm run type-check --prefix Diplo.GodMode.AI/Client
+dotnet build Diplo.GodMode.slnx
+dotnet pack Diplo.GodMode/Diplo.GodMode.csproj -c Release
+dotnet pack Diplo.GodMode.AI/Diplo.GodMode.AI.csproj -c Release
+```
+
+Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. Inspect the generated packages before publishing: the core package must include `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`, the AI package must include `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`, and the AI package should declare a dependency on `Diplo.GodMode` `17.1.0`.
+
 The `Diplo.GodMode` and `Diplo.GodMode.AI` projects have MSBuild targets that run their client builds. When each package's `Client/node_modules` folder is missing, the build restores packages with `npm ci`; package builds also run `npm ci` and `npm run build`.
 
 For local browser testing, run the host site:
@@ -79,10 +92,19 @@ Then open the Umbraco backoffice and verify the GodMode package loads from `/App
 - Built manifest: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/umbraco-package.json`.
 - Vite output directory: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/`.
 - NuGet package should contain `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
+- Core release version for this release: `17.1.0`.
 - AI source manifest: `Diplo.GodMode.AI/Client/public/umbraco-package.json`.
 - AI built manifest: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/umbraco-package.json`.
 - AI Vite output directory: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/`.
 - AI NuGet package should contain `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
+- AI release version for this release: `1.0.0`.
+
+## Marketplace Metadata
+
+- `umbraco-marketplace.json` describes the main `Diplo.GodMode` package.
+- `umbraco-marketplace-diplo.godmode.ai.json` describes the separate `Diplo.GodMode.AI` add-on listing.
+- The AI listing should remain related to the main package with `IsSubPackageOf` set to `Diplo.GodMode`.
+- Marketplace information is synced from NuGet first, then augmented by the marketplace JSON files in the repository.
 
 ## External References
 
