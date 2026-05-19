@@ -43,6 +43,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
             title: "System and Content Delivery API",
             data: {
                 environmentName: diagnostics?.app.environmentName,
+                machineName: diagnostics?.app.machineName,
                 umbracoVersion: diagnostics?.app.umbracoVersion,
                 dotNetVersion: diagnostics?.app.dotNetVersion,
                 operatingSystem: diagnostics?.app.operatingSystem,
@@ -86,7 +87,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
         const configuredSettings = d.cache.settings.filter((setting) => setting.value !== "Default");
 
         return html`
-            <h4>Cache</h4>
+            <h5>Cache</h5>
             <dl class="compact-dl">
                 <dt>Published cache</dt>
                 <dd>${d.cache.publishedContentCacheType || "Unavailable"}</dd>
@@ -127,7 +128,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                     `
                 )}
             </ul>
-            <h4 class="subheading">Database Cache</h4>
+            <h5 class="subheading">Database Cache</h5>
             <ul class="plain offset">
                 ${d.cache.databaseRows.map(
                     (row) => html`
@@ -153,46 +154,22 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                 <div class="box-actions">
                     <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject()}></godmode-ai-explain-host>
                 </div>
-                ${this._renderServerStats(d)}
-                <div class="grid">
-                    <div>
-                        <h4>App</h4>
-                        <dl>
-                            <dt>Umbraco</dt>
-                            <dd>${d.app.umbracoSemanticVersion || d.app.umbracoVersion}</dd>
-                            <dt>.NET</dt>
-                            <dd>${d.app.dotNetVersion}</dd>
-                            <dt>Environment</dt>
-                            <dd>
-                                ${d.app.environmentName}
-                                ${d.app.debugMode ? html`<uui-tag color="warning">Debug</uui-tag>` : ""}
-                            </dd>
-                            <dt>Uptime</dt>
-                            <dd>${d.app.uptime}</dd>
-                            <dt>Process</dt>
-                            <dd>${d.app.processId}</dd>
-                            <dt>GodMode</dt>
-                            <dd>${d.app.godModeVersion}</dd>
-                        </dl>
+                ${this._renderHeroCards(d)}
+                <section class="dashboard-section">
+                    <div class="section-heading">
+                        <h4>Resources</h4>
+                        <span>Runtime pressure and disk capacity</span>
                     </div>
-                    <div>
-                        <h4>Server</h4>
-                        <dl>
-                            <dt>OS</dt>
-                            <dd>${d.app.operatingSystem}</dd>
-                            <dt>Runtime</dt>
-                            <dd>${d.app.runtimeIdentifier}</dd>
-                            <dt>Architecture</dt>
-                            <dd>${d.app.processArchitecture}</dd>
-                            <dt>Web server</dt>
-                            <dd>${d.app.webServer}</dd>
-                            <dt>Main URL</dt>
-                            <dd>${d.app.applicationMainUrl || "Not configured"}</dd>
-                        </dl>
-                    </div>
-                    <div>
-                        <h4>Package Assets</h4>
-                        <ul class="plain">
+                    ${this._renderServerStats(d)}
+                </section>
+                <div class="dashboard-grid">
+                    ${this._renderInfoPanel(d)}
+                    <section class="panel">
+                        <div class="section-heading compact">
+                            <h4>Package Assets</h4>
+                            <span>Manifest and bundle checks</span>
+                        </div>
+                        <ul class="plain asset-list">
                             ${d.assets.map(
                                 (asset) => html`
                                     <li>
@@ -203,9 +180,12 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                                 `
                             )}
                         </ul>
-                    </div>
-                    <div>
-                        <h4>Folder Sizes</h4>
+                    </section>
+                    <section class="panel">
+                        <div class="section-heading compact">
+                            <h4>Folder Sizes</h4>
+                            <span>Local storage used by package-adjacent folders</span>
+                        </div>
                         <ul class="plain">
                             ${d.folders.map(
                                 (folder) => html`
@@ -217,25 +197,90 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                                 `
                             )}
                         </ul>
-                    </div>
-                    <div>${this._renderCacheDiagnostics(d)}</div>
-                    <div>
-                        <h4>Database</h4>
-                        <ul class="plain">
-                            ${d.database.map(
-                                (row) => html`
-                                    <li title=${row.table}>
-                                        <uui-tag color=${row.exists ? "default" : "warning"}>${row.exists ? row.count.toLocaleString() : "Missing"}</uui-tag>
-                                        <span>${row.label}</span>
-                                        <small>${row.table}</small>
-                                    </li>
-                                `
-                            )}
-                        </ul>
-                    </div>
+                    </section>
+                    <section class="panel operations-panel">
+                        <div class="section-heading compact">
+                            <h4>Cache & Database</h4>
+                            <span>Cache configuration and important Umbraco tables</span>
+                        </div>
+                        <div class="operations-grid">
+                            <div>${this._renderCacheDiagnostics(d)}</div>
+                            <div>
+                                <h5>Database</h5>
+                                <ul class="plain">
+                                    ${d.database.map(
+                                        (row) => html`
+                                            <li title=${row.table}>
+                                                <uui-tag color=${row.exists ? "default" : "warning"}>${row.exists ? row.count.toLocaleString() : "Missing"}</uui-tag>
+                                                <span>${row.label}</span>
+                                                <small>${row.table}</small>
+                                            </li>
+                                        `
+                                    )}
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </uui-box>
         `;
+    }
+
+    private _renderHeroCards(d: UtilityDiagnostics) {
+        const umbracoVersion = this._splitVersion(d.app.umbracoSemanticVersion || d.app.umbracoVersion);
+        const godModeVersion = this._splitVersion(d.app.godModeVersion);
+
+        return html`
+            <div class="hero-grid">
+                ${this._renderKeyCard("Environment", d.app.environmentName, d.app.debugMode ? "Debug mode enabled" : "Debug mode off", d.app.debugMode ? "warning" : "positive")}
+                ${this._renderKeyCard("Machine", d.app.machineName || "Unavailable", d.app.runtimeIdentifier, "default")}
+                ${this._renderKeyCard("App", `Umbraco ${umbracoVersion.major}`, [umbracoVersion.detail, d.app.applicationMainUrl || "Main URL not configured"], "default")}
+                ${this._renderKeyCard("GodMode", godModeVersion.major, [godModeVersion.detail, `Process ${d.app.processId} - ${d.app.uptime}`], "positive")}
+            </div>
+        `;
+    }
+
+    private _renderInfoPanel(d: UtilityDiagnostics) {
+        return html`
+            <section class="panel info-panel">
+                <div class="section-heading compact">
+                    <h4>Application</h4>
+                    <span>Runtime and hosting identity</span>
+                </div>
+                <dl>
+                    <dt>.NET</dt>
+                    <dd>${d.app.dotNetVersion}</dd>
+                    <dt>OS</dt>
+                    <dd>${d.app.operatingSystem}</dd>
+                    <dt>Architecture</dt>
+                    <dd>${d.app.processArchitecture}</dd>
+                    <dt>Web server</dt>
+                    <dd>${d.app.webServer}</dd>
+                    <dt>Content root</dt>
+                    <dd>${d.app.contentRootPath}</dd>
+                </dl>
+            </section>
+        `;
+    }
+
+    private _renderKeyCard(label: string, value: string, detail: string | string[], tone: "default" | "positive" | "warning") {
+        const details = Array.isArray(detail) ? detail.filter(Boolean) : [detail];
+
+        return html`
+            <div class="key-card ${tone}">
+                <span class="metric-label">${label}</span>
+                <strong>${value}</strong>
+                <small>${details.map((item, index) => html`${index ? html`<br />` : ""}${item}`)}</small>
+            </div>
+        `;
+    }
+
+    private _splitVersion(version: string) {
+        const [major, ...detailParts] = version.split("+");
+        return {
+            major: major || version || "Unavailable",
+            detail: detailParts.length ? `+${detailParts.join("+")}` : ""
+        };
     }
 
     private _renderDeliveryApi() {
@@ -368,16 +413,90 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
             justify-content: flex-end;
             margin-bottom: var(--uui-size-space-3);
         }
-        .grid {
+        .dashboard-section,
+        .panel {
+            min-width: 0;
+            padding: var(--uui-size-space-5);
+            border: 1px solid var(--uui-color-border);
+            border-radius: var(--uui-border-radius);
+            background: var(--uui-color-surface);
+        }
+        .dashboard-section {
+            margin-bottom: var(--uui-size-space-4);
+        }
+        .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: var(--uui-size-space-5);
+            gap: var(--uui-size-space-4);
+            align-items: start;
+        }
+        .operations-panel {
+            grid-column: span 3;
+        }
+        .operations-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+            gap: var(--uui-size-space-6);
+        }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--uui-size-space-3);
+            margin-bottom: var(--uui-size-space-4);
+        }
+        .key-card {
+            min-width: 0;
+            min-height: 8rem;
+            display: grid;
+            align-content: space-between;
+            gap: var(--uui-size-space-2);
+            padding: var(--uui-size-space-5);
+            border: 1px solid var(--uui-color-border);
+            border-left: 0.35rem solid var(--uui-color-border);
+            border-radius: var(--uui-border-radius);
+            background: var(--uui-color-surface-alt);
+        }
+        .key-card.positive {
+            border-left-color: var(--uui-color-positive);
+        }
+        .key-card.warning {
+            border-left-color: var(--uui-color-warning);
+        }
+        .key-card strong {
+            min-width: 0;
+            font-size: 1.35rem;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+        .key-card small {
+            min-width: 0;
+            color: var(--uui-color-text-alt);
+            overflow-wrap: anywhere;
+        }
+        .section-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: var(--uui-size-space-3);
+            margin-bottom: var(--uui-size-space-4);
+        }
+        .section-heading.compact {
+            display: block;
+            margin-bottom: var(--uui-size-space-3);
+        }
+        .section-heading h4 {
+            margin: 0;
+        }
+        .section-heading span {
+            min-width: 0;
+            color: var(--uui-color-text-alt);
+            font-size: 0.875rem;
+            overflow-wrap: anywhere;
         }
         .stat-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: var(--uui-size-space-3);
-            margin-bottom: var(--uui-size-space-5);
         }
         .gauge-card,
         .metric-card {
@@ -454,6 +573,10 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
         h4 {
             margin: 0 0 var(--uui-size-space-2);
         }
+        h5 {
+            margin: 0 0 var(--uui-size-space-2);
+            font-size: 0.875rem;
+        }
         .subheading {
             margin-top: var(--uui-size-space-4);
         }
@@ -515,6 +638,9 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
         .plain small {
             white-space: nowrap;
         }
+        .asset-list li {
+            align-items: flex-start;
+        }
         a {
             color: var(--uui-color-interactive);
             text-decoration: none;
@@ -523,9 +649,17 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
             text-decoration: underline;
         }
         @media (max-width: 1100px) {
-            .grid,
+            .dashboard-grid,
+            .hero-grid,
+            .operations-grid,
             .stat-grid {
                 grid-template-columns: 1fr;
+            }
+            .operations-panel {
+                grid-column: auto;
+            }
+            .section-heading {
+                display: block;
             }
         }
     `;

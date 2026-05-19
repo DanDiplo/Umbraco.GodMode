@@ -37,6 +37,8 @@ public class AppInfo
 
     public string EnvironmentName { get; set; } = string.Empty;
 
+    public string MachineName { get; set; } = string.Empty;
+
     public string ContentRootPath { get; set; } = string.Empty;
 
     public string WebRootPath { get; set; } = string.Empty;

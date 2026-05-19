@@ -217,6 +217,7 @@ namespace Diplo.GodMode.Services
                         ?? string.Empty,
                     DebugMode = env.EnvironmentName.InvariantEquals("Development") || GetBoolConfigurationValue("Umbraco:CMS:Debug:DebugMode"),
                     EnvironmentName = env.EnvironmentName,
+                    MachineName = Environment.MachineName,
                     ContentRootPath = env.ContentRootPath,
                     WebRootPath = webRoot,
                     ProcessId = Environment.ProcessId,

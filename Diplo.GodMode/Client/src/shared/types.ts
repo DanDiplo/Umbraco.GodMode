@@ -476,6 +476,7 @@ export interface UtilityDiagnostics {
         applicationMainUrl: string;
         debugMode: boolean;
         environmentName: string;
+        machineName: string;
         contentRootPath: string;
         webRootPath: string;
         processId: number;
