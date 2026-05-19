@@ -2,9 +2,17 @@
 
 **Diplo God Mode makes Umbraco developers invincible!**
 
-Diplo God Mode adds a developer-focused tree to the **Settings** section of **Umbraco 17**. It helps you inspect, search, and understand the structure of an Umbraco site from inside the backoffice, including document types, compositions, templates, partial views, data types, property editors, media, members, tags, custom controllers, registered services, generated models, diagnostics, and configuration.
+Diplo **God Mode** adds a developer-focused tree to the **Settings** section of **Umbraco 17**. It helps you inspect, search, and understand the structure of an Umbraco site from inside the backoffice, including document types, compositions, templates, partial views, data types, property editors, media, members, tags, custom controllers, registered services, generated models, diagnostics, and configuration.
+
+If [Umbraco](https://umbraco.com/) is an Allen key then **God Mode** is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development.
+
+Now with optional [God Mode AI add-on](https://www.nuget.org/packages/Diplo.GodMode.AI) for contextual explanations powered by [Umbraco.AI](https://umbraco.com/ai/).
+
+---
 
 This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for the modern Umbraco backoffice with Lit, TypeScript, Vite, and Umbraco extension manifests.
+
+---
 
 ## Features
 
@@ -16,7 +24,7 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 * List tags and the content associated with each tag, including orphaned tags.
 * Inspect diagnostics, server details, and configuration values, with optional redaction for sensitive settings.
 * Clear Umbraco caches and restart the app where supported.
-* Add contextual AI explanations by installing the separate `Diplo.GodMode.AI` companion package.
+* Add contextual AI explanations by installing the separate [Diplo.GodMode.AI](https://www.nuget.org/packages/Diplo.GodMode.AI) companion package.
 
 ## Requirements and Dependencies
 
@@ -25,19 +33,9 @@ This version targets:
 * **.NET 10** (`net10.0`)
 * **Umbraco 17**
 
-The NuGet package declares dependencies on the Umbraco 17 packages used by God Mode:
-
-* `Umbraco.Cms.Api.Common`
-* `Umbraco.Cms.Api.Management`
-* `Umbraco.Cms.Core`
-* `Umbraco.Cms.Infrastructure`
-* `Umbraco.Cms.Web.Common`
-* `Umbraco.Cms.Web.Website`
-
 The package supports Umbraco `17.x` and declares its Umbraco CMS dependencies as `[17.0.0,18.0.0)`. Client-side build tooling such as Vite, TypeScript, and `@umbraco-cms/backoffice` is used only when building this repository and is not required by consuming Umbraco sites.
 
-The core package does not depend on `Diplo.GodMode.AI`. Without the AI add-on installed, God Mode renders no AI controls and reserves no AI-only layout space.
-
+The core package does not depend on `Diplo.GodMode.AI`. Without the AI add-on installed, God Mode renders no AI controls.
 Version guide:
 
 * `17.x` is for Umbraco 17 / .NET 10.
@@ -63,9 +61,15 @@ After installation, restart the site and open the Umbraco backoffice. God Mode a
 
 ## Optional God Mode AI Add-On
 
-The optional God Mode AI add-on adds contextual **Explain** buttons powered by Umbraco.AI.
+The *optional* [God Mode AI add-on](https://www.nuget.org/packages/Diplo.GodMode.AI) adds contextual **Explain** buttons powered by Umbraco.AI.
 
-To use it, configure Umbraco.AI with a provider connection and profile first. For example, install the OpenAI provider, create an OpenAI connection in the Umbraco backoffice, then create a profile that uses a model such as `gpt-4.1-nano`.
+Install from NuGet:
+
+```powershell
+dotnet add package Diplo.GodMode.AI
+```
+
+To use it, configure the free [Umbraco.AI](https://marketplace.umbraco.com/package/umbraco.ai) with a [provider connection](https://marketplace.umbraco.com/category/artificial-intelligence?supportsUmbracoVersionNumber=17.4&maintainedBy=hq&packageType=Package) and profile first. For example, install the [OpenAI provider](https://marketplace.umbraco.com/package/umbraco.ai.openai), create an OpenAI connection in the Umbraco backoffice, then create a profile that uses a model such as `gpt-4.1-nano`.
 
 Useful Umbraco.AI docs:
 

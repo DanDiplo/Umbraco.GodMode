@@ -16,48 +16,23 @@ This package adds a **God Mode** tree to the **Settings** section of **Umbraco 1
 
 It gives developers fast access to site structure, diagnostics, configuration, content references, services, templates, partials, media, members, tags, and other implementation details that are useful while building or supporting an Umbraco 17 site.
 
+If Umbraco is an Allen key then God Mode is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development.
+
 ## Features
 
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
-- Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
+- Browse templates, partials, controllers, database tables, generated models, registered services, Content Finders, and URL providers.
 - View content, members and media in searchable/filterable tables.
 - Inspect diagnostics and configuration values, with optional redaction for sensitive settings.
 - Inspect and clear Umbraco caches and restart the app where supported.
 - Optionally add contextual AI explanations with the separate `Diplo.GodMode.AI` companion package.
 
-## Optional AI Add-On
-
-The core `Diplo.GodMode` package does not depend on the AI add-on. If `Diplo.GodMode.AI` is not installed, AI controls are not rendered and God Mode does not reserve empty columns or spacing for them.
-
-When installed, God Mode AI uses Umbraco.AI to add contextual **Explain** buttons in supported God Mode views. To use it:
-
-1. Install and configure Umbraco.AI in your Umbraco site.
-2. Add an AI provider package, such as the OpenAI provider.
-3. Create a connection for your provider in the Umbraco backoffice.
-4. Create an AI profile that uses that connection and select a model, for example `gpt-4.1-nano` for OpenAI.
-5. Restart the site and open God Mode in the backoffice.
-
-Umbraco.AI setup docs:
-
-- [Getting started](https://docs.umbraco.com/ai-in-umbraco/getting-started/getting-started)
-- [Installation](https://docs.umbraco.com/ai-in-umbraco/getting-started/installation)
-- [First connection](https://docs.umbraco.com/ai-in-umbraco/getting-started/first-connection)
-- [First profile](https://docs.umbraco.com/ai-in-umbraco/getting-started/first-profile)
-
-### AI Screenshots
-
-![Umbraco AI provider setup](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/AI-provider-setup.png)
-
-![Diagnostic explanation](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/diagnostic-explain.png)
-
-![Log Insights analysis](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/log-analyser.png)
-
-![Data Type explanation](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/datatype-explain.png)
-
 ## Screenshots
 
 ![God Mode welcome](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/welcome.png)
+
+![God Mode information](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/information.png)
 
 ![Document Type Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/doc-type-browser.png)
 
@@ -69,11 +44,44 @@ Umbraco.AI setup docs:
 
 ![Database Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-browser.png)
 
+![Database Table Schema](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/database-table-schema.png)
+
 ![Diagnostics](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/diagnostics.png)
 
 ![Log Browser](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/log-browser.png)
 
 ![Services](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/services.png)
+
+## Optional AI Add-On
+
+The core `Diplo.GodMode` package does not depend on the AI add-on. If `Diplo.GodMode.AI` is not installed, AI controls are not rendered and God Mode does not reserve empty columns or spacing for them.
+
+When installed, God Mode AI uses Umbraco.AI to add contextual **Explain** buttons in supported God Mode views. To use it:
+
+1. Install and configure the free [Umbraco.AI](https://marketplace.umbraco.com/package/umbraco.ai) in your Umbraco site that has God Mode installed.
+2. Add an [AI provider package](https://marketplace.umbraco.com/category/artificial-intelligence?supportsUmbracoVersionNumber=17.4&maintainedBy=hq&packageType=Package), such as the [OpenAI provider](https://marketplace.umbraco.com/package/umbraco.ai.openai).
+3. Create a connection for your provider in the Umbraco backoffice.
+4. Create an AI profile that uses that connection and select a model, for example `gpt-4.1-nano` for OpenAI.
+5. Restart the site and open God Mode in the backoffice.
+
+Umbraco.AI setup docs:
+
+- [Getting started](https://docs.umbraco.com/ai-in-umbraco/getting-started/getting-started)
+- [Installation](https://docs.umbraco.com/ai-in-umbraco/getting-started/installation)
+- [First connection](https://docs.umbraco.com/ai-in-umbraco/getting-started/first-connection)
+- [First profile](https://docs.umbraco.com/ai-in-umbraco/getting-started/first-profile)
+
+**Note:** [Umbraco.AI](https://marketplace.umbraco.com/package/umbraco.ai) is very cool and completely free!
+
+### AI Screenshots
+
+![Umbraco AI provider setup](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/AI-provider-setup.png)
+
+![Diagnostic explanation](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/diagnostic-explain.png)
+
+![Log Insights analysis](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/log-analyser.png)
+
+![Data Type explanation](https://raw.githubusercontent.com/DanDiplo/Umbraco.GodMode/v17/Screenshots/AI/datatype-explain.png)
 
 ## Download & Installation
 
@@ -86,6 +94,12 @@ dotnet add package Diplo.GodMode
 NuGet: https://www.nuget.org/packages/Diplo.GodMode/
 
 After installation, restart the site and open the Umbraco backoffice. The **God Mode** tree should appear in **Settings** under third-party/package extensions. If it does not appear immediately, clear the browser cache and confirm `/App_Plugins/DiploGodMode/umbraco-package.json` is being served.
+
+### Add Optional AI addon
+
+```powershell
+dotnet add package Diplo.GodMode.AI
+```
 
 ## Configuration
 

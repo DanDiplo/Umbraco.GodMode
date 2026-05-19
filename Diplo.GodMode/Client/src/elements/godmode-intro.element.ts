@@ -4,6 +4,7 @@ import { UMB_SECTION_CONTEXT } from "@umbraco-cms/backoffice/section";
 import { godmodeGet } from "../api/client";
 import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
 import { browsers } from "../manifests/catalog";
+import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared";
 import "../shared";
 
 interface GodModeConfigResponse {
@@ -68,6 +69,8 @@ const PAGES: ReadonlyArray<PageInfo> = PAGE_SECTIONS.flatMap((group) => group.pa
 export class GodModeIntroElement extends UmbElementMixin(LitElement) {
     @state() private _pages: PageInfo[] = [...PAGES];
     @state() private _pathname?: string;
+    @state() private _aiAvailable = isGodModeAiExplainAvailable();
+    private _disposeAiAvailabilityObserver?: () => void;
 
     constructor() {
         super();
@@ -84,6 +87,10 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
 
     override async connectedCallback() {
         super.connectedCallback();
+        this._disposeAiAvailabilityObserver = observeGodModeAiExplainAvailability(() => {
+            this._aiAvailable = true;
+        });
+
         try {
             const cfg = await godmodeGet<GodModeConfigResponse>("config");
             const hidden = new Set(cfg.featuresToHide ?? []);
@@ -93,6 +100,12 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
         }
     }
 
+    override disconnectedCallback() {
+        this._disposeAiAvailabilityObserver?.();
+        this._disposeAiAvailabilityObserver = undefined;
+        super.disconnectedCallback();
+    }
+
     private _hrefFor(id: string): string {
         return this._pathname ? `section/${this._pathname}/workspace/${GODMODE_ENTITY_TYPE_PREFIX}-${id}` : "";
     }
@@ -100,6 +113,7 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
     override render() {
         return html`
             <godmode-page heading="Welcome to God Mode" description="The indispensable Umbraco tool that makes developers invincible!">
+                ${this._renderAiInstallCallToAction()}
                 <uui-box>
                     <uui-table>
                         <uui-table-head>
@@ -141,7 +155,51 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
         `;
     }
 
+    private _renderAiInstallCallToAction() {
+        if (this._aiAvailable) {
+            return "";
+        }
+
+        return html`
+            <uui-box class="ai-cta">
+                <div class="ai-cta-layout">
+                    <div>
+                        <h2>Add AI explanations</h2>
+                        <p>
+                            Install the optional God Mode AI package to add contextual Explain buttons powered by Umbraco.AI.
+                        </p>
+                    </div>
+                    <uui-button
+                        look="primary"
+                        color="positive"
+                        href="https://www.nuget.org/packages/Diplo.GodMode.AI/"
+                        target="_blank"
+                        rel="noopener">
+                        View on NuGet
+                    </uui-button>
+                </div>
+            </uui-box>
+        `;
+    }
+
     static override styles = css`
+        .ai-cta {
+            margin-bottom: var(--uui-size-space-4);
+        }
+        .ai-cta-layout {
+            align-items: center;
+            display: flex;
+            gap: var(--uui-size-space-5);
+            justify-content: space-between;
+        }
+        .ai-cta h2 {
+            font-size: 1.125rem;
+            margin: 0 0 var(--uui-size-space-2);
+        }
+        .ai-cta p {
+            color: var(--uui-color-text-alt);
+            margin: 0;
+        }
         .muted {
             color: var(--uui-color-text-alt);
         }
@@ -158,6 +216,12 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
         }
         a:hover {
             text-decoration: underline;
+        }
+        @media (max-width: 640px) {
+            .ai-cta-layout {
+                align-items: flex-start;
+                flex-direction: column;
+            }
         }
     `;
 }
