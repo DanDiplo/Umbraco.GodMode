@@ -14,6 +14,17 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ---
 
+## Release Notes
+
+### 17.1.1
+
+* Fixed SQL Server support in the Database Browser.
+* Escaped table discovery aliases that conflict with SQL Server keywords.
+* Fixed saved log query loading on SQL Server by using provider-specific ID casting.
+* Made table details and foreign-key relationship lookup schema-aware.
+
+---
+
 ## Features
 
 * Quickly search document types, templates, editors, media, content, members, and tags.

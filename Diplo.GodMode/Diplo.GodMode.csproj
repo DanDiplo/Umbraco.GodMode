@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.1.0</VersionPrefix>
+    <VersionPrefix>17.1.1</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Release readiness update for Umbraco 17, with optional God Mode AI integration kept invisible unless the companion package is installed.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixes SQL Server support in the Database Browser, including schema-safe table discovery, saved log query loading, and schema-aware table relationship details.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->
