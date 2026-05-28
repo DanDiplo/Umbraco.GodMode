@@ -575,8 +575,10 @@ export interface DatabaseColumnInfo {
 
 export interface DatabaseRelationshipInfo {
     constraintName: string;
+    fromSchema: string;
     fromTable: string;
     fromColumn: string;
+    toSchema: string;
     toTable: string;
     toColumn: string;
 }

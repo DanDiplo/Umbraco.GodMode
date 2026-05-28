@@ -47,9 +47,13 @@ public class DatabaseRelationshipInfo
 {
     public string ConstraintName { get; set; } = string.Empty;
 
+    public string FromSchema { get; set; } = string.Empty;
+
     public string FromTable { get; set; } = string.Empty;
 
     public string FromColumn { get; set; } = string.Empty;
+
+    public string ToSchema { get; set; } = string.Empty;
 
     public string ToTable { get; set; } = string.Empty;
 

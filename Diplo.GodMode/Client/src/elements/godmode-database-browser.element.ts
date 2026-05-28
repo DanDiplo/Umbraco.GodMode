@@ -51,7 +51,8 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
         e.preventDefault();
         e.stopPropagation();
 
-        const detail = await godmodeGet<DatabaseTableDetail>(`database/tables/${encodeURIComponent(table.name)}`);
+        const detailName = table.schema ? `${table.schema}.${table.name}` : table.name;
+        const detail = await godmodeGet<DatabaseTableDetail>(`database/tables/${encodeURIComponent(detailName)}`);
 
         openEvidenceDrawer(
             this,

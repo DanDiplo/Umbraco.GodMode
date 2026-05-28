@@ -738,11 +738,11 @@ namespace Diplo.GodMode.Services
                     Warning = baseInfo.Warning,
                     Columns = GetColumns(scope.Database, table.Schema, table.Name).OrderBy(x => x.Ordinal).ToList(),
                     OutgoingRelationships = GetRelationships(scope.Database)
-                        .Where(x => x.FromTable.InvariantEquals(table.Name))
+                        .Where(x => x.FromSchema.InvariantEquals(table.Schema) && x.FromTable.InvariantEquals(table.Name))
                         .OrderBy(x => x.FromColumn)
                         .ToList(),
                     IncomingRelationships = GetRelationships(scope.Database)
-                        .Where(x => x.ToTable.InvariantEquals(table.Name))
+                        .Where(x => x.ToSchema.InvariantEquals(table.Schema) && x.ToTable.InvariantEquals(table.Name))
                         .OrderBy(x => x.FromTable)
                         .ThenBy(x => x.FromColumn)
                         .ToList()
@@ -786,11 +786,11 @@ namespace Diplo.GodMode.Services
             if (this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite)
             {
                 return database.Fetch<DatabaseTableName>(
-                    "SELECT '' AS Schema, name AS Name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+                    "SELECT '' AS [Schema], name AS [Name] FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
             }
 
             return database.Fetch<DatabaseTableName>(
-                @"SELECT TABLE_SCHEMA AS Schema, TABLE_NAME AS Name
+                @"SELECT TABLE_SCHEMA AS [Schema], TABLE_NAME AS [Name]
                   FROM INFORMATION_SCHEMA.TABLES
                   WHERE TABLE_TYPE = 'BASE TABLE'
                   ORDER BY TABLE_SCHEMA, TABLE_NAME");
@@ -860,8 +860,10 @@ namespace Diplo.GodMode.Services
                         .Select(foreignKey => new DatabaseRelationshipInfo
                         {
                             ConstraintName = $"FK_{table.Name}_{foreignKey.Table}_{foreignKey.Id}",
+                            FromSchema = table.Schema,
                             FromTable = table.Name,
                             FromColumn = foreignKey.From,
+                            ToSchema = table.Schema,
                             ToTable = foreignKey.Table,
                             ToColumn = foreignKey.To
                         }));
@@ -870,8 +872,10 @@ namespace Diplo.GodMode.Services
             return database.Fetch<DatabaseRelationshipInfo>(
                 @"SELECT
                     RC.CONSTRAINT_NAME AS ConstraintName,
+                    FKCU.TABLE_SCHEMA AS FromSchema,
                     FKCU.TABLE_NAME AS FromTable,
                     FKCU.COLUMN_NAME AS FromColumn,
+                    PKCU.TABLE_SCHEMA AS ToSchema,
                     PKCU.TABLE_NAME AS ToTable,
                     PKCU.COLUMN_NAME AS ToColumn
                   FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC

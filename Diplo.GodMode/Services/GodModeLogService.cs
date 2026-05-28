@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NPoco;
+using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Scoping;
 
 namespace Diplo.GodMode.Services;
@@ -123,7 +124,11 @@ public sealed class GodModeLogService : IGodModeLogService
         try
         {
             using var scope = scopeProvider.CreateScope(autoComplete: true);
-            return scope.Database.Fetch<GodModeSavedLogQuery>("SELECT CAST(id AS TEXT) AS id, name, query FROM umbracoLogViewerQuery ORDER BY name");
+            var idCast = scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite
+                ? "CAST(id AS TEXT)"
+                : "CAST(id AS nvarchar(64))";
+
+            return scope.Database.Fetch<GodModeSavedLogQuery>($"SELECT {idCast} AS id, name, query FROM umbracoLogViewerQuery ORDER BY name");
         }
         catch (Exception ex)
         {
