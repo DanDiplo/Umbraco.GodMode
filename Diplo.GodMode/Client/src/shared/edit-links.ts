@@ -8,6 +8,7 @@ import { UMB_TEMPLATE_ENTITY_TYPE } from "@umbraco-cms/backoffice/template";
 import { UMB_WORKSPACE_EDIT_PATH_PATTERN, UMB_WORKSPACE_MODAL } from "@umbraco-cms/backoffice/workspace";
 import type { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { EDIT_URLS } from "../constants";
+import { openWithModalFeedback } from "./modal-feedback";
 
 export type EditableEntityType = keyof typeof EDIT_URLS;
 
@@ -20,28 +21,27 @@ export function editUrl(entityType: EditableEntityType, unique: string | null | 
 export function openEditorModal(host: UmbControllerHost, entityType: EditableEntityType, unique: string | null | undefined, e?: Event): void {
     if (!unique) return;
 
-    e?.preventDefault();
-    e?.stopPropagation();
+    void openWithModalFeedback(e, () => {
+        const workspaceType = workspaceEntityType(entityType);
 
-    const workspaceType = workspaceEntityType(entityType);
+        new UmbModalRouteRegistrationController(host, UMB_WORKSPACE_MODAL)
+            .addAdditionalPath(workspaceType)
+            .onSetup(() => ({
+                data: {
+                    entityType: workspaceType,
+                    preset: {}
+                }
+            }))
+            .onSubmit(() => undefined)
+            .onReject(() => undefined)
+            .observeRouteBuilder((routeBuilder) => {
+                const modalPath = routeBuilder({});
+                const workspacePath = editWorkspacePath(entityType, unique);
 
-    new UmbModalRouteRegistrationController(host, UMB_WORKSPACE_MODAL)
-        .addAdditionalPath(workspaceType)
-        .onSetup(() => ({
-            data: {
-                entityType: workspaceType,
-                preset: {}
-            }
-        }))
-        .onSubmit(() => undefined)
-        .onReject(() => undefined)
-        .observeRouteBuilder((routeBuilder) => {
-            const modalPath = routeBuilder({});
-            const workspacePath = editWorkspacePath(entityType, unique);
-
-            history.pushState(null, "", `${modalPath}/${workspacePath}`);
-            window.dispatchEvent(new PopStateEvent("popstate"));
-        });
+                history.pushState(null, "", `${modalPath}/${workspacePath}`);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+            });
+    });
 }
 
 function workspaceEntityType(entityType: EditableEntityType): string {

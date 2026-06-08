@@ -65,7 +65,7 @@ export class GodModeUsedByModalElement extends LitElement {
         const results = this._filtered();
 
         return html`
-            <uui-dialog-layout headline=${`Used by: ${target}`}>
+            <godmode-modal-layout headline=${`Used by: ${target}`} @close=${this._close}>
                 <div class="summary">
                     <strong>${this.data?.targetType ?? ""}</strong>
                     ${this.data?.targetAlias ? html`<code>${this.data.targetAlias}</code>` : ""}
@@ -92,9 +92,7 @@ export class GodModeUsedByModalElement extends LitElement {
                           <p class="results"><strong>${results.length}</strong> / <strong>${this._edges.length}</strong> references</p>
                           ${results.length ? this._renderTable(results) : html`<uui-box><p>No references found.</p></uui-box>`}
                       `}
-
-                <uui-button slot="actions" look="secondary" label="Close" @click=${this._close}>Close</uui-button>
-            </uui-dialog-layout>
+            </godmode-modal-layout>
         `;
     }
 
@@ -123,10 +121,6 @@ export class GodModeUsedByModalElement extends LitElement {
     }
 
     static override styles = css`
-        uui-dialog-layout {
-            width: min(980px, 92vw);
-            max-height: 82vh;
-        }
         .summary {
             display: flex;
             flex-wrap: wrap;

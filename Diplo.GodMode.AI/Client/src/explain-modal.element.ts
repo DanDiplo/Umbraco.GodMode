@@ -21,10 +21,12 @@ export class GodModeAiExplainModalElement extends LitElement {
 
     return html`
       <uui-dialog-layout headline=${subject?.title || "AI Explanation"}>
+        <uui-button class="close" compact look="secondary" label="Close" @click=${this._close}>
+          <uui-icon name="icon-wrong"></uui-icon>
+        </uui-button>
         ${this._loading ? html`<uui-loader></uui-loader>` : ""}
         ${this._error ? html`<p class="error">${this._error}</p>` : ""}
         ${this._result ? this._renderResult(this._result, subject?.subjectType) : ""}
-        <uui-button slot="actions" look="secondary" label="Close" @click=${this._close}>Close</uui-button>
       </uui-dialog-layout>
     `;
   }
@@ -118,6 +120,17 @@ export class GodModeAiExplainModalElement extends LitElement {
   }
 
   static override styles = css`
+    uui-dialog-layout {
+      position: relative;
+      width: min(820px, 92vw);
+      max-height: 82vh;
+    }
+    .close {
+      position: absolute;
+      top: var(--uui-size-space-4);
+      right: var(--uui-size-space-4);
+      z-index: 1;
+    }
     .content {
       display: grid;
       gap: var(--uui-size-space-4);

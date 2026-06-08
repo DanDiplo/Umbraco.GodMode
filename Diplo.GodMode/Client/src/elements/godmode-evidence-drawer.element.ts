@@ -1,5 +1,6 @@
 import { LitElement, css, customElement, html, property, svg } from "@umbraco-cms/backoffice/external/lit";
 import type { GodModeEvidenceDrawerData, GodModeEvidenceSection } from "../shared/evidence-drawer";
+import "../shared";
 
 interface DatabaseRelationshipGraphData {
     center: {
@@ -55,16 +56,13 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     override render() {
         const data = this.data;
         return html`
-            <uui-dialog-layout headline=${data?.title || "Evidence"}>
-                <uui-button class="top-close" compact look="secondary" label="Close" @click=${this._close}>
-                    <uui-icon name="icon-wrong"></uui-icon>
-                </uui-button>
+            <godmode-modal-layout headline=${data?.title || "Evidence"} width="min(1120px, 94vw)" max-height="84vh" @close=${this._close}>
                 ${data?.subtitle ? html`<p class="subtitle">${data.subtitle}</p>` : ""}
                 ${data?.summary?.length ? this._renderSummary(data.summary) : ""}
                 <div class="sections">
                     ${(data?.sections ?? []).map((section) => this._renderSection(section))}
                 </div>
-            </uui-dialog-layout>
+            </godmode-modal-layout>
         `;
     }
 
@@ -254,17 +252,6 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     }
 
     static override styles = css`
-        uui-dialog-layout {
-            position: relative;
-            width: min(1120px, 94vw);
-            max-height: 84vh;
-        }
-        .top-close {
-            position: absolute;
-            top: var(--uui-size-space-4);
-            right: var(--uui-size-space-4);
-            z-index: 1;
-        }
         .subtitle,
         .section-description,
         .empty,

@@ -1,5 +1,6 @@
 import type { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { umbOpenModal } from "@umbraco-cms/backoffice/modal";
+import { openWithModalFeedback } from "./modal-feedback";
 
 export const GODMODE_EVIDENCE_DRAWER_ALIAS = "Diplo.Modal.GodMode.Evidence";
 
@@ -18,8 +19,7 @@ export interface GodModeEvidenceDrawerData {
 }
 
 export function openEvidenceDrawer(host: UmbControllerHost, data: GodModeEvidenceDrawerData, e?: Event): void {
-    e?.preventDefault();
-    e?.stopPropagation();
-
-    void umbOpenModal(host, GODMODE_EVIDENCE_DRAWER_ALIAS, { data }).catch(() => undefined);
+    void openWithModalFeedback(e, () => {
+        void umbOpenModal(host, GODMODE_EVIDENCE_DRAWER_ALIAS, { data }).catch(() => undefined);
+    });
 }
