@@ -323,45 +323,47 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                     ? html`<uui-loader></uui-loader>`
                     : this._page
                       ? html`
-                            <godmode-pager
-                                .currentPage=${this._page.currentPage}
-                                .totalPages=${this._page.totalPages}
-                                .totalItems=${this._page.totalItems}
-                                @page-change=${this._onPageChange}
-                            ></godmode-pager>
-                            <uui-table>
-                                <uui-table-head>
-                                    <uui-table-head-cell>Name</uui-table-head-cell>
-                                    <uui-table-head-cell>Doc Type</uui-table-head-cell>
-                                    <uui-table-head-cell>Cultures</uui-table-head-cell>
-                                    <uui-table-head-cell>Creator</uui-table-head-cell>
-                                    <uui-table-head-cell>Updated</uui-table-head-cell>
-                                    <uui-table-head-cell>Trashed?</uui-table-head-cell>
-                                    <uui-table-head-cell>Actions</uui-table-head-cell>
-                                </uui-table-head>
-                                ${this._page.items.map(
-                                    (c) => html`
-                                        <uui-table-row>
-                                            <uui-table-cell>
-                                                <a href=${editUrl("content", c.udi)} @click=${(e: Event) => openEditorModal(this, "content", c.udi, e)}
-                                                    ><strong>${c.name}</strong></a
-                                                >
-                                            </uui-table-cell>
-                                            <uui-table-cell><code>${c.alias}</code></uui-table-cell>
-                                            <uui-table-cell>${this._renderCultureStates(c)}</uui-table-cell>
-                                            <uui-table-cell>${c.creatorName}</uui-table-cell>
-                                            <uui-table-cell><small>${truncate(c.updateDate, 22)}</small></uui-table-cell>
-                                            <uui-table-cell><godmode-yes-no .value=${c.trashed}></godmode-yes-no></uui-table-cell>
-                                            <uui-table-cell class="action-cell">
-                                                <div class="action-wrap">
-                                                    <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetails(c, e)}>Details</uui-button>
-                                                    <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(c)}></godmode-ai-explain-host>
-                                                </div>
-                                            </uui-table-cell>
-                                        </uui-table-row>
-                                    `
-                                )}
-                            </uui-table>
+                            <div class="results-block">
+                                <uui-table>
+                                    <uui-table-head>
+                                        <uui-table-head-cell>Name</uui-table-head-cell>
+                                        <uui-table-head-cell>Doc Type</uui-table-head-cell>
+                                        <uui-table-head-cell>Cultures</uui-table-head-cell>
+                                        <uui-table-head-cell>Creator</uui-table-head-cell>
+                                        <uui-table-head-cell>Updated</uui-table-head-cell>
+                                        <uui-table-head-cell>Trashed?</uui-table-head-cell>
+                                        <uui-table-head-cell>Actions</uui-table-head-cell>
+                                    </uui-table-head>
+                                    ${this._page.items.map(
+                                        (c) => html`
+                                            <uui-table-row>
+                                                <uui-table-cell>
+                                                    <a href=${editUrl("content", c.udi)} @click=${(e: Event) => openEditorModal(this, "content", c.udi, e)}
+                                                        ><strong>${c.name}</strong></a
+                                                    >
+                                                </uui-table-cell>
+                                                <uui-table-cell><code>${c.alias}</code></uui-table-cell>
+                                                <uui-table-cell>${this._renderCultureStates(c)}</uui-table-cell>
+                                                <uui-table-cell>${c.creatorName}</uui-table-cell>
+                                                <uui-table-cell><small>${truncate(c.updateDate, 22)}</small></uui-table-cell>
+                                                <uui-table-cell><godmode-yes-no .value=${c.trashed}></godmode-yes-no></uui-table-cell>
+                                                <uui-table-cell class="action-cell">
+                                                    <div class="action-wrap">
+                                                        <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetails(c, e)}>Details</uui-button>
+                                                        <godmode-ai-explain-host .subjectProvider=${() => this._explainSubject(c)}></godmode-ai-explain-host>
+                                                    </div>
+                                                </uui-table-cell>
+                                            </uui-table-row>
+                                        `
+                                    )}
+                                </uui-table>
+                                <godmode-pager
+                                    .currentPage=${this._page.currentPage}
+                                    .totalPages=${this._page.totalPages}
+                                    .totalItems=${this._page.totalItems}
+                                    @page-change=${this._onPageChange}
+                                ></godmode-pager>
+                            </div>
                         `
                       : ""}
             </godmode-page>
@@ -390,6 +392,9 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
             border-radius: var(--uui-border-radius);
             background: var(--uui-color-surface);
             color: var(--uui-color-text);
+        }
+        .results-block {
+            margin-top: var(--uui-size-space-4);
         }
         a {
             color: var(--uui-color-interactive);

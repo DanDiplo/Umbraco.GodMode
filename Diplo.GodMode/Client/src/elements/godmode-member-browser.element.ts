@@ -244,61 +244,63 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
                     ? html`<uui-loader></uui-loader>`
                     : this._page
                       ? html`
-                            <godmode-pager
-                                .currentPage=${this._page.currentPage}
-                                .totalPages=${this._page.totalPages}
-                                .totalItems=${this._page.totalItems}
-                                @page-change=${this._onPageChange}
-                            ></godmode-pager>
-                            <uui-table>
-                                <uui-table-head>
-                                    <uui-table-head-cell>Name</uui-table-head-cell>
-                                    <uui-table-head-cell>Username</uui-table-head-cell>
-                                    <uui-table-head-cell>Email</uui-table-head-cell>
-                                    <uui-table-head-cell>Type</uui-table-head-cell>
-                                    <uui-table-head-cell>Groups</uui-table-head-cell>
-                                    <uui-table-head-cell>Status</uui-table-head-cell>
-                                    <uui-table-head-cell>Created</uui-table-head-cell>
-                                    <uui-table-head-cell>Actions</uui-table-head-cell>
-                                </uui-table-head>
-                                ${this._page.items.map(
-                                    (m) => html`
-                                        <uui-table-row>
-                                            <uui-table-cell>
-                                                <a href=${editUrl("member", m.udi)} @click=${(e: Event) => openEditorModal(this, "member", m.udi, e)}
-                                                    ><strong>${m.name}</strong></a
-                                                >
-                                            </uui-table-cell>
-                                            <uui-table-cell>${m.username}</uui-table-cell>
-                                            <uui-table-cell>${m.email}</uui-table-cell>
-                                            <uui-table-cell><span class="pill">${m.memberTypeName}</span></uui-table-cell>
-                                            <uui-table-cell>
-                                                <div class="tags">
-                                                    ${this._groupNames(m).length
-                                                        ? this._groupNames(m).map((g) => html`<span class="pill muted">${g}</span>`)
-                                                        : html`<span class="muted-text">None</span>`}
-                                                </div>
-                                            </uui-table-cell>
-                                            <uui-table-cell>
-                                                <div class="tags">
-                                                    <span class=${m.isApproved ? "pill ok" : "pill warn"}>
-                                                        ${m.isApproved ? "Approved" : "Not approved"}
-                                                    </span>
-                                                    ${m.isLockedOut ? html`<span class="pill danger">Locked</span>` : ""}
-                                                    ${m.usesTwoFactor ? html`<span class="pill">2FA</span>` : ""}
-                                                </div>
-                                            </uui-table-cell>
-                                            <uui-table-cell><small>${truncate(m.createDate, 22)}</small></uui-table-cell>
-                                            <uui-table-cell class="action-cell">
-                                                <div class="action-wrap">
-                                                    <uui-button compact look="secondary" label="Details" @click=${(e: Event) => this._openDetails(m, e)}>Details</uui-button>
-                                                    <godmode-ai-explain-host .subject=${this._explainSubject(m)}></godmode-ai-explain-host>
-                                                </div>
-                                            </uui-table-cell>
-                                        </uui-table-row>
-                                    `
-                                )}
-                            </uui-table>
+                            <div class="results-block">
+                                <uui-table>
+                                    <uui-table-head>
+                                        <uui-table-head-cell>Name</uui-table-head-cell>
+                                        <uui-table-head-cell>Username</uui-table-head-cell>
+                                        <uui-table-head-cell>Email</uui-table-head-cell>
+                                        <uui-table-head-cell>Type</uui-table-head-cell>
+                                        <uui-table-head-cell>Groups</uui-table-head-cell>
+                                        <uui-table-head-cell>Status</uui-table-head-cell>
+                                        <uui-table-head-cell>Created</uui-table-head-cell>
+                                        <uui-table-head-cell>Actions</uui-table-head-cell>
+                                    </uui-table-head>
+                                    ${this._page.items.map(
+                                        (m) => html`
+                                            <uui-table-row>
+                                                <uui-table-cell>
+                                                    <a href=${editUrl("member", m.udi)} @click=${(e: Event) => openEditorModal(this, "member", m.udi, e)}
+                                                        ><strong>${m.name}</strong></a
+                                                    >
+                                                </uui-table-cell>
+                                                <uui-table-cell>${m.username}</uui-table-cell>
+                                                <uui-table-cell>${m.email}</uui-table-cell>
+                                                <uui-table-cell><span class="pill">${m.memberTypeName}</span></uui-table-cell>
+                                                <uui-table-cell>
+                                                    <div class="tags">
+                                                        ${this._groupNames(m).length
+                                                            ? this._groupNames(m).map((g) => html`<span class="pill muted">${g}</span>`)
+                                                            : html`<span class="muted-text">None</span>`}
+                                                    </div>
+                                                </uui-table-cell>
+                                                <uui-table-cell>
+                                                    <div class="tags">
+                                                        <span class=${m.isApproved ? "pill ok" : "pill warn"}>
+                                                            ${m.isApproved ? "Approved" : "Not approved"}
+                                                        </span>
+                                                        ${m.isLockedOut ? html`<span class="pill danger">Locked</span>` : ""}
+                                                        ${m.usesTwoFactor ? html`<span class="pill">2FA</span>` : ""}
+                                                    </div>
+                                                </uui-table-cell>
+                                                <uui-table-cell><small>${truncate(m.createDate, 22)}</small></uui-table-cell>
+                                                <uui-table-cell class="action-cell">
+                                                    <div class="action-wrap">
+                                                        <uui-button compact look="secondary" label="Details" @click=${(e: Event) => this._openDetails(m, e)}>Details</uui-button>
+                                                        <godmode-ai-explain-host .subject=${this._explainSubject(m)}></godmode-ai-explain-host>
+                                                    </div>
+                                                </uui-table-cell>
+                                            </uui-table-row>
+                                        `
+                                    )}
+                                </uui-table>
+                                <godmode-pager
+                                    .currentPage=${this._page.currentPage}
+                                    .totalPages=${this._page.totalPages}
+                                    .totalItems=${this._page.totalItems}
+                                    @page-change=${this._onPageChange}
+                                ></godmode-pager>
+                            </div>
                         `
                       : ""}
             </godmode-page>
@@ -327,6 +329,9 @@ export class GodModeMemberBrowserElement extends UmbElementMixin(LitElement) {
             border-radius: var(--uui-border-radius);
             background: var(--uui-color-surface);
             color: var(--uui-color-text);
+        }
+        .results-block {
+            margin-top: var(--uui-size-space-4);
         }
         .tags {
             display: flex;

@@ -97,12 +97,6 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
         this._toggle(log);
     }
 
-    private _go(page: number) {
-        const totalPages = this._page?.totalPages ?? 1;
-        if (page < 1 || page > totalPages || page === this._currentPage) return;
-        void this._load(page);
-    }
-
     private _selectedSavedQuery(): GodModeSavedLogQuery | undefined {
         return this._savedQueries.find((query) => query.id === this._savedQueryId);
     }
@@ -335,10 +329,12 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                                   `
                               )}
                           </div>
-                          <div class="pager">
-                              <uui-button look="secondary" label="Previous page" ?disabled=${this._currentPage <= 1} @click=${() => this._go(this._currentPage - 1)}>Previous</uui-button>
-                              <uui-button look="secondary" label="Next page" ?disabled=${this._currentPage >= totalPages} @click=${() => this._go(this._currentPage + 1)}>Next</uui-button>
-                          </div>
+                          <godmode-pager
+                              .currentPage=${this._currentPage}
+                              .totalPages=${totalPages}
+                              .totalItems=${total}
+                              @page-change=${(e: CustomEvent<number>) => void this._load(e.detail)}
+                          ></godmode-pager>
                       `}
             </godmode-page>
         `;
@@ -534,8 +530,7 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
             background: var(--uui-color-surface);
             color: var(--uui-color-text);
         }
-        .results,
-        .pager {
+        .results {
             display: flex;
             justify-content: space-between;
             align-items: center;

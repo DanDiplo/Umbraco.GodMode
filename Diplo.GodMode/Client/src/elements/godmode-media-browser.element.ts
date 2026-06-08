@@ -270,44 +270,46 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                     ? html`<uui-loader></uui-loader>`
                     : this._page
                       ? html`
-                            <godmode-pager
-                                .currentPage=${this._page.currentPage}
-                                .totalPages=${this._page.totalPages}
-                                .totalItems=${this._page.totalItems}
-                                @page-change=${this._onPageChange}
-                            ></godmode-pager>
-                            <uui-table>
-                                <uui-table-head>
-                                    <uui-table-head-cell>Name</uui-table-head-cell>
-                                    <uui-table-head-cell class="thumbnail-head">Thumbnail</uui-table-head-cell>
-                                    <uui-table-head-cell>Type</uui-table-head-cell>
-                                    <uui-table-head-cell>Ext</uui-table-head-cell>
-                                    <uui-table-head-cell>Size</uui-table-head-cell>
-                                    <uui-table-head-cell>Updated</uui-table-head-cell>
-                                    <uui-table-head-cell class="action-head">Actions</uui-table-head-cell>
-                                </uui-table-head>
-                                ${this._page.items.map(
-                                    (m) => html`
-                                        <uui-table-row>
-                                            <uui-table-cell>
-                                                <a href=${editUrl("media", m.udi)} @click=${(e: Event) => openEditorModal(this, "media", m.udi, e)}
-                                                    ><strong>${m.name}</strong></a
-                                                >
-                                            </uui-table-cell>
-                                            <uui-table-cell class="thumbnail-cell">${this._renderThumbnail(m)}</uui-table-cell>
-                                            <uui-table-cell><code>${m.type}</code></uui-table-cell>
-                                            <uui-table-cell><code>${m.ext ?? ""}</code></uui-table-cell>
-                                            <uui-table-cell>${formatBytes(m.size)}</uui-table-cell>
-                                            <uui-table-cell><small>${truncate(m.updateDate, 22)}</small></uui-table-cell>
-                                            <uui-table-cell class="action-cell">
-                                                <div class="action-wrap">
-                                                    <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetails(m, e)}>Details</uui-button>
-                                                </div>
-                                            </uui-table-cell>
-                                        </uui-table-row>
-                                    `
-                                )}
-                            </uui-table>
+                            <div class="results-block">
+                                <uui-table>
+                                    <uui-table-head>
+                                        <uui-table-head-cell>Name</uui-table-head-cell>
+                                        <uui-table-head-cell class="thumbnail-head">Thumbnail</uui-table-head-cell>
+                                        <uui-table-head-cell>Type</uui-table-head-cell>
+                                        <uui-table-head-cell>Ext</uui-table-head-cell>
+                                        <uui-table-head-cell>Size</uui-table-head-cell>
+                                        <uui-table-head-cell>Updated</uui-table-head-cell>
+                                        <uui-table-head-cell class="action-head">Actions</uui-table-head-cell>
+                                    </uui-table-head>
+                                    ${this._page.items.map(
+                                        (m) => html`
+                                            <uui-table-row>
+                                                <uui-table-cell>
+                                                    <a href=${editUrl("media", m.udi)} @click=${(e: Event) => openEditorModal(this, "media", m.udi, e)}
+                                                        ><strong>${m.name}</strong></a
+                                                    >
+                                                </uui-table-cell>
+                                                <uui-table-cell class="thumbnail-cell">${this._renderThumbnail(m)}</uui-table-cell>
+                                                <uui-table-cell><code>${m.type}</code></uui-table-cell>
+                                                <uui-table-cell><code>${m.ext ?? ""}</code></uui-table-cell>
+                                                <uui-table-cell>${formatBytes(m.size)}</uui-table-cell>
+                                                <uui-table-cell><small>${truncate(m.updateDate, 22)}</small></uui-table-cell>
+                                                <uui-table-cell class="action-cell">
+                                                    <div class="action-wrap">
+                                                        <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetails(m, e)}>Details</uui-button>
+                                                    </div>
+                                                </uui-table-cell>
+                                            </uui-table-row>
+                                        `
+                                    )}
+                                </uui-table>
+                                <godmode-pager
+                                    .currentPage=${this._page.currentPage}
+                                    .totalPages=${this._page.totalPages}
+                                    .totalItems=${this._page.totalItems}
+                                    @page-change=${this._onPageChange}
+                                ></godmode-pager>
+                            </div>
                         `
                       : ""}
             </godmode-page>
@@ -376,6 +378,9 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
             border-radius: var(--uui-border-radius);
             background: var(--uui-color-surface);
             color: var(--uui-color-text);
+        }
+        .results-block {
+            margin-top: var(--uui-size-space-4);
         }
         .size-filter {
             display: grid;
