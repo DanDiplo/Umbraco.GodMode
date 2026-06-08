@@ -520,8 +520,9 @@ namespace Diplo.GodMode.Services
 
                 foreach (var row in group)
                 {
+                    var differingFields = this.DiffPropertyFields(row.Property, group.Select(x => x.Property), dataTypesById).ToList();
                     findings.Add(this.CreateDriftFinding(
-                        "High",
+                        GetPropertyAliasDriftSeverity(differingFields),
                         "Property Alias Drift",
                         this.GetCompositionTypeName(row.ContentType),
                         row.ContentType.Name,
@@ -529,8 +530,8 @@ namespace Diplo.GodMode.Services
                         row.ContentType.Key.ToString(),
                         group.Where(x => x.ContentType.Key != row.ContentType.Key).Select(x => $"{x.ContentType.Name}.{x.Property.Alias}"),
                         $"Property alias '{row.Property.Alias}' is configured differently across content models.",
-                        this.DiffPropertyFields(row.Property, group.Select(x => x.Property), dataTypesById),
-                        "Align the property configuration or rename aliases that intentionally mean different things."));
+                        differingFields,
+                        GetPropertyAliasDriftRecommendation(differingFields)));
                 }
             }
         }
@@ -586,6 +587,11 @@ namespace Diplo.GodMode.Services
 
         private IEnumerable<string> DiffPropertyFields(IPropertyType propertyType, IEnumerable<IPropertyType> properties, IReadOnlyDictionary<int, IDataType> dataTypesById)
         {
+            if (properties.Select(x => x.Name ?? string.Empty).Distinct().Count() > 1)
+            {
+                yield return "Name";
+            }
+
             if (properties.Select(x => x.DataTypeId).Distinct().Count() > 1)
             {
                 yield return "Data type";
@@ -615,6 +621,26 @@ namespace Diplo.GodMode.Services
             {
                 yield return "Storage";
             }
+        }
+
+        private static string GetPropertyAliasDriftSeverity(IReadOnlyCollection<string> differingFields)
+        {
+            if (differingFields.Any(x => x is "Data type" or "Editor" or "Storage" or "Validation"))
+            {
+                return "Medium";
+            }
+
+            return "Low";
+        }
+
+        private static string GetPropertyAliasDriftRecommendation(IReadOnlyCollection<string> differingFields)
+        {
+            if (differingFields.Any(x => x is "Data type" or "Editor" or "Storage" or "Validation"))
+            {
+                return "Review whether the shared alias represents the same value everywhere. Align the configuration, or rename aliases that intentionally mean different things.";
+            }
+
+            return "Review whether the difference is intentional. Mandatory, name and variation differences are often normal across content models.";
         }
 
         private ConfigurationDriftFinding CreateDriftFinding(string severity, string category, string entityType, string entityName, string entityAlias, string entityKey, IEnumerable<string> comparedWith, string summary, IEnumerable<string> differingFields, string recommendation)
