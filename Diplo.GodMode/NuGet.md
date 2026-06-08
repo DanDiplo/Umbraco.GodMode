@@ -16,12 +16,12 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
-### 17.1.1
-
-* Fixed SQL Server support in the Database Browser.
-* Escaped table discovery aliases that conflict with SQL Server keywords.
-* Fixed saved log query loading on SQL Server by using provider-specific ID casting.
-* Made table details and foreign-key relationship lookup schema-aware.
+### 17.1.2
+UI/UX improvements, including:
+* Added visible opening feedback for God Mode modal actions so slow sites no longer appear unresponsive after a click.
+* Unified the custom God Mode modal chrome for Used By, Evidence, and AI Explain dialogs.
+* Updated paged browsers to use Umbraco's pagination control consistently.
+* Moved pagination to the bottom of result lists and fixed spacing between filters and tables in Content, Media, and Member browsers.
 
 ---
 
