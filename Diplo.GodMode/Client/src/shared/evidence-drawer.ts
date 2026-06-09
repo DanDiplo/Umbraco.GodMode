@@ -16,10 +16,15 @@ export interface GodModeEvidenceDrawerData {
     subtitle?: string;
     summary?: Array<{ label: string; value: unknown }>;
     sections: GodModeEvidenceSection[];
+    load?: () => Promise<GodModeEvidenceDrawerData>;
 }
 
 export function openEvidenceDrawer(host: UmbControllerHost, data: GodModeEvidenceDrawerData, e?: Event): void {
     void openWithModalFeedback(e, () => {
         void umbOpenModal(host, GODMODE_EVIDENCE_DRAWER_ALIAS, { data }).catch(() => undefined);
     });
+}
+
+export function openLazyEvidenceDrawer(host: UmbControllerHost, data: GodModeEvidenceDrawerData, e?: Event): void {
+    openEvidenceDrawer(host, data, e);
 }

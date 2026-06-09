@@ -6,7 +6,7 @@ import { uniqueBy } from "../shared/format";
 import "../shared";
 import type { ConfigurationDriftFinding, ReferenceEdge } from "../shared/types";
 import { openUsedByModal } from "../shared/used-by-modal";
-import { openEvidenceDrawer } from "../shared/evidence-drawer";
+import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-configuration-drift")
 export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement) {
@@ -178,58 +178,62 @@ export class GodModeConfigurationDriftElement extends UmbElementMixin(LitElement
         return values?.length ? html`<ul>${values.map((value) => html`<li>${value}</li>`)}</ul>` : html`<small>None</small>`;
     }
 
-    private async _openEvidence(finding: ConfigurationDriftFinding, e: Event) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const [usedBy, uses] = await Promise.all([
-            godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: finding.entityType, targetKey: finding.entityKey }),
-            godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: finding.entityType, sourceKey: finding.entityKey })
-        ]);
-
-        openEvidenceDrawer(
+    private _openEvidence(finding: ConfigurationDriftFinding, e: Event) {
+        openLazyEvidenceDrawer(
             this,
             {
                 title: `Evidence: ${finding.entityName}`,
                 subtitle: finding.summary,
-                summary: [
-                    { label: "Severity", value: finding.severity },
-                    { label: "Score", value: finding.score },
-                    { label: "Category", value: finding.category },
-                    { label: "Entity", value: finding.entityName },
-                    { label: "Type", value: finding.entityType },
-                    { label: "Alias", value: finding.entityAlias }
-                ],
-                sections: [
-                    {
-                        heading: "Drift Finding",
-                        items: {
-                            summary: finding.summary,
-                            recommendation: finding.recommendation,
-                            entityKey: finding.entityKey
-                        }
-                    },
-                    {
-                        heading: "Compared With",
-                        description: "Entities that contributed to this drift finding.",
-                        items: finding.comparedWith
-                    },
-                    {
-                        heading: "Differing Fields",
-                        description: "Fields that differ between this item and similar items.",
-                        items: finding.differingFields
-                    },
-                    {
-                        heading: "Used By",
-                        description: "Reference graph edges where this entity is the target.",
-                        items: usedBy
-                    },
-                    {
-                        heading: "Uses",
-                        description: "Reference graph edges where this entity is the source.",
-                        items: uses
-                    }
-                ]
+                sections: [],
+                load: async () => {
+                    const [usedBy, uses] = await Promise.all([
+                        godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: finding.entityType, targetKey: finding.entityKey }),
+                        godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: finding.entityType, sourceKey: finding.entityKey })
+                    ]);
+
+                    return {
+                        title: `Evidence: ${finding.entityName}`,
+                        subtitle: finding.summary,
+                        summary: [
+                            { label: "Severity", value: finding.severity },
+                            { label: "Score", value: finding.score },
+                            { label: "Category", value: finding.category },
+                            { label: "Entity", value: finding.entityName },
+                            { label: "Type", value: finding.entityType },
+                            { label: "Alias", value: finding.entityAlias }
+                        ],
+                        sections: [
+                            {
+                                heading: "Drift Finding",
+                                items: {
+                                    summary: finding.summary,
+                                    recommendation: finding.recommendation,
+                                    entityKey: finding.entityKey
+                                }
+                            },
+                            {
+                                heading: "Compared With",
+                                description: "Entities that contributed to this drift finding.",
+                                items: finding.comparedWith
+                            },
+                            {
+                                heading: "Differing Fields",
+                                description: "Fields that differ between this item and similar items.",
+                                items: finding.differingFields
+                            },
+                            {
+                                heading: "Used By",
+                                description: "Reference graph edges where this entity is the target.",
+                                items: usedBy
+                            },
+                            {
+                                heading: "Uses",
+                                description: "Reference graph edges where this entity is the source.",
+                                items: uses
+                            }
+                        ]
+                    };
+                }
             },
             e
         );

@@ -19,6 +19,10 @@ export async function openWithModalFeedback(e: Event | undefined, action: ModalO
     }
 }
 
+export async function runWithModalFeedback(e: Event | undefined, action: ModalOpenAction): Promise<void> {
+    await openWithModalFeedback(e, action);
+}
+
 function beginModalFeedback(e: Event): { complete: () => void } | undefined {
     const button = e.composedPath().find(isButtonLikeElement);
     if (!button) return undefined;

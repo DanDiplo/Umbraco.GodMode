@@ -1,4 +1,4 @@
-import { LitElement, css, customElement, html, property, svg } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, css, customElement, html, property, state, svg } from "@umbraco-cms/backoffice/external/lit";
 import type { GodModeEvidenceDrawerData, GodModeEvidenceSection } from "../shared/evidence-drawer";
 import "../shared";
 
@@ -30,6 +30,10 @@ interface DatabaseRelationshipGraphData {
 export class GodModeEvidenceDrawerElement extends LitElement {
     @property({ attribute: false }) modalContext?: { reject: () => void };
     @property({ type: Object, attribute: false }) data?: GodModeEvidenceDrawerData;
+    @state() private _loadedData?: GodModeEvidenceDrawerData;
+    @state() private _loading = false;
+    @state() private _error = "";
+    private _activeLoad?: () => Promise<GodModeEvidenceDrawerData>;
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -39,6 +43,35 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     override disconnectedCallback(): void {
         window.removeEventListener("pointerdown", this._onOutsidePointerDown, { capture: true });
         super.disconnectedCallback();
+    }
+
+    override updated(): void {
+        const load = this.data?.load;
+        if (!load || load === this._activeLoad) {
+            return;
+        }
+
+        this._activeLoad = load;
+        this._loadedData = undefined;
+        this._error = "";
+        this._loading = true;
+
+        void load()
+            .then((data) => {
+                if (this._activeLoad === load) {
+                    this._loadedData = data;
+                }
+            })
+            .catch((error: unknown) => {
+                if (this._activeLoad === load) {
+                    this._error = error instanceof Error ? error.message : "Unable to load evidence.";
+                }
+            })
+            .finally(() => {
+                if (this._activeLoad === load) {
+                    this._loading = false;
+                }
+            });
     }
 
     private _close = () => {
@@ -54,16 +87,27 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     };
 
     override render() {
-        const data = this.data;
+        const data = this._loadedData ?? this.data;
         return html`
             <godmode-modal-layout headline=${data?.title || "Evidence"} width="min(1120px, 94vw)" max-height="84vh" @close=${this._close}>
                 ${data?.subtitle ? html`<p class="subtitle">${data.subtitle}</p>` : ""}
                 ${data?.summary?.length ? this._renderSummary(data.summary) : ""}
-                <div class="sections">
-                    ${(data?.sections ?? []).map((section) => this._renderSection(section))}
-                </div>
+                ${this._loading ? this._renderLoading() : this._error ? this._renderError() : html`<div class="sections">${(data?.sections ?? []).map((section) => this._renderSection(section))}</div>`}
             </godmode-modal-layout>
         `;
+    }
+
+    private _renderLoading() {
+        return html`
+            <div class="loading">
+                <uui-loader></uui-loader>
+                <span>Gathering evidence...</span>
+            </div>
+        `;
+    }
+
+    private _renderError() {
+        return html`<uui-box headline="Unable to load evidence"><p class="empty">${this._error}</p></uui-box>`;
     }
 
     private _renderSummary(summary: Array<{ label: string; value: unknown }>) {
@@ -264,6 +308,14 @@ export class GodModeEvidenceDrawerElement extends LitElement {
         .sections {
             display: grid;
             gap: var(--uui-size-space-4);
+        }
+        .loading {
+            min-height: 10rem;
+            display: grid;
+            place-items: center;
+            align-content: center;
+            gap: var(--uui-size-space-3);
+            color: var(--uui-color-text-alt);
         }
         .summary,
         .key-values {

@@ -10,7 +10,7 @@
     <PackageReference Include="Clean" />
     <PackageReference Include="Umbraco.AI" />
     <PackageReference Include="Umbraco.AI.OpenAI" />
-    <PackageReference Include="Umbraco.Cms" VersionOverride="17.3.5" />
+    <PackageReference Include="Umbraco.Cms" VersionOverride="17.4.2" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" VersionOverride="17.3.5" />
   </ItemGroup>
 

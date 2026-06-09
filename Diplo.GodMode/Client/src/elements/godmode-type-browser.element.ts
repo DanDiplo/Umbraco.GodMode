@@ -3,7 +3,7 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
 import type { NameValue, TypeDetail, TypeMap } from "../shared/types";
-import { openEvidenceDrawer } from "../shared/evidence-drawer";
+import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-type-browser")
 export class GodModeTypeBrowserElement extends UmbElementMixin(LitElement) {
@@ -78,54 +78,61 @@ export class GodModeTypeBrowserElement extends UmbElementMixin(LitElement) {
         }
     }
 
-    private async _openDetails(type: TypeMap, e: Event) {
-        const detail = await godmodeGet<TypeDetail>("reflection/type-detail", { loadableName: type.loadableName });
-
-        openEvidenceDrawer(
+    private _openDetails(type: TypeMap, e: Event) {
+        openLazyEvidenceDrawer(
             this,
             {
-                title: detail.name,
-                subtitle: detail.namespace,
-                summary: [
-                    { label: "Assembly", value: detail.module },
-                    { label: "Origin", value: detail.origin },
-                    { label: "Base", value: detail.baseType || "None" },
-                    { label: "Source", value: detail.isUmbraco ? "Umbraco" : "Custom / package" },
-                    { label: "Interfaces", value: detail.interfaces.length }
-                ],
-                sections: [
-                    {
-                        heading: "Type",
-                        items: {
-                            name: detail.name,
-                            namespace: detail.namespace,
-                            module: detail.module,
-                            origin: detail.origin,
-                            assembly: detail.assembly,
-                            loadableName: detail.loadableName,
-                            isUmbraco: detail.isUmbraco
-                        }
-                    },
-                    {
-                        heading: "Inheritance Chain",
-                        description: "Base types from immediate parent up to System.Object.",
-                        items: detail.inheritanceChain.map((item, index) => ({
-                            depth: index + 1,
-                            name: item.name,
-                            namespace: item.namespace,
-                            assembly: item.module
-                        }))
-                    },
-                    {
-                        heading: "Implemented Interfaces",
-                        items: detail.interfaces.map((item) => ({
-                            name: item.name,
-                            namespace: item.namespace,
-                            assembly: item.module,
-                            selected: item.loadableName === this._selectedInterface
-                        }))
-                    }
-                ]
+                title: type.name,
+                subtitle: type.namespace,
+                sections: [],
+                load: async () => {
+                    const detail = await godmodeGet<TypeDetail>("reflection/type-detail", { loadableName: type.loadableName });
+
+                    return {
+                        title: detail.name,
+                        subtitle: detail.namespace,
+                        summary: [
+                            { label: "Assembly", value: detail.module },
+                            { label: "Origin", value: detail.origin },
+                            { label: "Base", value: detail.baseType || "None" },
+                            { label: "Source", value: detail.isUmbraco ? "Umbraco" : "Custom / package" },
+                            { label: "Interfaces", value: detail.interfaces.length }
+                        ],
+                        sections: [
+                            {
+                                heading: "Type",
+                                items: {
+                                    name: detail.name,
+                                    namespace: detail.namespace,
+                                    module: detail.module,
+                                    origin: detail.origin,
+                                    assembly: detail.assembly,
+                                    loadableName: detail.loadableName,
+                                    isUmbraco: detail.isUmbraco
+                                }
+                            },
+                            {
+                                heading: "Inheritance Chain",
+                                description: "Base types from immediate parent up to System.Object.",
+                                items: detail.inheritanceChain.map((item, index) => ({
+                                    depth: index + 1,
+                                    name: item.name,
+                                    namespace: item.namespace,
+                                    assembly: item.module
+                                }))
+                            },
+                            {
+                                heading: "Implemented Interfaces",
+                                items: detail.interfaces.map((item) => ({
+                                    name: item.name,
+                                    namespace: item.namespace,
+                                    assembly: item.module,
+                                    selected: item.loadableName === this._selectedInterface
+                                }))
+                            }
+                        ]
+                    };
+                }
             },
             e
         );

@@ -5,7 +5,7 @@ import { uniqueBy } from "../shared/format";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
 import "../shared";
 import type { HealthRiskFinding, ReferenceEdge } from "../shared/types";
-import { openEvidenceDrawer } from "../shared/evidence-drawer";
+import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-health-risk-browser")
 export class GodModeHealthRiskBrowserElement extends UmbElementMixin(LitElement) {
@@ -165,52 +165,56 @@ export class GodModeHealthRiskBrowserElement extends UmbElementMixin(LitElement)
         `;
     }
 
-    private async _openEvidence(finding: HealthRiskFinding, e: Event) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const hasReferenceTarget = !!finding.entityType && !!finding.entityKey;
-        const [usedBy, uses] = hasReferenceTarget
-            ? await Promise.all([
-                  godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: finding.entityType, targetKey: finding.entityKey }),
-                  godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: finding.entityType, sourceKey: finding.entityKey })
-              ])
-            : [[], []];
-
-        openEvidenceDrawer(
+    private _openEvidence(finding: HealthRiskFinding, e: Event) {
+        openLazyEvidenceDrawer(
             this,
             {
                 title: `Evidence: ${finding.title}`,
                 subtitle: finding.detail,
-                summary: [
-                    { label: "Severity", value: finding.severity },
-                    { label: "Score", value: finding.score },
-                    { label: "Category", value: finding.category },
-                    { label: "Entity", value: finding.entityName },
-                    { label: "Type", value: finding.entityType },
-                    { label: "Alias", value: finding.entityAlias }
-                ],
-                sections: [
-                    {
-                        heading: "Finding",
-                        items: {
-                            title: finding.title,
-                            detail: finding.detail,
-                            recommendation: finding.recommendation,
-                            entityKey: finding.entityKey
-                        }
-                    },
-                    {
-                        heading: "Used By",
-                        description: "Reference graph edges where this entity is the target.",
-                        items: usedBy
-                    },
-                    {
-                        heading: "Uses",
-                        description: "Reference graph edges where this entity is the source.",
-                        items: uses
-                    }
-                ]
+                sections: [],
+                load: async () => {
+                    const hasReferenceTarget = !!finding.entityType && !!finding.entityKey;
+                    const [usedBy, uses] = hasReferenceTarget
+                        ? await Promise.all([
+                              godmodeGet<ReferenceEdge[]>("references/used-by", { targetType: finding.entityType, targetKey: finding.entityKey }),
+                              godmodeGet<ReferenceEdge[]>("references/uses", { sourceType: finding.entityType, sourceKey: finding.entityKey })
+                          ])
+                        : [[], []];
+
+                    return {
+                        title: `Evidence: ${finding.title}`,
+                        subtitle: finding.detail,
+                        summary: [
+                            { label: "Severity", value: finding.severity },
+                            { label: "Score", value: finding.score },
+                            { label: "Category", value: finding.category },
+                            { label: "Entity", value: finding.entityName },
+                            { label: "Type", value: finding.entityType },
+                            { label: "Alias", value: finding.entityAlias }
+                        ],
+                        sections: [
+                            {
+                                heading: "Finding",
+                                items: {
+                                    title: finding.title,
+                                    detail: finding.detail,
+                                    recommendation: finding.recommendation,
+                                    entityKey: finding.entityKey
+                                }
+                            },
+                            {
+                                heading: "Used By",
+                                description: "Reference graph edges where this entity is the target.",
+                                items: usedBy
+                            },
+                            {
+                                heading: "Uses",
+                                description: "Reference graph edges where this entity is the source.",
+                                items: uses
+                            }
+                        ]
+                    };
+                }
             },
             e
         );

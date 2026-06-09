@@ -7,7 +7,7 @@
     <PackageVersion Include="Clean" Version="7.0.5" />
     <PackageVersion Include="Umbraco.AI" Version="1.10.1" />
     <PackageVersion Include="Umbraco.AI.OpenAI" Version="1.2.0" />
-    <PackageVersion Include="Umbraco.Cms" Version="[17.0.0,18.0.0)" />
+    <PackageVersion Include="Umbraco.Cms" Version="17.4.2" />
     <PackageVersion Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="[17.0.0,18.0.0)" />
     <PackageVersion Include="Umbraco.Cms.Api.Common" Version="[17.0.0,18.0.0)" />
     <PackageVersion Include="Umbraco.Cms.Api.Management" Version="[17.0.0,18.0.0)" />

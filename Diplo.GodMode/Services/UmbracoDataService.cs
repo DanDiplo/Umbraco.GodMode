@@ -4,6 +4,7 @@ using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using NPoco;
 using Umbraco.Cms.Core;
@@ -24,6 +25,14 @@ namespace Diplo.GodMode.Services
     /// <remarks>Really needs breaking down into smaller classes!</remarks>
     public class UmbracoDataService : IUmbracoDataService
     {
+        private const string ReferenceGraphCacheKey = "Diplo.GodMode.ReferenceGraph";
+        private const string SchemaReferenceGraphCacheKey = "Diplo.GodMode.SchemaReferenceGraph";
+        private const string DataTypesStatusCacheKey = "Diplo.GodMode.DataTypesStatus";
+        private const string TemplatesCacheKey = "Diplo.GodMode.Templates";
+        private const string ConfigurationDriftCacheKey = "Diplo.GodMode.ConfigurationDriftFindings";
+        private const string TagMappingCacheKey = "Diplo.GodMode.TagMapping";
+        private static readonly SemaphoreSlim ReferenceGraphCacheLock = new(1, 1);
+        private static readonly SemaphoreSlim SchemaReferenceGraphCacheLock = new(1, 1);
         private readonly IContentService contentService;
         private readonly IContentTypeService contentTypeService;
         private readonly IDataTypeService dataTypeService;
@@ -41,8 +50,9 @@ namespace Diplo.GodMode.Services
         private readonly GodModeConfig godModeConfig;
         private readonly IWebHostEnvironment webHostEnvironment;
         private readonly IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService;
+        private readonly IMemoryCache memoryCache;
 
-        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig, IWebHostEnvironment webHostEnvironment, IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService)
+        public UmbracoDataService(IScopeProvider scopeProvider, IContentService contentService, IContentTypeService contentTypeService, IDataTypeService dataTypeService, IMediaTypeService mediaTypeService, IMemberTypeService memberTypeService, ITemplateService templateService, IMediaService mediaService, IAuditService auditService, IRelationService relationService, ITagService tagService, ILanguageService languageService, IIdKeyMap idKeyMap, IConfigurationEditorJsonSerializer serializer, IOptions<GodModeConfig> godModeConfig, IWebHostEnvironment webHostEnvironment, IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService, IMemoryCache memoryCache)
         {
             this.contentTypeService = contentTypeService;
             this.dataTypeService = dataTypeService;
@@ -61,6 +71,7 @@ namespace Diplo.GodMode.Services
             this.godModeConfig = godModeConfig.Value;
             this.webHostEnvironment = webHostEnvironment;
             this.deliveryApiDiagnosticsService = deliveryApiDiagnosticsService;
+            this.memoryCache = memoryCache;
         }
 
         /// <summary>
@@ -197,14 +208,16 @@ namespace Diplo.GodMode.Services
         /// Gets all data types, including the status of whether they are being used
         /// </summary>
         public async Task<IEnumerable<DataTypeMap>> GetDataTypesStatus()
-        {
+            => await this.GetCachedAsync(DataTypesStatusCacheKey, TimeSpan.FromMinutes(2), this.BuildDataTypesStatus);
 
+        private async Task<IReadOnlyList<DataTypeMap>> BuildDataTypesStatus()
+        {
             var dataTypes = (await this.dataTypeService.GetAllAsync()).ToList();
-            var contentTypes = this.contentTypeService.GetAll();
-            var mediaTypes = this.mediaTypeService.GetAll();
+            var contentTypes = this.contentTypeService.GetAll().ToList();
+            var mediaTypes = this.mediaTypeService.GetAll().ToList();
 
             var usedPropertyTypes = contentTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)).Union(mediaTypes.SelectMany(x => x.PropertyTypes.Concat(x.CompositionPropertyTypes)));
-            var usedIds = dataTypes.Where(x => usedPropertyTypes.Select(y => y.DataTypeId).Contains(x.Id)).Select(d => d.Id).ToList();
+            var usedIds = usedPropertyTypes.Select(y => y.DataTypeId).ToHashSet();
             var nestedUsedIds = this.GetNestedDataTypeIds(dataTypes, contentTypes);
 
             return dataTypes.Select(x => new DataTypeMap
@@ -218,7 +231,8 @@ namespace Diplo.GodMode.Services
                 IsNestedUsed = nestedUsedIds.Contains(x.Id),
                 UpdateDate = x.UpdateDate == default ? x.CreateDate : x.UpdateDate
             }).
-            OrderBy(x => x.Name);
+            OrderBy(x => x.Name)
+            .ToList();
         }
 
         private HashSet<int> GetNestedDataTypeIds(IReadOnlyCollection<IDataType> dataTypes, IEnumerable<IContentType> contentTypes)
@@ -236,6 +250,65 @@ namespace Diplo.GodMode.Services
         }
 
         public async Task<IEnumerable<ReferenceEdge>> GetReferenceGraph()
+            => await this.GetReferenceGraphCached();
+
+        public async Task<IEnumerable<ReferenceEdge>> GetSchemaReferenceGraph()
+            => await this.GetSchemaReferenceGraphCached();
+
+        private async Task<IReadOnlyList<ReferenceEdge>> GetReferenceGraphCached()
+        {
+            if (this.memoryCache.TryGetValue(ReferenceGraphCacheKey, out IReadOnlyList<ReferenceEdge>? cached) && cached is not null)
+            {
+                return cached;
+            }
+
+            await ReferenceGraphCacheLock.WaitAsync();
+            try
+            {
+                if (this.memoryCache.TryGetValue(ReferenceGraphCacheKey, out cached) && cached is not null)
+                {
+                    return cached;
+                }
+
+                var built = await this.BuildReferenceGraph();
+                this.memoryCache.Set(ReferenceGraphCacheKey, built, TimeSpan.FromMinutes(2));
+                return built;
+            }
+            finally
+            {
+                ReferenceGraphCacheLock.Release();
+            }
+        }
+
+        private async Task<IReadOnlyList<ReferenceEdge>> GetSchemaReferenceGraphCached()
+        {
+            if (this.memoryCache.TryGetValue(SchemaReferenceGraphCacheKey, out IReadOnlyList<ReferenceEdge>? cached) && cached is not null)
+            {
+                return cached;
+            }
+
+            await SchemaReferenceGraphCacheLock.WaitAsync();
+            try
+            {
+                if (this.memoryCache.TryGetValue(SchemaReferenceGraphCacheKey, out cached) && cached is not null)
+                {
+                    return cached;
+                }
+
+                var built = await this.BuildReferenceGraph(includeContentNodeTemplateEdges: false);
+                this.memoryCache.Set(SchemaReferenceGraphCacheKey, built, TimeSpan.FromMinutes(2));
+                return built;
+            }
+            finally
+            {
+                SchemaReferenceGraphCacheLock.Release();
+            }
+        }
+
+        private async Task<IReadOnlyList<ReferenceEdge>> BuildReferenceGraph()
+            => await this.BuildReferenceGraph(includeContentNodeTemplateEdges: true);
+
+        private async Task<IReadOnlyList<ReferenceEdge>> BuildReferenceGraph(bool includeContentNodeTemplateEdges)
         {
             var edges = new List<ReferenceEdge>();
             var dataTypes = (await this.dataTypeService.GetAllAsync()).ToList();
@@ -290,22 +363,25 @@ namespace Diplo.GodMode.Services
                 }
             }
 
-            foreach (var contentType in contentTypes.Where(x => !x.IsElement).OrderBy(x => x.Name))
+            if (includeContentNodeTemplateEdges)
             {
-                foreach (var content in this.contentService.GetPagedOfType(contentType.Id, 0, int.MaxValue, out _, null, Ordering.By("Name")))
+                foreach (var contentType in contentTypes.Where(x => !x.IsElement).OrderBy(x => x.Name))
                 {
-                    if (!content.TemplateId.HasValue || !templateKeysById.TryGetValue(content.TemplateId.Value, out var templateKey))
+                    foreach (var content in this.contentService.GetPagedOfType(contentType.Id, 0, int.MaxValue, out _, null, Ordering.By("Name")))
                     {
-                        continue;
-                    }
+                        if (!content.TemplateId.HasValue || !templateKeysById.TryGetValue(content.TemplateId.Value, out var templateKey))
+                        {
+                            continue;
+                        }
 
-                    var template = templates.FirstOrDefault(x => x.Udi == templateKey);
-                    if (template is null)
-                    {
-                        continue;
-                    }
+                        var template = templates.FirstOrDefault(x => x.Udi == templateKey);
+                        if (template is null)
+                        {
+                            continue;
+                        }
 
-                    edges.Add(this.CreateEdge("Content Node", content.Name, content.ContentType.Alias, content.Key, "uses template", "Template", template.Name, template.Alias, template.Udi, $"{content.ContentType.Name} ({content.Id})"));
+                        edges.Add(this.CreateEdge("Content Node", content.Name, content.ContentType.Alias, content.Key, "uses template", "Template", template.Name, template.Alias, template.Udi, $"{content.ContentType.Name} ({content.Id})"));
+                    }
                 }
             }
 
@@ -315,41 +391,62 @@ namespace Diplo.GodMode.Services
                 .OrderBy(x => x.SourceType)
                 .ThenBy(x => x.SourceName)
                 .ThenBy(x => x.Relation)
-                .ThenBy(x => x.TargetName);
+                .ThenBy(x => x.TargetName)
+                .ToList();
         }
 
         public async Task<IEnumerable<ReferenceEdge>> GetUsedBy(string targetType, string targetKey)
         {
-            return (await this.GetReferenceGraph())
+            return (await this.GetReferenceGraphForLookup(targetType, targetKey))
                 .Where(x => x.TargetType.InvariantEquals(targetType) &&
                     (x.TargetKey.InvariantEquals(targetKey) || x.TargetAlias.InvariantEquals(targetKey) || x.TargetName.InvariantEquals(targetKey)));
         }
 
         public async Task<IEnumerable<ReferenceEdge>> GetUses(string sourceType, string sourceKey)
         {
-            return (await this.GetReferenceGraph())
+            return (await this.GetReferenceGraphForLookup(sourceType, sourceKey))
                 .Where(x => x.SourceType.InvariantEquals(sourceType) &&
                     (x.SourceKey.InvariantEquals(sourceKey) || x.SourceAlias.InvariantEquals(sourceKey) || x.SourceName.InvariantEquals(sourceKey)));
         }
 
+        private async Task<IReadOnlyList<ReferenceEdge>> GetReferenceGraphForLookup(string entityType, string entityKey)
+        {
+            if (entityType.InvariantEquals("Content Node"))
+            {
+                return await this.GetReferenceGraphCached();
+            }
+
+            if (entityType.InvariantEquals("Template") && int.TryParse(entityKey, out _))
+            {
+                return await this.GetReferenceGraphCached();
+            }
+
+            return await this.GetSchemaReferenceGraphCached();
+        }
+
         public async Task<IEnumerable<ConfigurationDriftFinding>> GetConfigurationDriftFindings()
+            => await this.GetCachedAsync(ConfigurationDriftCacheKey, TimeSpan.FromMinutes(2), this.BuildConfigurationDriftFindings);
+
+        private async Task<IReadOnlyList<ConfigurationDriftFinding>> BuildConfigurationDriftFindings()
         {
             var findings = new List<ConfigurationDriftFinding>();
             var dataTypes = (await this.dataTypeService.GetAllAsync()).ToList();
             var contentTypes = this.contentTypeService.GetAll().Cast<IContentTypeComposition>().ToList();
             contentTypes.AddRange(this.mediaTypeService.GetAll());
             contentTypes.AddRange(this.memberTypeService.GetAll());
+            var dataTypesById = dataTypes.ToDictionary(x => x.Id);
 
             this.AddDataTypeDriftFindings(findings, dataTypes);
-            this.AddPropertyAliasDriftFindings(findings, contentTypes, dataTypes.ToDictionary(x => x.Id));
-            this.AddContentTypeDriftFindings(findings, contentTypes, dataTypes.ToDictionary(x => x.Id));
+            this.AddPropertyAliasDriftFindings(findings, contentTypes, dataTypesById);
+            this.AddContentTypeDriftFindings(findings, contentTypes, dataTypesById);
 
             return findings
                 .GroupBy(x => $"{x.Category}|{x.EntityType}|{x.EntityKey}|{x.Summary}")
                 .Select(x => x.First())
                 .OrderByDescending(x => x.Score)
                 .ThenBy(x => x.Category)
-                .ThenBy(x => x.EntityName);
+                .ThenBy(x => x.EntityName)
+                .ToList();
         }
 
         private void AddContentTypePropertyEdges(
@@ -762,12 +859,17 @@ namespace Diplo.GodMode.Services
         /// Gets all templates
         /// </summary>
         public async Task<IEnumerable<TemplateModel>> GetTemplates()
+            => await this.GetCachedAsync(TemplatesCacheKey, TimeSpan.FromMinutes(2), this.BuildTemplates);
+
+        private async Task<IReadOnlyList<TemplateModel>> BuildTemplates()
         {
             var templateModels = new List<TemplateModel>();
-            var templates = await this.templateService.GetAllAsync();
+            var templates = (await this.templateService.GetAllAsync()).ToList();
+            var templatesById = templates.ToDictionary(x => x.Id);
 
             foreach (var template in templates)
             {
+                var templatePathIds = template.Path.Split(',').Select(x => Convert.ToInt32(x)).ToList();
                 var model = new TemplateModel(template)
                 {
                     IsMaster = template.IsMasterTemplate,
@@ -783,7 +885,7 @@ namespace Diplo.GodMode.Services
                     VirtualPath = template.VirtualPath,
                     Layout = LayoutHelper.GetTemplateInfo(template),
                     HasCorrectMaster = true,
-                    Parents = templates.Where(t => template.Path.Split(',').Select(x => Convert.ToInt32(x)).Contains(t.Id)).Select(t => new TemplateModel(t)).OrderBy(d => template.Path.Split(',').IndexOf(d.Id.ToString()))
+                    Parents = templatePathIds.Where(templatesById.ContainsKey).Select(id => new TemplateModel(templatesById[id]))
                 };
 
                 if (!string.IsNullOrEmpty(model.Layout) && model.Layout != "null")
@@ -1242,6 +1344,9 @@ namespace Diplo.GodMode.Services
         /// Gets all tags for all cultures and maps them to their related content
         /// </summary>
         public async Task<IEnumerable<TagMapping>> GetTagMapping()
+            => await this.GetCachedAsync(TagMappingCacheKey, TimeSpan.FromMinutes(1), this.BuildTagMapping);
+
+        private async Task<IReadOnlyList<TagMapping>> BuildTagMapping()
         {
             var cultures = (await this.languageService.GetAllAsync()).Select(x => x.IsoCode).ToList(); // get all cultures
 
@@ -1331,6 +1436,28 @@ namespace Diplo.GodMode.Services
             return tagMap;
         }
 
+        private async Task<IReadOnlyList<T>> GetCachedAsync<T>(string cacheKey, TimeSpan cacheDuration, Func<Task<IReadOnlyList<T>>> factory)
+        {
+            if (this.memoryCache.TryGetValue(cacheKey, out IReadOnlyList<T>? cached) && cached is not null)
+            {
+                return cached;
+            }
+
+            var built = await factory();
+            this.memoryCache.Set(cacheKey, built, cacheDuration);
+            return built;
+        }
+
+        private void ClearDiagnosticCaches()
+        {
+            this.memoryCache.Remove(ReferenceGraphCacheKey);
+            this.memoryCache.Remove(SchemaReferenceGraphCacheKey);
+            this.memoryCache.Remove(DataTypesStatusCacheKey);
+            this.memoryCache.Remove(TemplatesCacheKey);
+            this.memoryCache.Remove(ConfigurationDriftCacheKey);
+            this.memoryCache.Remove(TagMappingCacheKey);
+        }
+
         /// <summary>
         /// Used to copy a data type since this is missing in core
         /// </summary>
@@ -1364,6 +1491,7 @@ namespace Diplo.GodMode.Services
                     return new ServerResponse($"Could not create '{copy.Name}'", ServerResponseType.Error);
                 }
 
+                this.ClearDiagnosticCaches();
                 return new ServerResponse($"Created '{copy.Name}' successfully", ServerResponseType.Success);
             }
             catch (Exception ex)

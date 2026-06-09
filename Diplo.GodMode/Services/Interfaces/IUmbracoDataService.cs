@@ -1,8 +1,5 @@
 ﻿using Diplo.GodMode.Models;
 using NPoco;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Umbraco.Cms.Core.Models;
 
 namespace Diplo.GodMode.Services.Interfaces
 {
@@ -20,6 +17,8 @@ namespace Diplo.GodMode.Services.Interfaces
         Task<IEnumerable<DataTypeMap>> GetDataTypesStatus();
 
         Task<IEnumerable<ReferenceEdge>> GetReferenceGraph();
+
+        Task<IEnumerable<ReferenceEdge>> GetSchemaReferenceGraph();
 
         Task<IEnumerable<ReferenceEdge>> GetUsedBy(string targetType, string targetKey);
 

@@ -35,7 +35,7 @@ namespace Diplo.GodMode.Services
             var contentTypes = dataService.GetContentTypeMap().ToList();
             var dataTypes = (await dataService.GetDataTypesStatus()).ToList();
             var templates = (await dataService.GetTemplates()).ToList();
-            var referenceEdges = (await dataService.GetReferenceGraph()).ToList();
+            var referenceEdges = (await dataService.GetSchemaReferenceGraph()).ToList();
             var driftFindings = (await dataService.GetConfigurationDriftFindings()).ToList();
             var deliveryApiDiagnostics = await deliveryApiDiagnosticsService.GetDiagnosticsAsync(cancellationToken);
             var usage = dataBaseService.GetContentUsageData().ToList();

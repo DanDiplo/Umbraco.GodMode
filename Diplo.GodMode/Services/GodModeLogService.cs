@@ -139,6 +139,20 @@ public sealed class GodModeLogService : IGodModeLogService
 
     private IEnumerable<GodModeLogEvent> ReadEvents()
     {
+        var signature = GetLogFileSignature();
+        var cacheKey = $"godmode:logs:events:{signature}";
+
+        return memoryCache.GetOrCreate(cacheKey, entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
+            entry.SlidingExpiration = TimeSpan.FromSeconds(10);
+
+            return ReadEventsFromDisk().ToList();
+        }) ?? [];
+    }
+
+    private IEnumerable<GodModeLogEvent> ReadEventsFromDisk()
+    {
         var folder = GetLogFolder();
 
         if (!Directory.Exists(folder))

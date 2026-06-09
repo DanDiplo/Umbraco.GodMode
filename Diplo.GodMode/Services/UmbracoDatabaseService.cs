@@ -1,5 +1,6 @@
 ﻿using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NPoco;
 using Umbraco.Cms.Core;
@@ -15,15 +16,18 @@ namespace Diplo.GodMode.Services
     /// </summary>
     public class UmbracoDatabaseService : IUmbracoDatabaseService
     {
+        private const string DatabaseTablesCacheKey = "Diplo.GodMode.DatabaseTables";
         private readonly IScopeProvider scopeProvider;
         private readonly ILogger<UmbracoDatabaseService> logger;
         private readonly IPublishedContentQuery contentQuery;
+        private readonly IMemoryCache memoryCache;
 
-        public UmbracoDatabaseService(IScopeProvider scopeProvider, IPublishedContentQuery contentQuery, ILogger<UmbracoDatabaseService> logger)
+        public UmbracoDatabaseService(IScopeProvider scopeProvider, IPublishedContentQuery contentQuery, ILogger<UmbracoDatabaseService> logger, IMemoryCache memoryCache)
         {
             this.scopeProvider = scopeProvider;
             this.contentQuery = contentQuery;
             this.logger = logger;
+            this.memoryCache = memoryCache;
         }
 
         /// <summary>
@@ -668,11 +672,16 @@ namespace Diplo.GodMode.Services
 
         public IEnumerable<DatabaseTableInfo> GetDatabaseTables()
         {
+            if (this.memoryCache.TryGetValue(DatabaseTablesCacheKey, out IReadOnlyList<DatabaseTableInfo>? cached) && cached is not null)
+            {
+                return cached;
+            }
+
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
                 var tables = GetTableNames(scope.Database).ToList();
 
-                return tables
+                var tableInfo = tables
                     .Select(table =>
                     {
                         var info = CreateTableInfo(table.Schema, table.Name);
@@ -693,6 +702,9 @@ namespace Diplo.GodMode.Services
                     .OrderByDescending(x => x.RowCount)
                     .ThenBy(x => x.Name)
                     .ToList();
+
+                this.memoryCache.Set(DatabaseTablesCacheKey, tableInfo, TimeSpan.FromMinutes(1));
+                return tableInfo;
             }
         }
 
@@ -726,6 +738,7 @@ namespace Diplo.GodMode.Services
                 }
 
                 ApplyRowCountWarning(baseInfo);
+                var relationships = GetRelationships(scope.Database).ToList();
 
                 return new DatabaseTableDetail
                 {
@@ -737,11 +750,11 @@ namespace Diplo.GodMode.Services
                     CountSucceeded = baseInfo.CountSucceeded,
                     Warning = baseInfo.Warning,
                     Columns = GetColumns(scope.Database, table.Schema, table.Name).OrderBy(x => x.Ordinal).ToList(),
-                    OutgoingRelationships = GetRelationships(scope.Database)
+                    OutgoingRelationships = relationships
                         .Where(x => x.FromSchema.InvariantEquals(table.Schema) && x.FromTable.InvariantEquals(table.Name))
                         .OrderBy(x => x.FromColumn)
                         .ToList(),
-                    IncomingRelationships = GetRelationships(scope.Database)
+                    IncomingRelationships = relationships
                         .Where(x => x.ToSchema.InvariantEquals(table.Schema) && x.ToTable.InvariantEquals(table.Name))
                         .OrderBy(x => x.FromTable)
                         .ThenBy(x => x.FromColumn)

@@ -16,6 +16,10 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.1.3
+* Fixed modal opening feedback for detail and evidence buttons that fetch data before opening their modal.
+* Ensures slow Content, Media, Database, Data Type, Health Risk, Configuration Drift, and Type detail actions show progress immediately after click.
+
 ### 17.1.2
 UI/UX improvements, including:
 * Added visible opening feedback for God Mode modal actions so slow sites no longer appear unresponsive after a click.

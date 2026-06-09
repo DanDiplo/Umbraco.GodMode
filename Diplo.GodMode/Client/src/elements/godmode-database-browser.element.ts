@@ -2,7 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
-import { openEvidenceDrawer } from "../shared/evidence-drawer";
+import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 import "../shared";
 import type { DatabaseTableDetail, DatabaseTableInfo } from "../shared/types";
 
@@ -47,63 +47,67 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
         this._sort = toggleSort(this._sort, e.detail);
     };
 
-    private async _openDetail(table: DatabaseTableInfo, e: Event) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const detailName = table.schema ? `${table.schema}.${table.name}` : table.name;
-        const detail = await godmodeGet<DatabaseTableDetail>(`database/tables/${encodeURIComponent(detailName)}`);
-
-        openEvidenceDrawer(
+    private _openDetail(table: DatabaseTableInfo, e: Event) {
+        openLazyEvidenceDrawer(
             this,
             {
-                title: `Table: ${detail.name}`,
-                subtitle: detail.purpose,
-                summary: [
-                    { label: "Rows", value: detail.countSucceeded ? detail.rowCount.toLocaleString() : "Unknown" },
-                    { label: "Category", value: detail.category },
-                    { label: "Schema", value: detail.schema || "Default" },
-                    { label: "Columns", value: detail.columns.length },
-                    { label: "Outgoing FK", value: detail.outgoingRelationships.length },
-                    { label: "Incoming FK", value: detail.incomingRelationships.length }
-                ],
-                sections: [
-                    {
-                        heading: "Relationship Map",
-                        description: "Declared foreign-key relationships around this table.",
-                        visual: "database-relationship-graph",
-                        items: {
-                            center: {
-                                name: detail.name,
-                                category: detail.category,
-                                rowCount: detail.rowCount,
-                                countSucceeded: detail.countSucceeded,
-                                warning: detail.warning
+                title: `Table: ${table.name}`,
+                subtitle: table.purpose,
+                sections: [],
+                load: async () => {
+                    const detailName = table.schema ? `${table.schema}.${table.name}` : table.name;
+                    const detail = await godmodeGet<DatabaseTableDetail>(`database/tables/${encodeURIComponent(detailName)}`);
+
+                    return {
+                        title: `Table: ${detail.name}`,
+                        subtitle: detail.purpose,
+                        summary: [
+                            { label: "Rows", value: detail.countSucceeded ? detail.rowCount.toLocaleString() : "Unknown" },
+                            { label: "Category", value: detail.category },
+                            { label: "Schema", value: detail.schema || "Default" },
+                            { label: "Columns", value: detail.columns.length },
+                            { label: "Outgoing FK", value: detail.outgoingRelationships.length },
+                            { label: "Incoming FK", value: detail.incomingRelationships.length }
+                        ],
+                        sections: [
+                            {
+                                heading: "Relationship Map",
+                                description: "Declared foreign-key relationships around this table.",
+                                visual: "database-relationship-graph",
+                                items: {
+                                    center: {
+                                        name: detail.name,
+                                        category: detail.category,
+                                        rowCount: detail.rowCount,
+                                        countSucceeded: detail.countSucceeded,
+                                        warning: detail.warning
+                                    },
+                                    incoming: detail.incomingRelationships,
+                                    outgoing: detail.outgoingRelationships
+                                }
                             },
-                            incoming: detail.incomingRelationships,
-                            outgoing: detail.outgoingRelationships
-                        }
-                    },
-                    {
-                        heading: "Columns",
-                        items: detail.columns.map((column) => ({
-                            name: column.name,
-                            dataType: column.maxLength ? `${column.dataType}(${column.maxLength})` : column.dataType,
-                            nullable: column.nullable,
-                            primaryKey: column.primaryKey
-                        }))
-                    },
-                    {
-                        heading: "Outgoing Relationships",
-                        description: "Foreign keys from this table to other tables.",
-                        items: detail.outgoingRelationships
-                    },
-                    {
-                        heading: "Incoming Relationships",
-                        description: "Foreign keys from other tables into this table.",
-                        items: detail.incomingRelationships
-                    }
-                ]
+                            {
+                                heading: "Columns",
+                                items: detail.columns.map((column) => ({
+                                    name: column.name,
+                                    dataType: column.maxLength ? `${column.dataType}(${column.maxLength})` : column.dataType,
+                                    nullable: column.nullable,
+                                    primaryKey: column.primaryKey
+                                }))
+                            },
+                            {
+                                heading: "Outgoing Relationships",
+                                description: "Foreign keys from this table to other tables.",
+                                items: detail.outgoingRelationships
+                            },
+                            {
+                                heading: "Incoming Relationships",
+                                description: "Foreign keys from other tables into this table.",
+                                items: detail.incomingRelationships
+                            }
+                        ]
+                    };
+                }
             },
             e
         );

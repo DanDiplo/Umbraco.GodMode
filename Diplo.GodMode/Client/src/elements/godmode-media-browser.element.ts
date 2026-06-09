@@ -6,7 +6,7 @@ import "../shared";
 import type { ContentMediaDetail, ItemBase, MediaMap, Page } from "../shared/types";
 import { formatBytes, truncate } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
-import { openEvidenceDrawer } from "../shared/evidence-drawer";
+import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-media-browser")
 export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
@@ -63,125 +63,132 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
         void this._fetch();
     };
 
-    private async _openDetails(media: MediaMap, e: Event) {
-        const detail = await godmodeGet<ContentMediaDetail>(`media/${media.id}/detail`);
-        const ancestorPath = this._ancestorPath(detail);
-
-        openEvidenceDrawer(
+    private _openDetails(media: MediaMap, e: Event) {
+        openLazyEvidenceDrawer(
             this,
             {
-                title: `Media: ${detail.name}`,
-                subtitle: `${detail.contentTypeName} (${detail.mediaFile?.fileType || media.type})`,
-                summary: [
-                    { label: "Id", value: detail.id },
-                    { label: "Key", value: detail.key },
-                    { label: "Media Type", value: detail.contentTypeName },
-                    { label: "Alias", value: detail.contentTypeAlias },
-                    { label: "Location", value: ancestorPath },
-                    { label: "Depth", value: Math.max(detail.ancestors.length - 1, 0) },
-                    { label: "Extension", value: detail.mediaFile?.extension || media.ext },
-                    { label: "Size", value: formatBytes(detail.mediaFile?.size ?? media.size) },
-                    { label: "Updated", value: truncate(detail.updateDate, 22) },
-                    { label: "Trashed", value: detail.trashed }
-                ],
-                sections: [
-                    {
-                        heading: "File",
-                        items: {
-                            name: detail.name,
-                            fileType: detail.mediaFile?.fileType || media.type,
-                            extension: detail.mediaFile?.extension || media.ext,
-                            size: formatBytes(detail.mediaFile?.size ?? media.size),
-                            location: ancestorPath,
-                            rawPath: detail.path,
-                            parentId: detail.parentId,
-                            level: detail.level,
-                            created: truncate(detail.createDate, 22),
-                            updated: truncate(detail.updateDate, 22)
-                        }
-                    },
-                    {
-                        heading: "Ancestor Path",
-                        description: "Decoded from the Umbraco path IDs, including missing ancestors if an ID cannot be resolved.",
-                        items: detail.ancestors.map((ancestor, index) => ({
-                            position: index,
-                            id: ancestor.id,
-                            name: ancestor.name,
-                            alias: ancestor.alias,
-                            level: ancestor.level,
-                            current: ancestor.isCurrent
-                        }))
-                    },
-                    {
-                        heading: "Properties",
-                        description: "Property metadata from the media item. Values are summarized to avoid dumping large file JSON payloads.",
-                        items: detail.properties.map((property) => ({
-                            name: property.name,
-                            alias: property.alias,
-                            editor: property.editorAlias,
-                            storage: property.storageType,
-                            values: property.valueCount,
-                            edited: property.hasEditedValue,
-                            published: property.hasPublishedValue,
-                            cultures: property.cultures
-                        }))
-                    },
-                    {
-                        heading: "Incoming Relations",
-                        items: detail.incomingRelations.map((relation) => ({
-                            type: relation.relationTypeName || relation.relationTypeAlias,
-                            relatedId: relation.relatedId,
-                            relatedName: relation.relatedName,
-                            relatedKey: relation.relatedKey,
-                            relatedPath: relation.relatedPath,
-                            comment: relation.comment
-                        }))
-                    },
-                    {
-                        heading: "Outgoing Relations",
-                        items: detail.outgoingRelations.map((relation) => ({
-                            type: relation.relationTypeName || relation.relationTypeAlias,
-                            relatedId: relation.relatedId,
-                            relatedName: relation.relatedName,
-                            relatedKey: relation.relatedKey,
-                            relatedPath: relation.relatedPath,
-                            comment: relation.comment
-                        }))
-                    },
-                    {
-                        heading: "Used By",
-                        items: detail.usedBy.map((edge) => ({
-                            sourceType: edge.sourceType,
-                            sourceName: edge.sourceName,
-                            relation: edge.relation,
-                            targetType: edge.targetType,
-                            targetName: edge.targetName,
-                            context: edge.context
-                        }))
-                    },
-                    {
-                        heading: "Uses",
-                        items: detail.uses.map((edge) => ({
-                            sourceType: edge.sourceType,
-                            sourceName: edge.sourceName,
-                            relation: edge.relation,
-                            targetType: edge.targetType,
-                            targetName: edge.targetName,
-                            context: edge.context
-                        }))
-                    },
-                    {
-                        heading: "Audit Trail",
-                        items: detail.auditTrail.map((entry) => ({
-                            type: entry.auditType,
-                            entityType: entry.entityType,
-                            user: entry.userName,
-                            userId: entry.userId,
-                            comment: entry.comment,
-                            parameters: entry.parameters
-                        }))
-                    }
-                ]
+                title: `Media: ${media.name}`,
+                subtitle: media.type,
+                sections: [],
+                load: async () => {
+                    const detail = await godmodeGet<ContentMediaDetail>(`media/${media.id}/detail`);
+                    const ancestorPath = this._ancestorPath(detail);
+
+                    return {
+                        title: `Media: ${detail.name}`,
+                        subtitle: `${detail.contentTypeName} (${detail.mediaFile?.fileType || media.type})`,
+                        summary: [
+                            { label: "Id", value: detail.id },
+                            { label: "Key", value: detail.key },
+                            { label: "Media Type", value: detail.contentTypeName },
+                            { label: "Alias", value: detail.contentTypeAlias },
+                            { label: "Location", value: ancestorPath },
+                            { label: "Depth", value: Math.max(detail.ancestors.length - 1, 0) },
+                            { label: "Extension", value: detail.mediaFile?.extension || media.ext },
+                            { label: "Size", value: formatBytes(detail.mediaFile?.size ?? media.size) },
+                            { label: "Updated", value: truncate(detail.updateDate, 22) },
+                            { label: "Trashed", value: detail.trashed }
+                        ],
+                        sections: [
+                            {
+                                heading: "File",
+                                items: {
+                                    name: detail.name,
+                                    fileType: detail.mediaFile?.fileType || media.type,
+                                    extension: detail.mediaFile?.extension || media.ext,
+                                    size: formatBytes(detail.mediaFile?.size ?? media.size),
+                                    location: ancestorPath,
+                                    rawPath: detail.path,
+                                    parentId: detail.parentId,
+                                    level: detail.level,
+                                    created: truncate(detail.createDate, 22),
+                                    updated: truncate(detail.updateDate, 22)
+                                }
+                            },
+                            {
+                                heading: "Ancestor Path",
+                                description: "Decoded from the Umbraco path IDs, including missing ancestors if an ID cannot be resolved.",
+                                items: detail.ancestors.map((ancestor, index) => ({
+                                    position: index,
+                                    id: ancestor.id,
+                                    name: ancestor.name,
+                                    alias: ancestor.alias,
+                                    level: ancestor.level,
+                                    current: ancestor.isCurrent
+                                }))
+                            },
+                            {
+                                heading: "Properties",
+                                description: "Property metadata from the media item. Values are summarized to avoid dumping large file JSON payloads.",
+                                items: detail.properties.map((property) => ({
+                                    name: property.name,
+                                    alias: property.alias,
+                                    editor: property.editorAlias,
+                                    storage: property.storageType,
+                                    values: property.valueCount,
+                                    edited: property.hasEditedValue,
+                                    published: property.hasPublishedValue,
+                                    cultures: property.cultures
+                                }))
+                            },
+                            {
+                                heading: "Incoming Relations",
+                                items: detail.incomingRelations.map((relation) => ({
+                                    type: relation.relationTypeName || relation.relationTypeAlias,
+                                    relatedId: relation.relatedId,
+                                    relatedName: relation.relatedName,
+                                    relatedKey: relation.relatedKey,
+                                    relatedPath: relation.relatedPath,
+                                    comment: relation.comment
+                                }))
+                            },
+                            {
+                                heading: "Outgoing Relations",
+                                items: detail.outgoingRelations.map((relation) => ({
+                                    type: relation.relationTypeName || relation.relationTypeAlias,
+                                    relatedId: relation.relatedId,
+                                    relatedName: relation.relatedName,
+                                    relatedKey: relation.relatedKey,
+                                    relatedPath: relation.relatedPath,
+                                    comment: relation.comment
+                                }))
+                            },
+                            {
+                                heading: "Used By",
+                                items: detail.usedBy.map((edge) => ({
+                                    sourceType: edge.sourceType,
+                                    sourceName: edge.sourceName,
+                                    relation: edge.relation,
+                                    targetType: edge.targetType,
+                                    targetName: edge.targetName,
+                                    context: edge.context
+                                }))
+                            },
+                            {
+                                heading: "Uses",
+                                items: detail.uses.map((edge) => ({
+                                    sourceType: edge.sourceType,
+                                    sourceName: edge.sourceName,
+                                    relation: edge.relation,
+                                    targetType: edge.targetType,
+                                    targetName: edge.targetName,
+                                    context: edge.context
+                                }))
+                            },
+                            {
+                                heading: "Audit Trail",
+                                items: detail.auditTrail.map((entry) => ({
+                                    type: entry.auditType,
+                                    entityType: entry.entityType,
+                                    user: entry.userName,
+                                    userId: entry.userId,
+                                    comment: entry.comment,
+                                    parameters: entry.parameters
+                                }))
+                            }
+                        ]
+                    };
+                }
             },
             e
         );
