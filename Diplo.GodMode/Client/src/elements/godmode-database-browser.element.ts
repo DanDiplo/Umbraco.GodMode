@@ -4,7 +4,7 @@ import { godmodeGet } from "../api/client";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
 import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 import "../shared";
-import type { DatabaseTableDetail, DatabaseTableInfo } from "../shared/types";
+import type { DatabaseTableDetail, DatabaseTableInfo, DatabaseTableRows } from "../shared/types";
 
 @customElement("godmode-database-browser")
 export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
@@ -13,6 +13,11 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _search = "";
     @state() private _category = "";
     @state() private _sort: SortState = { column: "rowCount", reverse: true };
+    @state() private _rowTable: DatabaseTableInfo | null = null;
+    @state() private _rowPage: DatabaseTableRows | null = null;
+    @state() private _rowLoading = false;
+    @state() private _rowError = "";
+    @state() private _rowPageSize = 25;
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -113,6 +118,109 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
         );
     }
 
+    private async _openRows(table: DatabaseTableInfo, page = 1, scrollToPanel = false) {
+        this._rowTable = table;
+        this._rowLoading = true;
+        this._rowError = "";
+
+        if (scrollToPanel) {
+            void this._scrollRowsPanelIntoView();
+        }
+
+        try {
+            const detailName = table.schema ? `${table.schema}.${table.name}` : table.name;
+            this._rowPage = await godmodeGet<DatabaseTableRows>(`database/tables/${encodeURIComponent(detailName)}/rows`, {
+                page,
+                pageSize: this._rowPageSize
+            });
+        } catch {
+            this._rowPage = null;
+            this._rowError = "Could not load table rows.";
+        } finally {
+            this._rowLoading = false;
+        }
+    }
+
+    private async _scrollRowsPanelIntoView() {
+        await this.updateComplete;
+        this.renderRoot.querySelector(".data-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    private _onRowsPageChange = (e: CustomEvent<number>) => {
+        if (this._rowTable) {
+            void this._openRows(this._rowTable, e.detail);
+        }
+    };
+
+    private _renderCell(value: unknown) {
+        if (value === null || value === undefined) {
+            return html`<span class="muted">null</span>`;
+        }
+
+        const text = typeof value === "object" ? JSON.stringify(value) : String(value);
+        return html`<span title=${text}>${text}</span>`;
+    }
+
+    private _renderRowsPanel() {
+        if (!this._rowTable) return "";
+
+        return html`
+            <uui-box class="data-panel" headline=${`Data: ${this._rowTable.name}`}>
+                <div class="data-toolbar">
+                    <div>
+                        ${this._rowTable.schema ? html`<span class="muted">${this._rowTable.schema}</span>` : ""}
+                        ${this._rowPage ? html`<span class="muted">${this._rowPage.totalItems.toLocaleString()} rows</span>` : ""}
+                    </div>
+                    <div>
+                        <label>
+                            Page size
+                            <select
+                                @change=${(e: Event) => {
+                                    this._rowPageSize = Number((e.target as HTMLSelectElement).value);
+                                    if (this._rowTable) void this._openRows(this._rowTable, 1);
+                                }}
+                            >
+                                ${[10, 25, 50, 100].map((size) => html`<option value=${size} ?selected=${size === this._rowPageSize}>${size}</option>`)}
+                            </select>
+                        </label>
+                        <uui-button compact look="secondary" label="Close data" @click=${() => ((this._rowTable = null), (this._rowPage = null))}>
+                            <uui-icon name="icon-delete"></uui-icon>
+                        </uui-button>
+                    </div>
+                </div>
+
+                ${this._rowLoading
+                    ? html`<uui-loader></uui-loader>`
+                    : this._rowError
+                      ? html`<p class="warning">${this._rowError}</p>`
+                      : !this._rowPage || this._rowPage.items.length === 0
+                        ? html`<p class="muted">No rows found.</p>`
+                        : html`
+                              <div class="data-grid">
+                                  <uui-table>
+                                      <uui-table-head>
+                                          ${this._rowPage.columns.map((column) => html`<uui-table-head-cell>${column.name}</uui-table-head-cell>`)}
+                                      </uui-table-head>
+                                      ${this._rowPage.items.map(
+                                          (row) => html`
+                                              <uui-table-row>
+                                                  ${this._rowPage?.columns.map((column) => html`<uui-table-cell>${this._renderCell(row[column.name])}</uui-table-cell>`)}
+                                              </uui-table-row>
+                                          `
+                                      )}
+                                  </uui-table>
+                              </div>
+                              <godmode-pager
+                                  .currentPage=${this._rowPage.currentPage}
+                                  .totalPages=${Math.max(1, this._rowPage.totalPages)}
+                                  .totalItems=${this._rowPage.totalItems}
+                                  @page-change=${this._onRowsPageChange}
+                              ></godmode-pager>
+                          `}
+            </uui-box>
+        `;
+    }
+
     override render() {
         const results = this._filtered();
         const totalRows = this._tables.reduce((sum, table) => sum + (table.countSucceeded ? table.rowCount : 0), 0);
@@ -189,6 +297,16 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
                                           <uui-table-cell><small>${table.purpose}</small></uui-table-cell>
                                           <uui-table-cell>${table.warning ? html`<span class="warning">${table.warning}</span>` : html`<span class="muted">OK</span>`}</uui-table-cell>
                                           <uui-table-cell class="action-cell">
+                                              <uui-button
+                                                  compact
+                                                  look="secondary"
+                                                  label=${table.countSucceeded && table.rowCount === 0 ? "No rows to view" : "View data"}
+                                                  ?disabled=${table.countSucceeded && table.rowCount === 0}
+                                                  @click=${() => void this._openRows(table, 1, true)}
+                                              >
+                                                  <uui-icon name="icon-table"></uui-icon>
+                                                  Data
+                                              </uui-button>
                                               <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetail(table, e)}>
                                                   <uui-icon name="icon-search"></uui-icon>
                                                   Details
@@ -198,6 +316,7 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
                                   `
                               )}
                           </uui-table>
+                          ${this._renderRowsPanel()}
                       `}
             </godmode-page>
         `;
@@ -273,12 +392,57 @@ export class GodModeDatabaseBrowserElement extends UmbElementMixin(LitElement) {
         }
         .action-cell {
             text-align: right;
-            width: 8rem;
+            width: 13rem;
+            white-space: nowrap;
+        }
+        .data-panel {
+            display: block;
+            margin-top: var(--uui-size-space-5);
+        }
+        .data-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--uui-size-space-3);
+            margin-bottom: var(--uui-size-space-3);
+        }
+        .data-toolbar > div {
+            display: flex;
+            align-items: center;
+            gap: var(--uui-size-space-3);
+        }
+        .data-toolbar label {
+            display: flex;
+            align-items: center;
+            gap: var(--uui-size-space-2);
+            margin: 0;
+        }
+        .data-toolbar select {
+            width: auto;
+        }
+        .data-grid {
+            overflow: auto;
+            max-height: 560px;
+            border: 1px solid var(--uui-color-border);
+            border-radius: var(--uui-border-radius);
+        }
+        .data-grid uui-table {
+            min-width: 100%;
+        }
+        .data-grid uui-table-cell,
+        .data-grid uui-table-head-cell {
+            max-width: 24rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         @media (max-width: 900px) {
             .summary,
-            .filters {
+            .filters,
+            .data-toolbar {
                 grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: stretch;
             }
         }
     `;

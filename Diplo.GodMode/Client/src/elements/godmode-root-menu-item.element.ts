@@ -25,7 +25,7 @@ const CHILD_GROUPS: ReadonlyArray<ChildGroup> = [
     },
     {
         label: "Health & operations",
-        ids: ["healthRisk", "configurationDrift", "diagnosticBrowser", "logBrowser", "databaseBrowser"]
+        ids: ["healthRisk", "diagnosticBrowser", "logBrowser", "databaseBrowser"]
     },
     {
         label: "Content & schema",

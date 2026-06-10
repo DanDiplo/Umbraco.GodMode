@@ -469,6 +469,16 @@ public class GodModeApiController : ManagementApiControllerBase
         return detail is null ? NotFound() : Ok(detail);
     }
 
+    [HttpGet("database/tables/{tableName}/rows")]
+    [ProducesResponseType<DatabaseTableRows>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public ActionResult<DatabaseTableRows> GetDatabaseTableRows(string tableName, long page = 1, long pageSize = 25)
+    {
+        var rows = dataBaseService.GetDatabaseTableRows(tableName, page, pageSize);
+
+        return rows is null ? NotFound() : Ok(rows);
+    }
+
     [HttpGet("logs/overview")]
     [ProducesResponseType<GodModeLogOverview>(StatusCodes.Status200OK)]
     public ActionResult<GodModeLogOverview> GetLogOverview()

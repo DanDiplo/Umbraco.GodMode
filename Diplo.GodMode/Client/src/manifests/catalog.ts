@@ -121,17 +121,9 @@ export const browsers: BrowserDef[] = [
         id: "healthRisk",
         label: "Health & Risk",
         icon: "icon-alert",
-        description: "Surface schema drift, broken references and cleanup opportunities",
+        description: "Surface broken references and cleanup opportunities",
         weight: 990,
         element: () => import("../elements/godmode-health-risk-browser.element")
-    },
-    {
-        id: "configurationDrift",
-        label: "Configuration Drift",
-        icon: "icon-merge",
-        description: "Compare similar data types, content models and property aliases for suspicious drift",
-        weight: 985,
-        element: () => import("../elements/godmode-configuration-drift.element")
     },
     {
         id: "extensionExplorer",

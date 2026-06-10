@@ -29,7 +29,7 @@ const PAGE_GROUPS: ReadonlyArray<PageGroup> = [
     },
     {
         label: "Health & operations",
-        ids: ["healthRisk", "configurationDrift", "diagnosticBrowser", "logBrowser", "databaseBrowser"]
+        ids: ["healthRisk", "diagnosticBrowser", "logBrowser", "databaseBrowser"]
     },
     {
         label: "Content & schema",

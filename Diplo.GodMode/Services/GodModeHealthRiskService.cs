@@ -36,7 +36,6 @@ namespace Diplo.GodMode.Services
             var dataTypes = (await dataService.GetDataTypesStatus()).ToList();
             var templates = (await dataService.GetTemplates()).ToList();
             var referenceEdges = (await dataService.GetSchemaReferenceGraph()).ToList();
-            var driftFindings = (await dataService.GetConfigurationDriftFindings()).ToList();
             var deliveryApiDiagnostics = await deliveryApiDiagnosticsService.GetDiagnosticsAsync(cancellationToken);
             var usage = dataBaseService.GetContentUsageData().ToList();
             var orphanedTags = dataBaseService.GetOrphanedTags();
@@ -133,20 +132,6 @@ namespace Diplo.GodMode.Services
                     aliases,
                     string.Empty,
                     "Rename duplicates so future schema changes are easier to reason about."));
-            }
-
-            foreach (var drift in driftFindings.Where(x => x.Score >= 50).Take(25))
-            {
-                findings.Add(CreateFinding(
-                    drift.Severity,
-                    "Configuration Drift",
-                    drift.Category,
-                    drift.Summary,
-                    drift.EntityType,
-                    drift.EntityName,
-                    drift.EntityAlias,
-                    drift.EntityKey,
-                    drift.Recommendation));
             }
 
             findings.AddRange(deliveryApiDiagnostics.Findings);

@@ -564,6 +564,15 @@ export interface DatabaseTableDetail extends DatabaseTableInfo {
     incomingRelationships: DatabaseRelationshipInfo[];
 }
 
+export interface DatabaseTableRows {
+    columns: DatabaseColumnInfo[];
+    currentPage: number;
+    totalPages: number;
+    itemsPerPage: number;
+    totalItems: number;
+    items: Array<Record<string, unknown>>;
+}
+
 export interface DatabaseColumnInfo {
     name: string;
     dataType: string;

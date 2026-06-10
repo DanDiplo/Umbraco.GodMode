@@ -71,5 +71,7 @@ namespace Diplo.GodMode.Services.Interfaces
         IEnumerable<DatabaseTableInfo> GetDatabaseTables();
 
         DatabaseTableDetail? GetDatabaseTableDetail(string tableName);
+
+        DatabaseTableRows? GetDatabaseTableRows(string tableName, long page = 1, long pageSize = 25);
     }
 }

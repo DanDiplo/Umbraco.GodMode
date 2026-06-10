@@ -28,6 +28,21 @@ public class DatabaseTableDetail : DatabaseTableInfo
     public IEnumerable<DatabaseRelationshipInfo> IncomingRelationships { get; set; } = [];
 }
 
+public class DatabaseTableRows
+{
+    public IEnumerable<DatabaseColumnInfo> Columns { get; set; } = [];
+
+    public long CurrentPage { get; set; }
+
+    public long TotalPages { get; set; }
+
+    public long ItemsPerPage { get; set; }
+
+    public long TotalItems { get; set; }
+
+    public IEnumerable<IDictionary<string, object?>> Items { get; set; } = [];
+}
+
 public class DatabaseColumnInfo
 {
     public string Name { get; set; } = string.Empty;

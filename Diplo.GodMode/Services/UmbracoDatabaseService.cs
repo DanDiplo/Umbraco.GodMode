@@ -249,18 +249,32 @@ namespace Diplo.GodMode.Services
 
         public IEnumerable<Lang> GetLanguagesWithoutAssignedDomains()
         {
-            var query = new Sql(@"SELECT L.id, L.languageCultureName as Name, L.languageISOCode as Culture
-                FROM umbracoLanguage L
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM umbracoDomain D
-                    WHERE D.languageId = L.id
-                        AND COALESCE(D.domainName, '') <> ''
-                )
-                ORDER BY L.languageISOCode");
-
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
             {
+                var domainTable = GetTableNames(scope.Database).FirstOrDefault(x => x.Name.InvariantEquals("umbracoDomain"));
+                if (domainTable is null)
+                {
+                    return [];
+                }
+
+                var domainColumns = GetColumns(scope.Database, domainTable.Schema, domainTable.Name).ToList();
+                var languagePredicate = GetDomainLanguagePredicate(domainColumns);
+                if (languagePredicate is null)
+                {
+                    logger.LogDebug("Could not find a language column on umbracoDomain for health risk checks.");
+                    return [];
+                }
+
+                var query = new Sql($@"SELECT L.id, L.languageCultureName as Name, L.languageISOCode as Culture
+                    FROM umbracoLanguage L
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM umbracoDomain D
+                        WHERE {languagePredicate}
+                            AND COALESCE(D.domainName, '') <> ''
+                    )
+                    ORDER BY L.languageISOCode");
+
                 return scope.Database.Fetch<Lang>(query);
             }
         }
@@ -781,6 +795,64 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        public DatabaseTableRows? GetDatabaseTableRows(string tableName, long page = 1, long pageSize = 25)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return null;
+            }
+
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                var table = GetTableNames(scope.Database)
+                    .FirstOrDefault(x => x.Name.InvariantEquals(tableName) || $"{x.Schema}.{x.Name}".InvariantEquals(tableName));
+
+                if (table is null)
+                {
+                    return null;
+                }
+
+                var columns = GetColumns(scope.Database, table.Schema, table.Name)
+                    .OrderBy(x => x.Ordinal)
+                    .ToList();
+
+                if (columns.Count == 0)
+                {
+                    return new DatabaseTableRows
+                    {
+                        Columns = columns,
+                        CurrentPage = page,
+                        ItemsPerPage = pageSize,
+                        TotalItems = 0,
+                        TotalPages = 0,
+                        Items = []
+                    };
+                }
+
+                var totalItems = scope.Database.ExecuteScalar<long>($"SELECT COUNT(*) FROM {QuoteTableName(table.Schema, table.Name)}");
+                var totalPages = totalItems == 0 ? 0 : (long)Math.Ceiling(totalItems / (double)pageSize);
+                page = totalPages == 0 ? 1 : Math.Min(page, totalPages);
+
+                var sql = BuildPagedRowsSql(table.Schema, table.Name, columns, page, pageSize);
+                var rows = scope.Database.Fetch<dynamic>(sql)
+                    .Select(row => (IDictionary<string, object?>)NormalizeDatabaseRow(row, columns))
+                    .ToList();
+
+                return new DatabaseTableRows
+                {
+                    Columns = columns,
+                    CurrentPage = page,
+                    ItemsPerPage = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    Items = rows
+                };
+            }
+        }
+
         private DatabaseHealthRow CountTableRows(string label, params string[] tableNames)
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
@@ -918,6 +990,28 @@ namespace Diplo.GodMode.Services
                     AND PKCU.CONSTRAINT_NAME = RC.UNIQUE_CONSTRAINT_NAME
                     AND PKCU.ORDINAL_POSITION = FKCU.ORDINAL_POSITION
                   ORDER BY FKCU.TABLE_NAME, FKCU.COLUMN_NAME");
+        }
+
+        private static string? GetDomainLanguagePredicate(IEnumerable<DatabaseColumnInfo> columns)
+        {
+            var columnNames = columns.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (columnNames.Contains("domainDefaultLanguage"))
+            {
+                return "D.domainDefaultLanguage = L.id";
+            }
+
+            if (columnNames.Contains("languageId"))
+            {
+                return "D.languageId = L.id";
+            }
+
+            if (columnNames.Contains("languageIsoCode"))
+            {
+                return "D.languageIsoCode = L.languageISOCode";
+            }
+
+            return null;
         }
 
         private DatabaseTableInfo CreateTableInfo(string schema, string tableName)
@@ -1286,6 +1380,83 @@ namespace Diplo.GodMode.Services
 
         private static string QuoteIdentifier(string identifier)
             => $"[{identifier.Replace("]", "]]")}]";
+
+        private string BuildPagedRowsSql(string schema, string tableName, IReadOnlyList<DatabaseColumnInfo> columns, long page, long pageSize)
+        {
+            var offset = (page - 1) * pageSize;
+            var table = QuoteTableName(schema, tableName);
+            var orderBy = BuildRowsOrderBy(columns);
+
+            if (this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite)
+            {
+                return $"SELECT * FROM {table} ORDER BY {orderBy} LIMIT {pageSize} OFFSET {offset}";
+            }
+
+            return $"SELECT * FROM {table} ORDER BY {orderBy} OFFSET {offset} ROWS FETCH NEXT {pageSize} ROWS ONLY";
+        }
+
+        private static string BuildRowsOrderBy(IReadOnlyList<DatabaseColumnInfo> columns)
+        {
+            var orderColumns = columns
+                .Where(x => x.PrimaryKey)
+                .DefaultIfEmpty(columns.FirstOrDefault(IsOrderableColumn))
+                .Where(x => x is not null)
+                .Select(x => QuoteIdentifier(x!.Name));
+
+            var orderBy = string.Join(", ", orderColumns);
+            return string.IsNullOrWhiteSpace(orderBy) ? "(SELECT NULL)" : orderBy;
+        }
+
+        private static bool IsOrderableColumn(DatabaseColumnInfo column)
+        {
+            var dataType = column.DataType.ToLowerInvariant();
+            return dataType is not "text" and not "ntext" and not "image" and not "xml" and not "binary" and not "varbinary";
+        }
+
+        private static IDictionary<string, object?> NormalizeDatabaseRow(object row, IEnumerable<DatabaseColumnInfo> columns)
+        {
+            var values = row as IDictionary<string, object?> ?? new Dictionary<string, object?>();
+
+            return columns.ToDictionary(
+                column => column.Name,
+                column => values.TryGetValue(column.Name, out var value) ? NormalizeDatabaseValue(column.Name, value) : null);
+        }
+
+        private static object? NormalizeDatabaseValue(string columnName, object? value)
+        {
+            if (value is null || value is DBNull)
+            {
+                return null;
+            }
+
+            if (IsSensitiveColumn(columnName))
+            {
+                return "[redacted]";
+            }
+
+            if (value is byte[] bytes)
+            {
+                return $"[binary: {bytes.Length:n0} bytes]";
+            }
+
+            if (value is string text && text.Length > 1000)
+            {
+                return text[..1000] + "...";
+            }
+
+            return value;
+        }
+
+        private static bool IsSensitiveColumn(string columnName)
+        {
+            var name = columnName.ToLowerInvariant();
+            return name.Contains("password")
+                || name.Contains("secret")
+                || name.Contains("token")
+                || name.Contains("apikey")
+                || name.Contains("api_key")
+                || name.Contains("securitystamp");
+        }
 
         private sealed class DatabaseTableName
         {
