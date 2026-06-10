@@ -5,9 +5,12 @@ using Diplo.GodMode.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NPoco;
+using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services;
 
@@ -18,13 +21,15 @@ public sealed class GodModeLogService : IGodModeLogService
 
     private readonly IWebHostEnvironment env;
     private readonly ILogger<GodModeLogService> logger;
+    private readonly LoggingSettings loggingSettings;
     private readonly IMemoryCache memoryCache;
     private readonly IScopeProvider scopeProvider;
 
-    public GodModeLogService(IWebHostEnvironment env, ILogger<GodModeLogService> logger, IMemoryCache memoryCache, IScopeProvider scopeProvider)
+    public GodModeLogService(IWebHostEnvironment env, ILogger<GodModeLogService> logger, IOptions<LoggingSettings> loggingSettings, IMemoryCache memoryCache, IScopeProvider scopeProvider)
     {
         this.env = env;
         this.logger = logger;
+        this.loggingSettings = loggingSettings.Value;
         this.memoryCache = memoryCache;
         this.scopeProvider = scopeProvider;
     }
@@ -285,15 +290,7 @@ public sealed class GodModeLogService : IGodModeLogService
     }
 
     private string GetLogFolder()
-    {
-        var umbracoLogs = Path.Combine(env.ContentRootPath, "umbraco", "Logs");
-        if (Directory.Exists(umbracoLogs))
-        {
-            return umbracoLogs;
-        }
-
-        return Path.Combine(env.ContentRootPath, "Logs");
-    }
+        => loggingSettings.GetAbsoluteLoggingPath(env);
 
     private static bool MatchesDate(GodModeLogEvent log, DateTimeOffset? fromUtc, DateTimeOffset? toUtc)
     {

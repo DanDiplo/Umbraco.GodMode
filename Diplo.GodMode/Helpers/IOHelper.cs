@@ -2,6 +2,33 @@
 {
     internal static class IOHelper
     {
+        public static string ResolveConfiguredContentRootPath(string contentRootPath, string configuredPath)
+        {
+            if (string.IsNullOrWhiteSpace(configuredPath))
+            {
+                return contentRootPath;
+            }
+
+            var path = configuredPath.Trim();
+            if (Path.IsPathRooted(path))
+            {
+                return Path.GetFullPath(path);
+            }
+
+            if (path.StartsWith("~/", StringComparison.Ordinal) || path.StartsWith("~\\", StringComparison.Ordinal))
+            {
+                path = path[2..];
+            }
+            else if (path is "~")
+            {
+                path = string.Empty;
+            }
+
+            path = path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            return Path.GetFullPath(Path.Combine(contentRootPath, path));
+        }
+
         /// <summary>
         /// Attempts to delete a directory and, if it fails, retries after a period for a defined number of retry attempts
         /// </summary>
