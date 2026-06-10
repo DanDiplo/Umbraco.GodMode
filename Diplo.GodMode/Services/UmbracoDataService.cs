@@ -31,6 +31,7 @@ namespace Diplo.GodMode.Services
         private const string TemplatesCacheKey = "Diplo.GodMode.Templates";
         private const string ConfigurationDriftCacheKey = "Diplo.GodMode.ConfigurationDriftFindings";
         private const string TagMappingCacheKey = "Diplo.GodMode.TagMapping";
+        private const int MaxComparedWithItems = 20;
         private static readonly SemaphoreSlim ReferenceGraphCacheLock = new(1, 1);
         private static readonly SemaphoreSlim SchemaReferenceGraphCacheLock = new(1, 1);
         private readonly IContentService contentService;
@@ -602,12 +603,17 @@ namespace Diplo.GodMode.Services
         private void AddPropertyAliasDriftFindings(ICollection<ConfigurationDriftFinding> findings, IEnumerable<IContentTypeComposition> contentTypes, IReadOnlyDictionary<int, IDataType> dataTypesById)
         {
             var rows = contentTypes
-                .SelectMany(ct => ct.PropertyTypes.Concat(ct.CompositionPropertyTypes).Select(p => new { ContentType = ct, Property = p }))
+                .SelectMany(ct => ct.PropertyTypes.Select(p => new { ContentType = ct, Property = p }))
                 .Where(x => !string.IsNullOrWhiteSpace(x.Property.Alias))
                 .Where(x => !this.IsIgnoredAlias(x.Property.Alias))
                 .ToList();
 
-            foreach (var group in rows.GroupBy(x => x.Property.Alias).Where(x => x.Count() > 1))
+            foreach (var group in rows.GroupBy(x => new
+            {
+                OwnerType = this.GetCompositionTypeName(x.ContentType),
+                OwnerStem = this.NameStem(x.ContentType.Name),
+                Alias = x.Property.Alias.ToLowerInvariant()
+            }).Where(x => x.Count() > 1))
             {
                 var signatures = group.Select(x => this.PropertySignature(x.Property, dataTypesById)).Distinct().ToList();
                 if (signatures.Count <= 1)
@@ -615,20 +621,27 @@ namespace Diplo.GodMode.Services
                     continue;
                 }
 
+                var meaningfulDifferingFields = this.DiffPropertyFields(group.Select(x => x.Property), dataTypesById)
+                    .Where(IsMeaningfulPropertyAliasDriftField)
+                    .ToList();
+                if (meaningfulDifferingFields.Count == 0)
+                {
+                    continue;
+                }
+
                 foreach (var row in group)
                 {
-                    var differingFields = this.DiffPropertyFields(row.Property, group.Select(x => x.Property), dataTypesById).ToList();
                     findings.Add(this.CreateDriftFinding(
-                        GetPropertyAliasDriftSeverity(differingFields),
+                        GetPropertyAliasDriftSeverity(meaningfulDifferingFields),
                         "Property Alias Drift",
                         this.GetCompositionTypeName(row.ContentType),
                         row.ContentType.Name,
                         row.ContentType.Alias,
                         row.ContentType.Key.ToString(),
                         group.Where(x => x.ContentType.Key != row.ContentType.Key).Select(x => $"{x.ContentType.Name}.{x.Property.Alias}"),
-                        $"Property alias '{row.Property.Alias}' is configured differently across content models.",
-                        differingFields,
-                        GetPropertyAliasDriftRecommendation(differingFields)));
+                        $"Property alias '{row.Property.Alias}' uses a different editor, data type, storage or validation across similar content models.",
+                        meaningfulDifferingFields,
+                        GetPropertyAliasDriftRecommendation(meaningfulDifferingFields)));
                 }
             }
         }
@@ -682,7 +695,7 @@ namespace Diplo.GodMode.Services
                 && this.godModeConfig.AliasesToIgnore.Any(x => alias.InvariantEquals(x));
         }
 
-        private IEnumerable<string> DiffPropertyFields(IPropertyType propertyType, IEnumerable<IPropertyType> properties, IReadOnlyDictionary<int, IDataType> dataTypesById)
+        private IEnumerable<string> DiffPropertyFields(IEnumerable<IPropertyType> properties, IReadOnlyDictionary<int, IDataType> dataTypesById)
         {
             if (properties.Select(x => x.Name ?? string.Empty).Distinct().Count() > 1)
             {
@@ -720,9 +733,12 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        private static bool IsMeaningfulPropertyAliasDriftField(string field)
+            => field is "Data type" or "Editor" or "Storage" or "Validation";
+
         private static string GetPropertyAliasDriftSeverity(IReadOnlyCollection<string> differingFields)
         {
-            if (differingFields.Any(x => x is "Data type" or "Editor" or "Storage" or "Validation"))
+            if (differingFields.Any(IsMeaningfulPropertyAliasDriftField))
             {
                 return "Medium";
             }
@@ -732,9 +748,9 @@ namespace Diplo.GodMode.Services
 
         private static string GetPropertyAliasDriftRecommendation(IReadOnlyCollection<string> differingFields)
         {
-            if (differingFields.Any(x => x is "Data type" or "Editor" or "Storage" or "Validation"))
+            if (differingFields.Any(IsMeaningfulPropertyAliasDriftField))
             {
-                return "Review whether the shared alias represents the same value everywhere. Align the configuration, or rename aliases that intentionally mean different things.";
+                return "Review whether the shared alias represents the same value in this content type family. Align the editor configuration, or rename aliases that intentionally mean different things.";
             }
 
             return "Review whether the difference is intentional. Mandatory, name and variation differences are often normal across content models.";
@@ -742,6 +758,13 @@ namespace Diplo.GodMode.Services
 
         private ConfigurationDriftFinding CreateDriftFinding(string severity, string category, string entityType, string entityName, string entityAlias, string entityKey, IEnumerable<string> comparedWith, string summary, IEnumerable<string> differingFields, string recommendation)
         {
+            var comparedWithItems = comparedWith.Distinct().OrderBy(x => x).ToList();
+            var visibleComparedWith = comparedWithItems.Take(MaxComparedWithItems).ToList();
+            if (comparedWithItems.Count > MaxComparedWithItems)
+            {
+                visibleComparedWith.Add($"... and {comparedWithItems.Count - MaxComparedWithItems} more");
+            }
+
             return new ConfigurationDriftFinding
             {
                 Severity = severity,
@@ -757,7 +780,7 @@ namespace Diplo.GodMode.Services
                 EntityName = entityName,
                 EntityAlias = entityAlias,
                 EntityKey = entityKey,
-                ComparedWith = comparedWith.Distinct().OrderBy(x => x).ToList(),
+                ComparedWith = visibleComparedWith,
                 Summary = summary,
                 DifferingFields = differingFields.Distinct().OrderBy(x => x).ToList(),
                 Recommendation = recommendation
@@ -778,12 +801,38 @@ namespace Diplo.GodMode.Services
                 return string.Empty;
             }
 
-            var chars = value
+            var characters = new List<char>();
+            var depth = 0;
+            foreach (var character in value)
+            {
+                if (character is '(' or '[' or '{')
+                {
+                    depth++;
+                    continue;
+                }
+
+                if (character is ')' or ']' or '}')
+                {
+                    depth = Math.Max(0, depth - 1);
+                    continue;
+                }
+
+                if (depth == 0)
+                {
+                    characters.Add(character);
+                }
+            }
+
+            var normalizedValue = characters.Count > 0 ? new string(characters.ToArray()) : value;
+            var chars = normalizedValue
+                .Replace(" copy", string.Empty, StringComparison.InvariantCultureIgnoreCase)
+                .Replace("- copy", string.Empty, StringComparison.InvariantCultureIgnoreCase)
+                .Replace("_copy", string.Empty, StringComparison.InvariantCultureIgnoreCase)
                 .ToLowerInvariant()
                 .Where(char.IsLetterOrDigit)
                 .ToArray();
 
-            return new string(chars).TrimEnd("copy".ToCharArray());
+            return new string(chars);
         }
 
         private string GetCompositionTypeName(IContentTypeComposition contentType)
