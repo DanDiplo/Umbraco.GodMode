@@ -2,6 +2,7 @@
   <Folder Name="/Info/">
     <File Path=".gitignore" />
     <File Path="AGENTS.md" />
+    <File Path="Diplo.GodMode/NuGet.md" />
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
     <File Path="umbraco-marketplace.json" />

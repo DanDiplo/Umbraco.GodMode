@@ -1,5 +1,6 @@
 import { LitElement, css, customElement, html, property, state, svg } from "@umbraco-cms/backoffice/external/lit";
 import type { GodModeEvidenceDrawerData, GodModeEvidenceSection } from "../shared/evidence-drawer";
+import { takeEvidenceLoader } from "../shared/evidence-drawer";
 import "../shared";
 
 interface DatabaseRelationshipGraphData {
@@ -33,7 +34,7 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     @state() private _loadedData?: GodModeEvidenceDrawerData;
     @state() private _loading = false;
     @state() private _error = "";
-    private _activeLoad?: () => Promise<GodModeEvidenceDrawerData>;
+    private _activeLoadKey?: string;
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -46,29 +47,35 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     }
 
     override updated(): void {
-        const load = this.data?.load;
-        if (!load || load === this._activeLoad) {
+        const loadKey = this.data?.loadKey;
+        if (!loadKey || loadKey === this._activeLoadKey) {
             return;
         }
 
-        this._activeLoad = load;
+        const load = takeEvidenceLoader(loadKey);
+        if (!load) {
+            this._error = "Unable to load evidence.";
+            return;
+        }
+
+        this._activeLoadKey = loadKey;
         this._loadedData = undefined;
         this._error = "";
         this._loading = true;
 
         void load()
             .then((data) => {
-                if (this._activeLoad === load) {
+                if (this._activeLoadKey === loadKey) {
                     this._loadedData = data;
                 }
             })
             .catch((error: unknown) => {
-                if (this._activeLoad === load) {
+                if (this._activeLoadKey === loadKey) {
                     this._error = error instanceof Error ? error.message : "Unable to load evidence.";
                 }
             })
             .finally(() => {
-                if (this._activeLoad === load) {
+                if (this._activeLoadKey === loadKey) {
                     this._loading = false;
                 }
             });

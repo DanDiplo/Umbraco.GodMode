@@ -20,8 +20,8 @@ export default defineConfig({
         rollupOptions: {
             external: [/^@umbraco/],
             output: {
-                chunkFileNames: "[name].js",
-                assetFileNames: "[name][extname]"
+                chunkFileNames: "[name]-[hash].js",
+                assetFileNames: "[name]-[hash][extname]"
             }
         }
     },

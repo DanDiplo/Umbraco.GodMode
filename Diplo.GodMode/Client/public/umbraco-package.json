@@ -9,7 +9,7 @@
             "type": "backofficeEntryPoint",
             "alias": "Diplo.GodMode.EntryPoint",
             "name": "Diplo GodMode Entry Point",
-            "js": "/App_Plugins/DiploGodMode/index.js"
+            "js": "/App_Plugins/DiploGodMode/index.js?v=17.1.3"
         }
     ]
 }

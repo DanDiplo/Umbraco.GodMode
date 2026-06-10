@@ -16,7 +16,18 @@ export interface GodModeEvidenceDrawerData {
     subtitle?: string;
     summary?: Array<{ label: string; value: unknown }>;
     sections: GodModeEvidenceSection[];
-    load?: () => Promise<GodModeEvidenceDrawerData>;
+    loadKey?: string;
+}
+
+export type GodModeEvidenceLoader = () => Promise<GodModeEvidenceDrawerData>;
+export type GodModeLazyEvidenceDrawerData = GodModeEvidenceDrawerData & { load?: GodModeEvidenceLoader };
+
+const loaders = new Map<string, GodModeEvidenceLoader>();
+
+export function takeEvidenceLoader(key: string): GodModeEvidenceLoader | undefined {
+    const loader = loaders.get(key);
+    loaders.delete(key);
+    return loader;
 }
 
 export function openEvidenceDrawer(host: UmbControllerHost, data: GodModeEvidenceDrawerData, e?: Event): void {
@@ -25,6 +36,16 @@ export function openEvidenceDrawer(host: UmbControllerHost, data: GodModeEvidenc
     });
 }
 
-export function openLazyEvidenceDrawer(host: UmbControllerHost, data: GodModeEvidenceDrawerData, e?: Event): void {
-    openEvidenceDrawer(host, data, e);
+export function openLazyEvidenceDrawer(host: UmbControllerHost, data: GodModeLazyEvidenceDrawerData, e?: Event): void {
+    const load = data.load;
+    if (!load) {
+        openEvidenceDrawer(host, data, e);
+        return;
+    }
+
+    const loadKey = crypto.randomUUID();
+    loaders.set(loadKey, load);
+
+    const { load: _load, ...modalData } = data;
+    openEvidenceDrawer(host, { ...modalData, loadKey }, e);
 }
