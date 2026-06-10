@@ -247,6 +247,24 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        public IEnumerable<Lang> GetLanguagesWithoutAssignedDomains()
+        {
+            var query = new Sql(@"SELECT L.id, L.languageCultureName as Name, L.languageISOCode as Culture
+                FROM umbracoLanguage L
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM umbracoDomain D
+                    WHERE D.languageId = L.id
+                        AND COALESCE(D.domainName, '') <> ''
+                )
+                ORDER BY L.languageISOCode");
+
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                return scope.Database.Fetch<Lang>(query);
+            }
+        }
+
         /// <summary>
         /// Gets a list of URLs, each corresponding to a page with a unique template
         /// </summary>

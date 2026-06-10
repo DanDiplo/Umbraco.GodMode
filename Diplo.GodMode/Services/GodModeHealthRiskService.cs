@@ -41,6 +41,7 @@ namespace Diplo.GodMode.Services
             var usage = dataBaseService.GetContentUsageData().ToList();
             var orphanedTags = dataBaseService.GetOrphanedTags();
             var orphanedMediaCount = dataBaseService.GetOrphanedMediaCount();
+            var languagesWithoutAssignedDomains = dataBaseService.GetLanguagesWithoutAssignedDomains().ToList();
             var logRowCount = dataBaseService.GetLogRowCount();
             var contentVersionCount = dataBaseService.GetContentVersionCount();
             var contentWithExcessiveVersionsCount = dataBaseService.GetContentWithExcessiveVersionsCount(contentVersionWarningThreshold);
@@ -200,6 +201,20 @@ namespace Diplo.GodMode.Services
                     string.Empty,
                     string.Empty,
                     "Review media usage before deleting; not every custom picker or rich text reference may create an Umbraco relation."));
+            }
+
+            foreach (var language in languagesWithoutAssignedDomains)
+            {
+                findings.Add(CreateFinding(
+                    "Medium",
+                    "Culture & Hostnames",
+                    "Language has no assigned hostname",
+                    $"{language.Name} ({language.Culture}) exists as a language, but no Culture and Hostnames entry points to it.",
+                    "Language",
+                    language.Name,
+                    language.Culture,
+                    language.Id.ToString(),
+                    "Open Settings > Languages > Culture and Hostnames and assign at least one hostname to this language if it should resolve site URLs."));
             }
 
             if (logRowCount > logRowWarningThreshold)
