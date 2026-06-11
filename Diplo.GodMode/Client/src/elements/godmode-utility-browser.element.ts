@@ -13,6 +13,8 @@ interface WarmupResult {
     ok: boolean;
 }
 
+type LogDeleteMode = "all" | "period" | "date";
+
 function responseKind(r: ServerResponse): { color: UmbNotificationColor; label: string } {
     // C# enum order is Success=0, Error=1, Warning=2 (see ServerResponseType.cs)
     if (r.response === "Success" || r.responseType === 0) return { color: "positive", label: "Success" };
@@ -32,6 +34,9 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _warmupCurrentUrl = "";
     @state() private _warmupResults: WarmupResult[] = [];
     @state() private _lastResponse: { color: UmbNotificationColor; headline: string; message: string } | null = null;
+    @state() private _logDeleteMode: LogDeleteMode = "period";
+    @state() private _logDeleteDays = 30;
+    @state() private _logDeleteDate = "";
 
     constructor() {
         super();
@@ -84,6 +89,39 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
     private _restartAppPool() {
         if (!confirm("This will take the site offline (and won't restart it). Are you sure?")) return;
         return this._notifyResponse(godmodePost<ServerResponse>("app/restart"));
+    }
+
+    private _deleteLogs() {
+        const payload = this._buildDeleteLogsPayload();
+        if (!payload) return;
+
+        const message = payload.deleteAll
+            ? "This will delete every row from the Umbraco log table. Continue?"
+            : `This will delete Umbraco log rows older than ${new Date(payload.olderThan as string).toLocaleString()}. Continue?`;
+
+        if (!confirm(message)) return;
+
+        return this._notifyResponse(godmodePost<ServerResponse>("logs/delete", undefined, payload));
+    }
+
+    private _buildDeleteLogsPayload(): { deleteAll: boolean; olderThan?: string } | null {
+        if (this._logDeleteMode === "all") {
+            return { deleteAll: true };
+        }
+
+        if (this._logDeleteMode === "date") {
+            if (!this._logDeleteDate) {
+                this._notificationContext?.peek("warning", { data: { headline: "Date required", message: "Choose a date before deleting log rows." } });
+                return null;
+            }
+
+            const cutoff = new Date(`${this._logDeleteDate}T00:00:00`);
+            return { deleteAll: false, olderThan: cutoff.toISOString() };
+        }
+
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - this._logDeleteDays);
+        return { deleteAll: false, olderThan: cutoff.toISOString() };
     }
 
     private async _warmupTemplates() {
@@ -161,6 +199,44 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
                     <uui-button look="primary" color="danger" ?disabled=${this._busy} @click=${() => void this._restartAppPool()}>Stop application</uui-button>
                 </uui-box>
 
+                <uui-box headline="Database logs" style="margin-top: var(--uui-size-space-3)">
+                    <p>Delete rows from the Umbraco log table. This affects database audit-style log entries, not JSON log files on disk.</p>
+                    <div class="log-cleanup">
+                        <label>
+                            <span>Delete</span>
+                            <select @change=${(e: Event) => (this._logDeleteMode = (e.target as HTMLSelectElement).value as LogDeleteMode)}>
+                                <option value="period" ?selected=${this._logDeleteMode === "period"}>Entries older than</option>
+                                <option value="date" ?selected=${this._logDeleteMode === "date"}>Entries before date</option>
+                                <option value="all" ?selected=${this._logDeleteMode === "all"}>All entries</option>
+                            </select>
+                        </label>
+
+                        ${this._logDeleteMode === "period"
+                            ? html`
+                                  <label>
+                                      <span>Period</span>
+                                      <select @change=${(e: Event) => (this._logDeleteDays = Number((e.target as HTMLSelectElement).value))}>
+                                          ${[7, 14, 30, 60, 90, 180, 365].map(
+                                              (days) => html`<option value=${days} ?selected=${this._logDeleteDays === days}>${days} days</option>`
+                                          )}
+                                      </select>
+                                  </label>
+                              `
+                            : ""}
+
+                        ${this._logDeleteMode === "date"
+                            ? html`
+                                  <label>
+                                      <span>Before</span>
+                                      <input type="date" .value=${this._logDeleteDate} @input=${(e: Event) => (this._logDeleteDate = (e.target as HTMLInputElement).value)} />
+                                  </label>
+                              `
+                            : ""}
+
+                        <uui-button look="primary" color="danger" ?disabled=${this._busy} @click=${() => void this._deleteLogs()}>Delete log rows</uui-button>
+                    </div>
+                </uui-box>
+
                 <uui-box headline="Warm-up" style="margin-top: var(--uui-size-space-3)">
                     <p>Compile every Razor template by visiting one URL per template, or visit every URL on the site for a chosen culture.</p>
                     <div class="row">
@@ -221,6 +297,20 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
             gap: var(--uui-size-space-3);
             flex-wrap: wrap;
             align-items: center;
+        }
+        .log-cleanup {
+            display: flex;
+            gap: var(--uui-size-space-3);
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        .log-cleanup label {
+            display: grid;
+            gap: var(--uui-size-space-1);
+        }
+        .log-cleanup label span {
+            color: var(--uui-color-text-alt);
+            font-size: 0.875rem;
         }
         .action-feedback {
             display: flex;
@@ -333,7 +423,8 @@ export class GodModeUtilityBrowserElement extends UmbElementMixin(LitElement) {
         a:hover {
             text-decoration: underline;
         }
-        select {
+        select,
+        input[type="date"] {
             padding: var(--uui-size-space-2);
             border: 1px solid var(--uui-color-border);
             border-radius: var(--uui-border-radius);

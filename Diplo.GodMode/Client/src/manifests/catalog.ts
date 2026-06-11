@@ -134,6 +134,14 @@ export const browsers: BrowserDef[] = [
         element: () => import("../elements/godmode-extension-explorer.element")
     },
     {
+        id: "nugetPackages",
+        label: "NuGet Packages",
+        icon: "icon-box",
+        description: "Inspect runtime NuGet package versions, dependency scope and loaded assemblies",
+        weight: 675,
+        element: () => import("../elements/godmode-nuget-package-browser.element")
+    },
+    {
         id: "typesIntro",
         label: "Types",
         icon: "icon-folder",

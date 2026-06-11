@@ -60,6 +60,8 @@ namespace Diplo.GodMode.Services.Interfaces
 
         long GetLogRowCount();
 
+        int DeleteLogRows(DateTimeOffset? olderThan = null);
+
         long GetContentVersionCount();
 
         long GetContentWithExcessiveVersionsCount(int versionThreshold);

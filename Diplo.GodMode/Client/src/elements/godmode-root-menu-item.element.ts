@@ -37,7 +37,7 @@ const CHILD_GROUPS: ReadonlyArray<ChildGroup> = [
     },
     {
         label: "Developer & runtime",
-        ids: ["typesIntro", "serviceBrowser", "extensionExplorer"]
+        ids: ["typesIntro", "serviceBrowser", "extensionExplorer", "nugetPackages"]
     },
     {
         label: "Data & actions",

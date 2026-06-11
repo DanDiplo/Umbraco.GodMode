@@ -655,6 +655,43 @@ namespace Diplo.GodMode.Services
             }
         }
 
+        public int DeleteLogRows(DateTimeOffset? olderThan = null)
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                var table = GetTableNames(scope.Database)
+                    .FirstOrDefault(x => x.Name.InvariantEquals("umbracoLog"))
+                    ?? GetTableNames(scope.Database).FirstOrDefault(x => x.Name.InvariantEquals("umbLog"));
+
+                if (table is null)
+                {
+                    logger.LogDebug("Could not delete Umbraco log rows because no umbracoLog or umbLog table exists.");
+                    return 0;
+                }
+
+                var tableName = QuoteTableName(table.Schema, table.Name);
+
+                if (olderThan is null)
+                {
+                    return scope.Database.Execute($"DELETE FROM {tableName}");
+                }
+
+                var columns = GetColumns(scope.Database, table.Schema, table.Name).ToList();
+                var dateColumn = GetLogDateColumn(columns);
+                if (dateColumn is null)
+                {
+                    logger.LogWarning("Could not delete Umbraco log rows older than {Cutoff} because {TableName} has no known date column.", olderThan, table.Name);
+                    return 0;
+                }
+
+                object cutoff = this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite
+                    ? olderThan.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    : olderThan.Value.UtcDateTime;
+
+                return scope.Database.Execute($"DELETE FROM {tableName} WHERE {QuoteIdentifier(dateColumn)} < @0", cutoff);
+            }
+        }
+
         public long GetContentVersionCount()
         {
             using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
@@ -1009,6 +1046,21 @@ namespace Diplo.GodMode.Services
             if (columnNames.Contains("languageIsoCode"))
             {
                 return "D.languageIsoCode = L.languageISOCode";
+            }
+
+            return null;
+        }
+
+        private static string? GetLogDateColumn(IEnumerable<DatabaseColumnInfo> columns)
+        {
+            var columnNames = columns.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var candidate in new[] { "Datestamp", "DateStamp", "Timestamp", "TimeStamp", "LogDate", "Date", "CreateDate" })
+            {
+                if (columnNames.Contains(candidate))
+                {
+                    return candidate;
+                }
             }
 
             return null;

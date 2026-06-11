@@ -44,6 +44,7 @@ public class GodModeApiController : ManagementApiControllerBase
     private readonly IUtilitiesService utilitiesService;
     private readonly IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService;
     private readonly IGodModeLogService logService;
+    private readonly INuGetPackageInventoryService nuGetPackageInventoryService;
     private readonly IHostApplicationLifetime applicationLifetime;
     private readonly NuCacheSettings nuCacheSettings;
     private readonly RegisteredServiceCollection registeredServiceCollection;
@@ -57,6 +58,7 @@ public class GodModeApiController : ManagementApiControllerBase
         IUtilitiesService utilitiesService,
         IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService,
         IGodModeLogService logService,
+        INuGetPackageInventoryService nuGetPackageInventoryService,
         IHostApplicationLifetime applicationLifetime,
         IOptions<NuCacheSettings> nuCacheSettings,
         RegisteredServiceCollection registeredServiceCollection,
@@ -69,6 +71,7 @@ public class GodModeApiController : ManagementApiControllerBase
         this.utilitiesService = utilitiesService;
         this.deliveryApiDiagnosticsService = deliveryApiDiagnosticsService;
         this.logService = logService;
+        this.nuGetPackageInventoryService = nuGetPackageInventoryService;
         this.applicationLifetime = applicationLifetime;
         this.nuCacheSettings = nuCacheSettings.Value;
         this.registeredServiceCollection = registeredServiceCollection;
@@ -427,6 +430,11 @@ public class GodModeApiController : ManagementApiControllerBase
             .Select(a => new NameValue(a.GetName().Name, a.FullName))
             .OrderBy(x => x.Name));
 
+    [HttpGet("packages/runtime")]
+    [ProducesResponseType<NuGetPackageInventory>(StatusCodes.Status200OK)]
+    public ActionResult<NuGetPackageInventory> GetRuntimeNuGetPackages()
+        => Ok(nuGetPackageInventoryService.GetInventory());
+
     [HttpGet("assemblies/{assembly}/interfaces")]
     [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<TypeMap>> GetInterfacesFrom(string assembly)
@@ -605,6 +613,28 @@ public class GodModeApiController : ManagementApiControllerBase
     [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ServerResponse>> PurgeMediaCache()
         => Ok(await utilitiesService.ClearMediaFileCacheAsync());
+
+    [HttpPost("logs/delete")]
+    [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
+    public ActionResult<ServerResponse> DeleteLogRows([FromBody] DeleteLogRowsRequest? request)
+    {
+        try
+        {
+            var olderThan = request?.DeleteAll == true ? null : request?.OlderThan;
+            var deleted = dataBaseService.DeleteLogRows(olderThan);
+
+            if (olderThan is null)
+            {
+                return Ok(new ServerResponse($"Deleted {deleted:n0} rows from the Umbraco log table.", ServerResponseType.Success));
+            }
+
+            return Ok(new ServerResponse($"Deleted {deleted:n0} Umbraco log rows older than {olderThan.Value.LocalDateTime:g}.", ServerResponseType.Success));
+        }
+        catch (Exception ex)
+        {
+            return Ok(new ServerResponse("Error deleting Umbraco log rows: " + ex.Message, ServerResponseType.Error));
+        }
+    }
 
     [HttpPost("app/restart")]
     [ProducesResponseType<ServerResponse>(StatusCodes.Status200OK)]
@@ -866,4 +896,11 @@ public class GodModeApiController : ManagementApiControllerBase
 public sealed class RevealDiagnosticsRequest
 {
     public string? Password { get; set; }
+}
+
+public sealed class DeleteLogRowsRequest
+{
+    public bool DeleteAll { get; set; }
+
+    public DateTimeOffset? OlderThan { get; set; }
 }

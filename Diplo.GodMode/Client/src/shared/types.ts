@@ -393,6 +393,30 @@ export interface RegisteredService {
     key: string;
 }
 
+export interface NuGetPackageInventory {
+    runtimeName: string;
+    targetFramework: string;
+    packageCount: number;
+    directPackageCount: number;
+    loadedPackageCount: number;
+    packages: NuGetPackageInfo[];
+}
+
+export interface NuGetPackageInfo {
+    id: string;
+    version: string;
+    type: string;
+    isDirect: boolean;
+    isTransitive: boolean;
+    isLoaded: boolean;
+    nuGetUrl: string;
+    directProjects: string[];
+    requestedBy: string[];
+    dependencies: string[];
+    runtimeAssemblies: string[];
+    loadedAssemblies: string[];
+}
+
 export interface ReferenceEdge {
     sourceType: string;
     sourceName: string;

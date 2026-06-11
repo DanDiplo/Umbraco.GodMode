@@ -41,7 +41,7 @@ const PAGE_GROUPS: ReadonlyArray<PageGroup> = [
     },
     {
         label: "Developer & runtime",
-        ids: ["typesIntro", "serviceBrowser", "extensionExplorer"]
+        ids: ["typesIntro", "serviceBrowser", "extensionExplorer", "nugetPackages"]
     },
     {
         label: "Data & actions",
