@@ -45,6 +45,7 @@ public class GodModeApiController : ManagementApiControllerBase
     private readonly IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService;
     private readonly IGodModeLogService logService;
     private readonly INuGetPackageInventoryService nuGetPackageInventoryService;
+    private readonly INuGetPackageAuditService nuGetPackageAuditService;
     private readonly IHostApplicationLifetime applicationLifetime;
     private readonly NuCacheSettings nuCacheSettings;
     private readonly RegisteredServiceCollection registeredServiceCollection;
@@ -59,6 +60,7 @@ public class GodModeApiController : ManagementApiControllerBase
         IDeliveryApiDiagnosticsService deliveryApiDiagnosticsService,
         IGodModeLogService logService,
         INuGetPackageInventoryService nuGetPackageInventoryService,
+        INuGetPackageAuditService nuGetPackageAuditService,
         IHostApplicationLifetime applicationLifetime,
         IOptions<NuCacheSettings> nuCacheSettings,
         RegisteredServiceCollection registeredServiceCollection,
@@ -72,6 +74,7 @@ public class GodModeApiController : ManagementApiControllerBase
         this.deliveryApiDiagnosticsService = deliveryApiDiagnosticsService;
         this.logService = logService;
         this.nuGetPackageInventoryService = nuGetPackageInventoryService;
+        this.nuGetPackageAuditService = nuGetPackageAuditService;
         this.applicationLifetime = applicationLifetime;
         this.nuCacheSettings = nuCacheSettings.Value;
         this.registeredServiceCollection = registeredServiceCollection;
@@ -434,6 +437,11 @@ public class GodModeApiController : ManagementApiControllerBase
     [ProducesResponseType<NuGetPackageInventory>(StatusCodes.Status200OK)]
     public ActionResult<NuGetPackageInventory> GetRuntimeNuGetPackages()
         => Ok(nuGetPackageInventoryService.GetInventory());
+
+    [HttpPost("packages/runtime/audit")]
+    [ProducesResponseType<NuGetPackageAuditResult>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<NuGetPackageAuditResult>> AuditRuntimeNuGetPackages()
+        => Ok(await nuGetPackageAuditService.AuditRuntimePackagesAsync(forceRefresh: true, cancellationToken: HttpContext.RequestAborted));
 
     [HttpGet("assemblies/{assembly}/interfaces")]
     [ProducesResponseType<IEnumerable<TypeMap>>(StatusCodes.Status200OK)]

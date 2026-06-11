@@ -417,6 +417,41 @@ export interface NuGetPackageInfo {
     loadedAssemblies: string[];
 }
 
+export interface NuGetPackageAuditResult {
+    auditedAt: string;
+    sourceUrl: string;
+    packageCount: number;
+    vulnerablePackageCount: number;
+    advisoryCount: number;
+    restoreWarningCount: number;
+    packages: NuGetPackageAuditInfo[];
+    restoreWarnings: NuGetPackageRestoreWarning[];
+}
+
+export interface NuGetPackageAuditInfo {
+    id: string;
+    version: string;
+    vulnerabilities: NuGetPackageVulnerability[];
+}
+
+export interface NuGetPackageVulnerability {
+    severity: string;
+    severityLevel: number;
+    advisoryUrl: string;
+    affectedVersions: string;
+}
+
+export interface NuGetPackageRestoreWarning {
+    project: string;
+    code: string;
+    packageId: string;
+    version: string;
+    severity: string;
+    severityLevel: number;
+    advisoryUrl: string;
+    message: string;
+}
+
 export interface ReferenceEdge {
     sourceType: string;
     sourceName: string;
