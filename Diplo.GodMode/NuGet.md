@@ -16,6 +16,11 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.1.4
+* Added NuGet package advisory coverage and package list improvements.
+* Fixed configuration path handling and added culture hostname warnings.
+* Improved pagination, performance, and caching across God Mode views.
+
 ### 17.1.3
 * Fixed modal opening feedback for detail and evidence buttons that fetch data before opening their modal.
 * Ensures slow Content, Media, Database, Data Type, Health Risk, Configuration Drift, and Type detail actions show progress immediately after click.
