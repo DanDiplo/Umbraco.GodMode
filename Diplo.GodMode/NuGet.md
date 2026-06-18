@@ -16,6 +16,11 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.1.5
+* Aligns the GodMode backoffice navigation with core Umbraco conventions, replacing the bespoke root menu element with the standard tree stack (thanks Rick Butterfield),
+* Adds more health check coverage and improves the health check browser,
+* Log viewer improvements, including better filtering and log level selection,
+
 ### 17.1.4
 * Added NuGet package advisory coverage and package list improvements.
 * Fixed configuration path handling and added culture hostname warnings.
