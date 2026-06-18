@@ -1,4 +1,5 @@
 import type { ManifestBase } from "@umbraco-cms/backoffice/extension-api";
+import { GODMODE_TREE_ALIAS } from "../constants";
 
 export const GODMODE_MENU_ALIAS = "Diplo.Menu.GodMode";
 export const GODMODE_ROOT_MENU_ITEM_ALIAS = "Diplo.MenuItem.GodMode";
@@ -33,14 +34,16 @@ export const menuManifests: GodModeManifest[] = [
     },
     {
         type: "menuItem",
+        kind: "tree",
         alias: GODMODE_ROOT_MENU_ITEM_ALIAS,
         name: "GodMode Menu Item",
         weight: 1000,
-        element: () => import("../elements/godmode-root-menu-item.element"),
         meta: {
             label: "God Mode",
             icon: "icon-science",
-            menus: [GODMODE_MENU_ALIAS]
+            menus: [GODMODE_MENU_ALIAS],
+            treeAlias: GODMODE_TREE_ALIAS,
+            hideTreeRoot: true
         }
     }
 ];

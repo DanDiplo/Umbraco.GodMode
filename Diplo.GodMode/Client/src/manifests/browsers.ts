@@ -22,19 +22,11 @@ export interface BrowserDef {
     /** Lazy importer for the Lit element that renders the page */
     element: () => Promise<unknown>;
     /**
-     * Skip the auto-generated menuItem manifest. Use this when the page is a
-     * sub-page rendered by another menuItem (e.g. the Types children, which
-     * are rendered as nested <umb-menu-item-layout> entries by the parent).
-     * The workspace + workspaceView are still emitted so /workspace/<id> still
-     * routes correctly.
+     * Marks a page as a child of the "Types" folder rather than a top-level
+     * tree node. The GodMode tree groups these under the Types folder; the
+     * workspace + workspaceView are still emitted so /workspace/<id> routes.
      */
     skipMenuItem?: boolean;
-    /**
-     * Use a custom element for the menuItem instead of the default. Set this
-     * to a stable HTML tag name (e.g. "godmode-types-menu-item"). Loaded
-     * lazily by the manifest's `element` property.
-     */
-    customMenuItemElement?: () => Promise<unknown>;
 }
 
 /**
@@ -54,6 +46,9 @@ export function browserManifests(b: BrowserDef): GodModeManifest[] {
             alias: workspaceAlias,
             name: `GodMode ${b.label} Workspace`,
             element: b.element,
+            // Provides UMB_ENTITY_WORKSPACE_CONTEXT (so the header action menu
+            // renders) plus the reload signal the Reload entity action raises.
+            api: () => import("../workspaces/godmode-browser-workspace.context"),
             meta: { entityType }
         },
         // Default landing view for this workspace

@@ -3,6 +3,10 @@ import { menuManifests } from "./menu";
 import type { ManifestBase } from "@umbraco-cms/backoffice/extension-api";
 import { GODMODE_USED_BY_MODAL_ALIAS } from "../shared/used-by-modal";
 import { GODMODE_EVIDENCE_DRAWER_ALIAS } from "../shared/evidence-drawer";
+import { treeManifests } from "../tree/manifests";
+import { collectionManifests } from "../collection/manifests";
+import { workspaceCollectionManifests } from "../workspaces/manifests";
+import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
 
 /**
  * The full set of browsers GodMode exposes. Each entry creates a menuItem +
@@ -147,8 +151,7 @@ export const browsers: BrowserDef[] = [
         icon: "icon-folder",
         description: "See how controllers, composers and models are made up and browse interfaces",
         weight: 800,
-        element: () => import("../elements/godmode-types-intro.element"),
-        customMenuItemElement: () => import("../elements/godmode-types-menu-item.element")
+        element: () => import("../elements/godmode-types-intro.element")
     },
     {
         id: "surfaceControllers",
@@ -343,8 +346,25 @@ export const browsers: BrowserDef[] = [
     }
 ];
 
+const reloadEntityActionManifest = {
+    type: "entityAction",
+    kind: "default",
+    alias: "Diplo.EntityAction.GodMode.Reload",
+    name: "GodMode Reload Entity Action",
+    forEntityTypes: browsers.map((b) => `${GODMODE_ENTITY_TYPE_PREFIX}-${b.id}`),
+    api: () => import("../workspaces/godmode-reload-entity-action"),
+    meta: {
+        icon: "icon-refresh",
+        label: "Reload"
+    }
+} as unknown as ManifestBase;
+
 export const allManifests: ManifestBase[] = [
     ...menuManifests,
+    ...(treeManifests as unknown as ManifestBase[]),
+    ...(collectionManifests as unknown as ManifestBase[]),
+    ...(workspaceCollectionManifests as unknown as ManifestBase[]),
+    reloadEntityActionManifest,
     {
         type: "modal",
         alias: GODMODE_USED_BY_MODAL_ALIAS,
