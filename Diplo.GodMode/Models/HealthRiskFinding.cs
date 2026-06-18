@@ -2,6 +2,12 @@ namespace Diplo.GodMode.Models
 {
     public class HealthRiskFinding
     {
+        /// <summary>
+        /// A stable identifier for the kind of check that produced this finding.
+        /// Useful for de-duplicating, snoozing or deep-linking individual checks.
+        /// </summary>
+        public string CheckId { get; set; }
+
         public string Severity { get; set; }
 
         public int Score { get; set; }

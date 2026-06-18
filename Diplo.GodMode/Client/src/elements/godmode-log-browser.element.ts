@@ -102,7 +102,11 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
     }
 
     private _onLevelChange(e: Event) {
-        this._level = (e.target as HTMLSelectElement).value;
+        this._setLevel((e.target as HTMLSelectElement).value);
+    }
+
+    private _setLevel(level: string) {
+        this._level = level;
         void this._load(1);
     }
 
@@ -389,9 +393,13 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
 
         return html`
             <div class="level-counts">
+                <button type="button" class=${this._level === "" ? "level-count active" : "level-count"} @click=${() => this._setLevel("")}>
+                    <uui-tag color="default">All</uui-tag>
+                    <strong>${this._levelCounts.reduce((total, item) => total + item.count, 0).toLocaleString()}</strong>
+                </button>
                 ${this._levelCounts.map(
                     (item) => html`
-                        <button type="button" class=${item.level === this._level ? "level-count active" : "level-count"} @click=${() => { this._level = item.level; void this._load(1); }}>
+                        <button type="button" class=${item.level === this._level ? "level-count active" : "level-count"} @click=${() => this._setLevel(item.level === this._level ? "" : item.level)}>
                             <uui-tag color=${this._levelColor(item.level)}>${item.level}</uui-tag>
                             <strong>${item.count.toLocaleString()}</strong>
                         </button>

@@ -466,6 +466,7 @@ export interface ReferenceEdge {
 }
 
 export interface HealthRiskFinding {
+    checkId: string;
     severity: "High" | "Medium" | "Low" | "Info" | string;
     score: number;
     category: string;
