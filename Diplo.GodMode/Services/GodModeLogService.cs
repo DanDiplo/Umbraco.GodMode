@@ -266,8 +266,13 @@ public sealed class GodModeLogService : IGodModeLogService
         }
 
         var timestamp = GetDate(root, "@t") ?? GetDate(root, "Timestamp");
-        var message = GetString(root, "@m") ?? GetString(root, "Message") ?? GetString(root, "RenderedMessage") ?? string.Empty;
-        var messageTemplate = GetString(root, "@mt") ?? GetString(root, "MessageTemplate") ?? message;
+        var renderedMessage = GetString(root, "@m") ?? GetString(root, "Message") ?? GetString(root, "RenderedMessage");
+        var messageTemplate = GetString(root, "@mt") ?? GetString(root, "MessageTemplate") ?? renderedMessage ?? string.Empty;
+
+        // CLEF compact format only stores the template (@mt) plus named properties, with no
+        // pre-rendered message. Render the template ourselves so placeholders like {JobName}
+        // resolve to their values, mirroring the built-in Umbraco log viewer.
+        var message = renderedMessage ?? RenderMessageTemplate(messageTemplate, properties);
 
         return new GodModeLogEvent
         {
@@ -288,6 +293,52 @@ public sealed class GodModeLogService : IGodModeLogService
             RawJson = json
         };
     }
+
+    private static readonly System.Text.RegularExpressions.Regex TemplateTokenRegex =
+        new(@"\{(?<token>[@$]?[\w\.\[\]]+)(?:,-?\d+)?(?::[^}]+)?\}|\{\{|\}\}", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>
+    /// Renders a Serilog message template (e.g. "Job {JobName} ran in {Elapsed}") by substituting
+    /// named tokens with their captured property values. Mirrors Serilog's default rendering:
+    /// strings are quoted, destructured/stringified hints (@, $) are stripped, and {{ }} escapes
+    /// are collapsed. Unmatched tokens are left intact so nothing is silently lost.
+    /// </summary>
+    private static string RenderMessageTemplate(string template, IReadOnlyDictionary<string, object?> properties)
+    {
+        if (string.IsNullOrEmpty(template) || properties.Count == 0 || !template.Contains('{'))
+        {
+            return template;
+        }
+
+        return TemplateTokenRegex.Replace(template, match =>
+        {
+            if (match.Value == "{{")
+            {
+                return "{";
+            }
+
+            if (match.Value == "}}")
+            {
+                return "}";
+            }
+
+            var token = match.Groups["token"].Value;
+            var name = token.TrimStart('@', '$');
+
+            return properties.TryGetValue(name, out var value)
+                ? FormatTemplateValue(value)
+                : match.Value;
+        });
+    }
+
+    private static string FormatTemplateValue(object? value)
+        => value switch
+        {
+            null => "null",
+            string text => $"\"{text}\"",
+            bool boolean => boolean ? "True" : "False",
+            _ => value.ToString() ?? string.Empty
+        };
 
     private string GetLogFolder()
         => loggingSettings.GetAbsoluteLoggingPath(env);
