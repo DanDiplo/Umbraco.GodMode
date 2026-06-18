@@ -1,9 +1,12 @@
 import { LitElement, css, customElement, html, property } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
+import { GODMODE_BROWSER_WORKSPACE_CONTEXT } from "../workspaces/godmode-browser-workspace.context";
 
 /**
  * Shared page chrome — every browser slots its content into this element so
- * we get a consistent header, padding and reload button for free.
+ * we get a consistent header and padding. Reload is provided by the native
+ * workspace header action menu (the Reload entity action); when raised, we
+ * re-dispatch the existing `reload` event so each browser refetches.
  */
 @customElement("godmode-page")
 export class GodModePageElement extends UmbElementMixin(LitElement) {
@@ -12,8 +15,25 @@ export class GodModePageElement extends UmbElementMixin(LitElement) {
     @property({ type: String }) description = "";
     @property({ type: Boolean, attribute: "show-reload" }) showReload = false;
 
-    private _onReload() {
-        this.dispatchEvent(new CustomEvent("reload", { bubbles: true, composed: true }));
+    #reloadInitialised = false;
+
+    constructor() {
+        super();
+        this.consumeContext(GODMODE_BROWSER_WORKSPACE_CONTEXT, (context) => {
+            this.#reloadInitialised = false;
+            this.observe(
+                context?.reload,
+                () => {
+                    // Skip the initial emission; only react to actual reload requests.
+                    if (!this.#reloadInitialised) {
+                        this.#reloadInitialised = true;
+                        return;
+                    }
+                    this.dispatchEvent(new CustomEvent("reload", { bubbles: true, composed: true }));
+                },
+                "observeReload"
+            );
+        });
     }
 
     override render() {
@@ -25,12 +45,10 @@ export class GodModePageElement extends UmbElementMixin(LitElement) {
                         ${this.heading}
                     </h1>
                     ${this.description ? html`<p class="muted">${this.description}</p>` : ""}
-                    ${this.showReload
-                        ? html`<uui-button look="secondary" label="Reload" @click=${this._onReload}>
-                              <uui-icon name="icon-refresh"></uui-icon> Reload
-                          </uui-button>`
-                        : ""}
                 </div>
+                ${this.showReload
+                    ? html`<umb-workspace-entity-action-menu slot="action-menu"></umb-workspace-entity-action-menu>`
+                    : ""}
                 <div class="content">
                     <slot></slot>
                 </div>
@@ -46,7 +64,7 @@ export class GodModePageElement extends UmbElementMixin(LitElement) {
             display: flex;
             flex-direction: column;
             gap: var(--uui-size-space-2);
-            padding: var(--uui-size-space-5);
+            padding: var(--uui-size-space-5) 0;
         }
         h1 {
             margin: 0;
@@ -58,9 +76,6 @@ export class GodModePageElement extends UmbElementMixin(LitElement) {
         .muted {
             color: var(--uui-color-text-alt);
             margin: 0;
-        }
-        .content {
-            padding: var(--uui-size-space-5);
         }
     `;
 }
