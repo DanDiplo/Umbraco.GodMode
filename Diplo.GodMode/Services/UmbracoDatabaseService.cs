@@ -280,6 +280,50 @@ namespace Diplo.GodMode.Services
         }
 
         /// <summary>
+        /// Gets, for every language, how many dictionary items are untranslated (have no
+        /// <c>cmsLanguageText</c> row for that language, or a row whose value is blank).
+        /// </summary>
+        /// <remarks>
+        /// This goes straight to the database so the whole site's dictionary can be checked
+        /// in a single query rather than materialising every item through the Umbraco services.
+        /// </remarks>
+        public IEnumerable<DictionaryTranslationStatus> GetDictionaryTranslationStatus()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                var tableNames = GetTableNames(scope.Database);
+
+                if (!tableNames.Any(x => x.Name.InvariantEquals("cmsDictionary"))
+                    || !tableNames.Any(x => x.Name.InvariantEquals("cmsLanguageText")))
+                {
+                    logger.LogDebug("Skipping dictionary translation check because the dictionary tables were not found.");
+                    return [];
+                }
+
+                // cmsLanguageText.value is nvarchar(max) on SQL Server and TEXT on SQLite; both
+                // support LTRIM/RTRIM, so a single query works across either provider.
+                var query = new Sql(@"SELECT L.id as LanguageId, L.languageCultureName as Name, L.languageISOCode as Culture,
+                        (SELECT COUNT(*) FROM cmsDictionary) as TotalItems,
+                        (
+                            SELECT COUNT(*)
+                            FROM cmsDictionary D
+                            WHERE NOT EXISTS (
+                                SELECT 1
+                                FROM cmsLanguageText T
+                                WHERE T.UniqueId = D.id
+                                    AND T.languageId = L.id
+                                    AND T.value IS NOT NULL
+                                    AND LTRIM(RTRIM(T.value)) <> ''
+                            )
+                        ) as UntranslatedItems
+                    FROM umbracoLanguage L
+                    ORDER BY L.languageISOCode");
+
+                return scope.Database.Fetch<DictionaryTranslationStatus>(query);
+            }
+        }
+
+        /// <summary>
         /// Gets a list of URLs, each corresponding to a page with a unique template
         /// </summary>
         /// <remarks>

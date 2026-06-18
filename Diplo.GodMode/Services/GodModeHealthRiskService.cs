@@ -360,6 +360,23 @@ namespace Diplo.GodMode.Services
                     "Open the Log Browser, filter to this error, and address the underlying cause."));
             }
 
+            foreach (var status in dataBaseService
+                .GetDictionaryTranslationStatus()
+                .Where(x => x.TotalItems > 0 && x.UntranslatedItems > 0))
+            {
+                findings.Add(CreateFinding(
+                    "dictionary-untranslated",
+                    "Low",
+                    "Dictionary",
+                    "Dictionary items are untranslated",
+                    $"{status.UntranslatedItems:n0} of {status.TotalItems:n0} dictionary items have no value (or a blank value) for {status.Name} ({status.Culture}).",
+                    "Language",
+                    status.Name,
+                    status.Culture,
+                    status.LanguageId.ToString(),
+                    "Open the Dictionary in Settings and provide translations for this language, or remove unused dictionary items."));
+            }
+
             var isProduction = hostEnvironment.IsProduction();
             var global = globalSettings.Value;
 

@@ -21,6 +21,8 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<Lang> GetLanguagesWithoutAssignedDomains();
 
+        IEnumerable<DictionaryTranslationStatus> GetDictionaryTranslationStatus();
+
         IEnumerable<MemberGroupModel> GetMemberGroups();
 
         IEnumerable<MemberGroupModel> GetMemberTypes();
