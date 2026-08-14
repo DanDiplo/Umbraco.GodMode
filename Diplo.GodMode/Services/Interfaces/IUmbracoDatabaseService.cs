@@ -1,6 +1,8 @@
 ﻿using Diplo.GodMode.Models;
 using NPoco;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Diplo.GodMode.Services.Interfaces
 {
@@ -16,6 +18,23 @@ namespace Diplo.GodMode.Services.Interfaces
         List<UsageModel> GetContentUsageData(int? id = null, string orderBy = "CT.alias");
 
         DatabaseType GetDatabaseType();
+
+        /// <summary>
+        /// Reports whether Element Type Usage analysis can run on the current database and whether
+        /// the optional Umbraco Elements schema is available.
+        /// </summary>
+        ElementTypeUsageStatus GetElementTypeUsageStatus();
+
+        /// <summary>
+        /// Gets aggregated stored, configured, Library Item and Element Picker usage counts for
+        /// every Element Type, including Element Types with zero usages.
+        /// </summary>
+        Task<IEnumerable<ElementTypeUsageSummary>> GetElementTypeUsageSummary(bool refresh = false);
+
+        /// <summary>
+        /// Gets every individual usage occurrence for a single Element Type, across all sources.
+        /// </summary>
+        Task<IEnumerable<ElementTypeUsageDetail>> GetElementTypeUsageDetail(Guid elementTypeKey);
 
         IEnumerable<Lang> GetLanguages();
 

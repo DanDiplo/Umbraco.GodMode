@@ -2,6 +2,7 @@ import { browserManifests, type BrowserDef } from "./browsers";
 import { menuManifests } from "./menu";
 import type { ManifestBase } from "@umbraco-cms/backoffice/extension-api";
 import { GODMODE_USED_BY_MODAL_ALIAS } from "../shared/used-by-modal";
+import { GODMODE_ELEMENT_TYPE_USAGE_MODAL_ALIAS } from "../shared/element-type-usage-modal";
 import { GODMODE_EVIDENCE_DRAWER_ALIAS } from "../shared/evidence-drawer";
 import { treeManifests } from "../tree/manifests";
 import { collectionManifests } from "../collection/manifests";
@@ -96,6 +97,14 @@ export const browsers: BrowserDef[] = [
         description: "See how your content types are used and how many instances have been made",
         weight: 790,
         element: () => import("../elements/godmode-usage-browser.element")
+    },
+    {
+        id: "elementTypeUsage",
+        label: "Element Type Usage",
+        icon: "icon-science",
+        description: "Browse stored and configured Element Type usage, including Library usage when available",
+        weight: 780,
+        element: () => import("../elements/godmode-element-type-usage-browser.element")
     },
     {
         id: "databaseBrowser",
@@ -376,6 +385,12 @@ export const allManifests: ManifestBase[] = [
         alias: GODMODE_EVIDENCE_DRAWER_ALIAS,
         name: "GodMode Evidence Drawer",
         element: () => import("../elements/godmode-evidence-drawer.element")
+    } as ManifestBase,
+    {
+        type: "modal",
+        alias: GODMODE_ELEMENT_TYPE_USAGE_MODAL_ALIAS,
+        name: "GodMode Element Type Usage Modal",
+        element: () => import("../elements/godmode-element-type-usage-modal.element")
     } as ManifestBase,
     ...browsers.flatMap(browserManifests)
 ];

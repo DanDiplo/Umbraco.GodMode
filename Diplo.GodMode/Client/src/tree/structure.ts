@@ -57,7 +57,7 @@ const GROUPS: GroupDef[] = [
             "tagBrowser"
         ]
     },
-    { unique: "group-relationships", name: "Relationships & usage", ids: ["referenceGraph", "usageBrowser"] },
+    { unique: "group-relationships", name: "Relationships & usage", ids: ["referenceGraph", "usageBrowser", "elementTypeUsage"] },
     {
         unique: "group-developer",
         name: "Developer & runtime",

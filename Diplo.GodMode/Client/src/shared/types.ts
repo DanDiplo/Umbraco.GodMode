@@ -725,3 +725,51 @@ export interface GodModeConfigResponse {
     };
 }
 
+/** One row in the Element Type Usage grid — stored, configured and optional Library usage. */
+export interface ElementTypeUsageSummary {
+    elementTypeId: number;
+    elementTypeKey: string;
+    elementTypeName: string;
+    elementTypeAlias: string;
+    icon: string | null;
+    contentUses: number;
+    settingsUses: number;
+    configuredUses: number;
+    libraryItems: number;
+    elementPickerUses: number;
+    usageCount: number;
+}
+
+/** One usage occurrence for a single Element Type, shown in the Element Type Usage detail modal. */
+export type ElementTypeUsageSourceType =
+    | "BlockContent"
+    | "BlockSettings"
+    | "ConfigurationContent"
+    | "ConfigurationSettings"
+    | "ElementPicker"
+    | "LibraryItem"
+    | "LibraryItem (Trashed)";
+
+/** Entity type of the node that owns a usage — used to build the correct edit link. */
+export type ElementTypeUsageEntityType = "content" | "media" | "member" | "dataType" | "element" | "unknown";
+
+export interface ElementTypeUsageDetail {
+    contentNodeId: number;
+    contentKey: string;
+    contentName: string;
+    parentName: string | null;
+    contentPath: string;
+    versionDate: string;
+    sourceType: ElementTypeUsageSourceType;
+    entityType: ElementTypeUsageEntityType;
+}
+
+/**
+ * Reports whether Element Type Usage analysis can run and whether optional Library reporting is available.
+ */
+export interface ElementTypeUsageStatus {
+    isSupported: boolean;
+    libraryFeatureAvailable: boolean;
+    message: string | null;
+}
+
