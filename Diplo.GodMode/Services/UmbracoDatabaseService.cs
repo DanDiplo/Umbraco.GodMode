@@ -17,6 +17,30 @@ namespace Diplo.GodMode.Services
     public class UmbracoDatabaseService : IUmbracoDatabaseService
     {
         private const string DatabaseTablesCacheKey = "Diplo.GodMode.DatabaseTables";
+
+        /// <summary>
+        /// Cache key for the aggregated Element Type usage summary. This query scans every Block
+        /// List/Grid property and (on Umbraco 18+) every Library item and Element Picker relation,
+        /// so it's cached briefly - this is a single-developer diagnostic tool, not a live report,
+        /// and usage patterns don't meaningfully change within a few minutes of browsing the grid.
+        /// </summary>
+        private const string ElementTypeUsageSummaryCacheKey = "Diplo.GodMode.ElementTypeUsageSummary";
+
+        private static readonly TimeSpan ElementTypeUsageSummaryCacheDuration = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// The Umbraco 18+ table backing Library items. Its presence is used to detect whether the
+        /// Library feature (and therefore LibraryItem / ElementPicker usage reporting) is available.
+        /// </summary>
+        private const string UmbracoElementTableName = "umbracoElement";
+
+        /// <summary>
+        /// Mirrors Umbraco.Cms.Core.Constants.ObjectTypes.Strings.Element in Umbraco 18+. GodMode's
+        /// server assembly targets Umbraco.Cms.Core [17.0.0,18.0.0), where the Element object type
+        /// does not exist, so this is hardcoded rather than referenced from Umbraco.Cms.Core.
+        /// </summary>
+        private const string ElementObjectTypeString = "3D7B623C-94B1-487D-8554-A46EC37568BE";
+
         private readonly IScopeProvider scopeProvider;
         private readonly ILogger<UmbracoDatabaseService> logger;
         private readonly IPublishedContentQuery contentQuery;
@@ -422,6 +446,311 @@ namespace Diplo.GodMode.Services
             {
                 return scope.Database.Fetch<UsageModel>(query);
             }
+        }
+
+        /// <summary>
+        /// Reports whether Element Type Usage analysis can run on the current database, and whether
+        /// Library Item / Element Picker reporting is available. Supported on both SQL Server (via
+        /// OPENJSON) and SQLite (via the JSON1 extension's json_each/json_extract, bundled with the
+        /// SQLite provider Umbraco ships) so the analysis also works against a database pulled down
+        /// from Umbraco Cloud for local development.
+        /// </summary>
+        public ElementTypeUsageStatus GetElementTypeUsageStatus()
+        {
+            using var scope = this.scopeProvider.CreateScope(autoComplete: true);
+
+            if (this.scopeProvider.SqlContext.DatabaseType != DatabaseType.SQLite)
+            {
+                var compatibilityLevel = scope.Database.ExecuteScalar<int?>(
+                    "SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()");
+
+                if (compatibilityLevel is null or < 130)
+                {
+                    return new ElementTypeUsageStatus
+                    {
+                        IsSupported = false,
+                        LibraryFeatureAvailable = false,
+                        Message = "Element Type Usage requires SQL compatibility level 130 or higher. OPENJSON is unavailable below compatibility level 130."
+                    };
+                }
+            }
+
+            bool libraryFeatureAvailable = GetTableNames(scope.Database)
+                .Any(table => table.Name.InvariantEquals(UmbracoElementTableName));
+
+            return new ElementTypeUsageStatus
+            {
+                IsSupported = true,
+                LibraryFeatureAvailable = libraryFeatureAvailable,
+                Message = libraryFeatureAvailable
+                    ? null
+                    : "Library Items and Element Picker usage require Umbraco 18+ (the umbracoElement table was not found). Only Block List / Block Grid usage is reported."
+            };
+        }
+
+        /// <summary>
+        /// Gets aggregated Element Type usage counts for the Element Type Usage grid, including
+        /// Element Types with zero usages so unused types can be identified. Cached briefly (see
+        /// <see cref="ElementTypeUsageSummaryCacheDuration"/>) since this is a single-developer
+        /// diagnostic tool where usage doesn't meaningfully change minute to minute; use the grid's
+        /// reload button to force a fresh read once the cache entry expires.
+        /// </summary>
+        public IEnumerable<ElementTypeUsageSummary> GetElementTypeUsageSummary()
+        {
+            if (this.memoryCache.TryGetValue(ElementTypeUsageSummaryCacheKey, out IReadOnlyList<ElementTypeUsageSummary>? cached) && cached is not null)
+            {
+                return cached;
+            }
+
+            ElementTypeUsageStatus status = GetElementTypeUsageStatus();
+            if (!status.IsSupported)
+            {
+                return [];
+            }
+
+            using var scope = this.scopeProvider.CreateScope(autoComplete: true);
+
+            var sql = new Sql(BuildElementTypeUsageCte(status.LibraryFeatureAvailable, this.scopeProvider.SqlContext.DatabaseType) + @"
+SELECT
+    ET.nodeId AS ElementTypeId,
+    ETN.uniqueId AS ElementTypeKey,
+    ETN.[text] AS ElementTypeName,
+    ET.alias AS ElementTypeAlias,
+    ET.icon AS Icon,
+    COALESCE(U.ContentUses, 0) AS ContentUses,
+    COALESCE(U.SettingsUses, 0) AS SettingsUses,
+    COALESCE(U.LibraryItems, 0) AS LibraryItems,
+    COALESCE(U.ElementPickerUses, 0) AS ElementPickerUses,
+    COALESCE(U.UsageCount, 0) AS UsageCount
+FROM cmsContentType ET
+INNER JOIN umbracoNode ETN ON ETN.id = ET.nodeId
+LEFT JOIN
+(
+    SELECT
+        ElementTypeId,
+        SUM(CASE WHEN SourceType = 'BlockContent' THEN 1 ELSE 0 END) AS ContentUses,
+        SUM(CASE WHEN SourceType = 'BlockSettings' THEN 1 ELSE 0 END) AS SettingsUses,
+        SUM(CASE WHEN SourceType IN ('LibraryItem', 'LibraryItem (Trashed)') THEN 1 ELSE 0 END) AS LibraryItems,
+        SUM(CASE WHEN SourceType = 'ElementPicker' THEN 1 ELSE 0 END) AS ElementPickerUses,
+        COUNT(*) AS UsageCount
+    FROM ElementTypeUsage
+    GROUP BY ElementTypeId
+) U ON U.ElementTypeId = ET.nodeId
+WHERE ET.isElement = 1
+ORDER BY ETN.[text]");
+
+            var result = scope.Database.Fetch<ElementTypeUsageSummary>(sql);
+
+            this.memoryCache.Set(ElementTypeUsageSummaryCacheKey, result, ElementTypeUsageSummaryCacheDuration);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets every individual usage occurrence for a single Element Type, across all sources.
+        /// </summary>
+        public IEnumerable<ElementTypeUsageDetail> GetElementTypeUsageDetail(Guid elementTypeKey)
+        {
+            ElementTypeUsageStatus status = GetElementTypeUsageStatus();
+            if (!status.IsSupported)
+            {
+                return [];
+            }
+
+            using var scope = this.scopeProvider.CreateScope(autoComplete: true);
+
+            var sql = new Sql(BuildElementTypeUsageCte(status.LibraryFeatureAvailable, this.scopeProvider.SqlContext.DatabaseType) + @"
+SELECT
+    ContentNodeId,
+    ContentKey,
+    ContentName,
+    ParentName,
+    ContentPath,
+    VersionDate,
+    SourceType,
+    CASE
+        WHEN ReferencingNodeObjectType = @0 THEN 'content'
+        WHEN ReferencingNodeObjectType = @1 THEN 'media'
+        WHEN ReferencingNodeObjectType = @2 THEN 'member'
+        WHEN ReferencingNodeObjectType = @3 THEN 'element'
+        ELSE 'unknown'
+    END AS EntityType
+FROM ElementTypeUsage
+WHERE ElementTypeKey = @4
+ORDER BY SourceType, ContentPath",
+                Constants.ObjectTypes.Strings.Document,
+                Constants.ObjectTypes.Strings.Media,
+                Constants.ObjectTypes.Strings.Member,
+                ElementObjectTypeString,
+                elementTypeKey);
+
+            return scope.Database.Fetch<ElementTypeUsageDetail>(sql);
+        }
+
+        /// <summary>
+        /// Builds the shared Element Type usage CTE, always including BlockContent/BlockSettings,
+        /// and conditionally including LibraryItem / ElementPicker sources when the Umbraco 18+
+        /// <c>umbracoElement</c> table is present. BlockContent/BlockSettings extraction branches
+        /// on database type: SQL Server uses OPENJSON, SQLite uses the JSON1 extension's
+        /// json_each/json_extract (bundled with the SQLite provider Umbraco ships). ElementPicker
+        /// and LibraryItem are plain relational joins and are identical on both providers.
+        /// </summary>
+        private static string BuildElementTypeUsageCte(bool includeLibrarySources, DatabaseType databaseType)
+        {
+            // Leading semicolon is required: NPoco's EnableAutoSelect otherwise prepends
+            // "SELECT <cols> FROM <table>" to any query that doesn't start with SELECT/EXEC,
+            // which mangles a CTE's leading WITH into an invalid table hint. NPoco explicitly
+            // strips a leading ";" and skips that rewrite (see NPoco.AutoSelectHelper.AddSelectClause).
+            const string cteHeaderSql = @";
+WITH BlockPropertyTypes AS
+(
+    SELECT cpt.id
+    FROM cmsPropertyType cpt
+    INNER JOIN umbracoDataType udt ON udt.nodeId = cpt.dataTypeId
+    WHERE udt.propertyEditorAlias IN ('Umbraco.BlockList', 'Umbraco.BlockGrid')
+),
+ElementTypeUsage AS
+(";
+
+            // SQL Server: CROSS APPLY OPENJSON, typed straight to uniqueidentifier so the join and
+            // the later comparisons against Constants.ObjectTypes.Strings.* are case-insensitive by
+            // virtue of being a real GUID comparison rather than a string comparison.
+            const string sqlServerBlockSourcesSql = @"
+    SELECT DISTINCT
+        ucv.nodeId AS ContentNodeId,
+        un.uniqueId AS ContentKey,
+        ucv.[text] AS ContentName,
+        up.[text] AS ParentName,
+        un.[path] AS ContentPath,
+        ucv.versionDate AS VersionDate,
+        un.nodeObjectType AS ReferencingNodeObjectType,
+        JsonData.contentTypeKey AS ElementTypeKey,
+        et.[text] AS ElementTypeName,
+        et.id AS ElementTypeId,
+        JsonData.SourceType AS SourceType
+    FROM umbracoPropertyData upd
+    INNER JOIN umbracoContentVersion ucv ON ucv.id = upd.versionId
+    INNER JOIN umbracoNode un ON un.id = ucv.nodeId
+    LEFT JOIN umbracoNode up ON up.id = un.parentId
+    INNER JOIN BlockPropertyTypes bpt ON bpt.id = upd.propertyTypeId
+    CROSS APPLY
+    (
+        SELECT contentTypeKey, 'BlockContent' AS SourceType
+        FROM OPENJSON(upd.textValue, '$.contentData') WITH (contentTypeKey UNIQUEIDENTIFIER '$.contentTypeKey')
+        UNION ALL
+        SELECT contentTypeKey, 'BlockSettings' AS SourceType
+        FROM OPENJSON(upd.textValue, '$.settingsData') WITH (contentTypeKey UNIQUEIDENTIFIER '$.contentTypeKey')
+    ) JsonData
+    INNER JOIN umbracoNode et ON et.uniqueId = JsonData.contentTypeKey
+    WHERE ucv.[current] = 1 AND JsonData.contentTypeKey IS NOT NULL";
+
+            // SQLite: json_each is a table-valued function that SQLite allows to be "left
+            // correlated" against a column from an earlier table in the same FROM clause (upd.
+            // textValue here) - but only when called directly in the FROM list, not from inside a
+            // derived subquery. So, unlike the SQL Server CROSS APPLY above, contentData and
+            // settingsData can't be combined into one shared derived table; they're written as two
+            // separate SELECTs unioned together instead. The join below requires an explicit
+            // COLLATE NOCASE: unlike umbracoNode.path/text, the uniqueId and nodeObjectType columns
+            // are plain TEXT (default BINARY collation) in Umbraco's SQLite schema - confirmed by
+            // inspecting a live database - and .NET's Guid.ToString() serializes the Block List
+            // JSON's contentTypeKey in lowercase while uniqueId is stored uppercase, so a plain "="
+            // silently matches zero rows without it.
+            const string sqliteBlockSourcesSql = @"
+    SELECT DISTINCT
+        ucv.nodeId AS ContentNodeId,
+        un.uniqueId AS ContentKey,
+        ucv.[text] AS ContentName,
+        up.[text] AS ParentName,
+        un.[path] AS ContentPath,
+        ucv.versionDate AS VersionDate,
+        un.nodeObjectType AS ReferencingNodeObjectType,
+        et.uniqueId AS ElementTypeKey,
+        et.[text] AS ElementTypeName,
+        et.id AS ElementTypeId,
+        'BlockContent' AS SourceType
+    FROM umbracoPropertyData upd
+    INNER JOIN umbracoContentVersion ucv ON ucv.id = upd.versionId
+    INNER JOIN umbracoNode un ON un.id = ucv.nodeId
+    LEFT JOIN umbracoNode up ON up.id = un.parentId
+    INNER JOIN BlockPropertyTypes bpt ON bpt.id = upd.propertyTypeId
+    , json_each(upd.textValue, '$.contentData') je
+    INNER JOIN umbracoNode et ON et.uniqueId = json_extract(je.value, '$.contentTypeKey') COLLATE NOCASE
+    WHERE ucv.[current] = 1
+
+    UNION ALL
+
+    SELECT DISTINCT
+        ucv.nodeId,
+        un.uniqueId,
+        ucv.[text],
+        up.[text],
+        un.[path],
+        ucv.versionDate,
+        un.nodeObjectType,
+        et.uniqueId,
+        et.[text],
+        et.id,
+        'BlockSettings'
+    FROM umbracoPropertyData upd
+    INNER JOIN umbracoContentVersion ucv ON ucv.id = upd.versionId
+    INNER JOIN umbracoNode un ON un.id = ucv.nodeId
+    LEFT JOIN umbracoNode up ON up.id = un.parentId
+    INNER JOIN BlockPropertyTypes bpt ON bpt.id = upd.propertyTypeId
+    , json_each(upd.textValue, '$.settingsData') je
+    INNER JOIN umbracoNode et ON et.uniqueId = json_extract(je.value, '$.contentTypeKey') COLLATE NOCASE
+    WHERE ucv.[current] = 1";
+
+            // Element Picker references and standing Library items. Both depend on the Umbraco 18+
+            // umbracoElement table, so they're only appended when it exists (see GetElementTypeUsageStatus).
+            const string librarySourcesSql = @"
+
+    UNION ALL
+
+    SELECT DISTINCT
+        referencingNode.id,
+        referencingNode.uniqueId,
+        rucv.[text],
+        rup.[text],
+        referencingNode.[path],
+        rucv.versionDate,
+        referencingNode.nodeObjectType,
+        et2.uniqueId,
+        et2.[text],
+        et2.id,
+        'ElementPicker'
+    FROM umbracoRelation r
+    INNER JOIN umbracoRelationType rt ON rt.id = r.relType AND rt.alias = 'umbElement'
+    INNER JOIN umbracoNode referencingNode ON referencingNode.id = r.parentId
+    INNER JOIN umbracoContentVersion rucv ON rucv.nodeId = referencingNode.id AND rucv.[current] = 1
+    LEFT JOIN umbracoNode rup ON rup.id = referencingNode.parentId
+    INNER JOIN umbracoNode pickedElementNode ON pickedElementNode.id = r.childId
+    INNER JOIN umbracoContent pickedElementContent ON pickedElementContent.nodeId = pickedElementNode.id
+    INNER JOIN umbracoNode et2 ON et2.id = pickedElementContent.contentTypeId
+
+    UNION ALL
+
+    SELECT DISTINCT
+        libNode.id,
+        libNode.uniqueId,
+        lucv.[text],
+        lup.[text],
+        libNode.[path],
+        lucv.versionDate,
+        libNode.nodeObjectType,
+        et3.uniqueId,
+        et3.[text],
+        et3.id,
+        CASE WHEN libNode.trashed = 1 THEN 'LibraryItem (Trashed)' ELSE 'LibraryItem' END
+    FROM umbracoElement ue
+    INNER JOIN umbracoNode libNode ON libNode.id = ue.nodeId
+    INNER JOIN umbracoContent uc ON uc.nodeId = libNode.id
+    INNER JOIN umbracoNode et3 ON et3.id = uc.contentTypeId
+    INNER JOIN umbracoContentVersion lucv ON lucv.nodeId = libNode.id AND lucv.[current] = 1
+    LEFT JOIN umbracoNode lup ON lup.id = libNode.parentId";
+
+            string blockSourcesSql = databaseType == DatabaseType.SQLite ? sqliteBlockSourcesSql : sqlServerBlockSourcesSql;
+
+            return cteHeaderSql + blockSourcesSql + (includeLibrarySources ? librarySourcesSql : string.Empty) + "\n)\n";
         }
 
         /// <summary>

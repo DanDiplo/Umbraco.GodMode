@@ -578,6 +578,23 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<IEnumerable<UsageModel>> GetContentUsageData(int? id = null, string? orderBy = null)
         => Ok(dataBaseService.GetContentUsageData(id, orderBy));
 
+    // ─── Element Type usage ──────────────────────────────────────────
+
+    [HttpGet("element-type-usage/status")]
+    [ProducesResponseType<ElementTypeUsageStatus>(StatusCodes.Status200OK)]
+    public ActionResult<ElementTypeUsageStatus> GetElementTypeUsageStatus()
+        => Ok(dataBaseService.GetElementTypeUsageStatus());
+
+    [HttpGet("element-type-usage")]
+    [ProducesResponseType<IEnumerable<ElementTypeUsageSummary>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<ElementTypeUsageSummary>> GetElementTypeUsageSummary()
+        => Ok(dataBaseService.GetElementTypeUsageSummary());
+
+    [HttpGet("element-type-usage/detail")]
+    [ProducesResponseType<IEnumerable<ElementTypeUsageDetail>>(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<ElementTypeUsageDetail>> GetElementTypeUsageDetail([FromQuery] Guid elementTypeKey)
+        => Ok(dataBaseService.GetElementTypeUsageDetail(elementTypeKey));
+
     [HttpGet("tags")]
     [ProducesResponseType<IEnumerable<TagMapping>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TagMapping>>> GetTagMapping()

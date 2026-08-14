@@ -8,6 +8,7 @@ export * from "./ai-availability";
 export * from "./sort";
 export * from "./reference-links";
 export * from "./used-by-modal";
+export * from "./element-type-usage-modal";
 export * from "./evidence-drawer";
 export * from "./modal-feedback";
 export * from "./format";
