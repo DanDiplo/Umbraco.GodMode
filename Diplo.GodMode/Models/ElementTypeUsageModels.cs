@@ -3,9 +3,9 @@ using System;
 namespace Diplo.GodMode.Models;
 
 /// <summary>
-/// Aggregated Element Type usage counts for the main Element Type Usage grid. Returned for every
-/// Element Type in the installation, including those with zero usages (so unused types can be
-/// identified and filtered).
+/// Aggregated Element Type usage counts for the main Element Type Usage grid. Stored block
+/// occurrences and block-editor configuration references are both included so a zero count is a
+/// meaningful unused signal.
 /// </summary>
 public class ElementTypeUsageSummary
 {
@@ -30,19 +30,25 @@ public class ElementTypeUsageSummary
     public int SettingsUses { get; set; }
 
     /// <summary>
-    /// Standing Library items of this Element Type. Umbraco 18+ only; always 0 below Umbraco 18.
+    /// Block editor data-type configurations that reference this Element Type as content or settings.
+    /// </summary>
+    public int ConfiguredUses { get; set; }
+
+    /// <summary>
+    /// Standing Library items of this Element Type. Available when the Umbraco 18 Elements schema
+    /// is present; otherwise zero.
     /// </summary>
     public int LibraryItems { get; set; }
 
     /// <summary>
-    /// Element Picker references to Library items of this Element Type. Umbraco 18+ only; always 0
-    /// below Umbraco 18.
+    /// Element Picker references to Library items of this Element Type. Available when the Umbraco
+    /// 18 Elements schema is present; otherwise zero.
     /// </summary>
     public int ElementPickerUses { get; set; }
 
     /// <summary>
-    /// Total usage count across all sources. An Element Type is genuinely unused only when this is
-    /// zero across BlockContent, BlockSettings, ElementPicker and LibraryItem sources.
+    /// Total usage count across stored blocks, block-editor configuration references, Library
+    /// items and Element Picker references.
     /// </summary>
     public int UsageCount { get; set; }
 }
@@ -52,6 +58,8 @@ public class ElementTypeUsageSummary
 /// </summary>
 public class ElementTypeUsageDetail
 {
+    internal Guid ElementTypeKey { get; set; }
+
     public int ContentNodeId { get; set; }
 
     public Guid ContentKey { get; set; }
@@ -65,41 +73,39 @@ public class ElementTypeUsageDetail
     public DateTime VersionDate { get; set; }
 
     /// <summary>
-    /// One of: BlockContent, BlockSettings, ElementPicker, LibraryItem, LibraryItem (Trashed).
+    /// One of: BlockContent, BlockSettings, ConfigurationContent, ConfigurationSettings,
+    /// ElementPicker, LibraryItem, LibraryItem (Trashed).
     /// </summary>
     public string SourceType { get; set; } = string.Empty;
 
     /// <summary>
-    /// The entity type of the node that owns this usage — content, media, member, element, or
-    /// unknown — used by the client to build the correct edit link.
+    /// The entity type of the node that owns this usage — content, media, member, dataType, element,
+    /// or unknown — used by the client to build the correct edit link.
     /// </summary>
     public string EntityType { get; set; } = "unknown";
 }
 
+internal sealed record ElementTypeConfigurationReference(Guid ElementTypeKey, string SourceType);
+
 /// <summary>
-/// Reports whether Element Type Usage analysis can run on the current database, and which of the
-/// four usage sources are available.
+/// Reports whether Element Type Usage analysis can run on the current database.
 /// </summary>
 public class ElementTypeUsageStatus
 {
     /// <summary>
-    /// False when the analysis query cannot run at all (SQLite, or SQL Server below compatibility
-    /// level 130 — both BlockContent and BlockSettings sources rely on OPENJSON). When false, no
-    /// usage query is executed and <see cref="Message"/> explains why.
+    /// False when the analysis query cannot run. SQL Server requires compatibility level 130 or
+    /// higher for OPENJSON; SQLite uses its bundled JSON1 support.
     /// </summary>
     public bool IsSupported { get; set; }
 
     /// <summary>
-    /// True when the <c>umbracoElement</c> table exists (Umbraco 18+), enabling Library Item and
-    /// Element Picker reporting alongside BlockContent/BlockSettings. When false, only the block
-    /// editor sources are reported.
+    /// True when the Umbraco Elements schema is present, enabling Library Item and Element Picker
+    /// reporting. False on Umbraco 17.
     /// </summary>
     public bool LibraryFeatureAvailable { get; set; }
 
     /// <summary>
-    /// Explanatory message shown to the user when <see cref="IsSupported"/> is false, or an
-    /// informational note when <see cref="LibraryFeatureAvailable"/> is false. Null when everything
-    /// is fully supported.
+    /// Explanatory message shown to the user when <see cref="IsSupported"/> is false.
     /// </summary>
     public string? Message { get; set; }
 }

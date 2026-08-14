@@ -19,14 +19,19 @@ const SOURCE_GROUPS: Array<{ sourceTypes: ElementTypeUsageSourceType[]; heading:
         description: "Embedded as settings in a Block List / Block Grid property."
     },
     {
+        sourceTypes: ["ConfigurationContent", "ConfigurationSettings"],
+        heading: "Data Type Configuration",
+        description: "Configured as an available content or settings type in a block editor data type."
+    },
+    {
         sourceTypes: ["ElementPicker"],
         heading: "Element Picker",
-        description: "Referenced by an Element Picker property (Umbraco 18+)."
+        description: "Referenced by an Element Picker property when the Umbraco Elements feature is available."
     },
     {
         sourceTypes: ["LibraryItem", "LibraryItem (Trashed)"],
         heading: "Library Items",
-        description: "Standing Library items of this Element Type (Umbraco 18+)."
+        description: "Standing Library items of this Element Type when the Umbraco Elements feature is available."
     }
 ];
 
@@ -97,12 +102,11 @@ export class GodModeElementTypeUsageModalElement extends UmbElementMixin(LitElem
                 return editUrl("media", key);
             case "member":
                 return editUrl("member", key);
+            case "dataType":
+                return editUrl("dataType", key);
             case "element":
-                // Umbraco 18+ Library item. GodMode's client package targets Umbraco 17
-                // (@umbraco-cms/backoffice ^17.3.0), which has no typed path pattern for the
-                // Library section yet, so the route is built manually here rather than via
-                // the shared edit-links helpers. This matches the route Umbraco 18's `elements`
-                // package registers: section/library/workspace/element/edit/{key}.
+                // The client targets Umbraco 17, which does not expose a typed Library route helper.
+                // This is only used for rows returned after the server detects the v18 schema.
                 return `section/library/workspace/element/edit/${key}`;
             default:
                 return "";
@@ -155,8 +159,8 @@ export class GodModeElementTypeUsageModalElement extends UmbElementMixin(LitElem
                 <p class="section-description">${group.description}</p>
                 <uui-table>
                     <uui-table-head>
-                        <uui-table-head-cell>Content Name</uui-table-head-cell>
-                        <uui-table-head-cell>Parent Name</uui-table-head-cell>
+                        <uui-table-head-cell>Owner</uui-table-head-cell>
+                        <uui-table-head-cell>Parent / Editor</uui-table-head-cell>
                         <uui-table-head-cell>Version Date</uui-table-head-cell>
                         <uui-table-head-cell>Source Type</uui-table-head-cell>
                     </uui-table-head>

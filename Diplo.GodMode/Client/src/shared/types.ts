@@ -725,7 +725,7 @@ export interface GodModeConfigResponse {
     };
 }
 
-/** One row in the Element Type Usage grid — aggregated counts across all four usage sources. */
+/** One row in the Element Type Usage grid — stored, configured and optional Library usage. */
 export interface ElementTypeUsageSummary {
     elementTypeId: number;
     elementTypeKey: string;
@@ -734,6 +734,7 @@ export interface ElementTypeUsageSummary {
     icon: string | null;
     contentUses: number;
     settingsUses: number;
+    configuredUses: number;
     libraryItems: number;
     elementPickerUses: number;
     usageCount: number;
@@ -743,12 +744,14 @@ export interface ElementTypeUsageSummary {
 export type ElementTypeUsageSourceType =
     | "BlockContent"
     | "BlockSettings"
+    | "ConfigurationContent"
+    | "ConfigurationSettings"
     | "ElementPicker"
     | "LibraryItem"
     | "LibraryItem (Trashed)";
 
 /** Entity type of the node that owns a usage — used to build the correct edit link. */
-export type ElementTypeUsageEntityType = "content" | "media" | "member" | "element" | "unknown";
+export type ElementTypeUsageEntityType = "content" | "media" | "member" | "dataType" | "element" | "unknown";
 
 export interface ElementTypeUsageDetail {
     contentNodeId: number;
@@ -762,8 +765,7 @@ export interface ElementTypeUsageDetail {
 }
 
 /**
- * Reports whether Element Type Usage analysis can run on the current database, and whether
- * Library Item / Element Picker reporting (Umbraco 18+) is available.
+ * Reports whether Element Type Usage analysis can run and whether optional Library reporting is available.
  */
 export interface ElementTypeUsageStatus {
     isSupported: boolean;

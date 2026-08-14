@@ -102,7 +102,7 @@ export const browsers: BrowserDef[] = [
         id: "elementTypeUsage",
         label: "Element Type Usage",
         icon: "icon-science",
-        description: "Browse Element Type usage across Block Lists, Block Grids, Library Items and Element Pickers",
+        description: "Browse stored and configured Element Type usage, including Library usage when available",
         weight: 780,
         element: () => import("../elements/godmode-element-type-usage-browser.element")
     },

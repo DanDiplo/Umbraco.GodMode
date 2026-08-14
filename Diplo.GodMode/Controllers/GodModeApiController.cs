@@ -587,13 +587,13 @@ public class GodModeApiController : ManagementApiControllerBase
 
     [HttpGet("element-type-usage")]
     [ProducesResponseType<IEnumerable<ElementTypeUsageSummary>>(StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<ElementTypeUsageSummary>> GetElementTypeUsageSummary()
-        => Ok(dataBaseService.GetElementTypeUsageSummary());
+    public async Task<ActionResult<IEnumerable<ElementTypeUsageSummary>>> GetElementTypeUsageSummary([FromQuery] bool refresh = false)
+        => Ok(await dataBaseService.GetElementTypeUsageSummary(refresh));
 
     [HttpGet("element-type-usage/detail")]
     [ProducesResponseType<IEnumerable<ElementTypeUsageDetail>>(StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<ElementTypeUsageDetail>> GetElementTypeUsageDetail([FromQuery] Guid elementTypeKey)
-        => Ok(dataBaseService.GetElementTypeUsageDetail(elementTypeKey));
+    public async Task<ActionResult<IEnumerable<ElementTypeUsageDetail>>> GetElementTypeUsageDetail([FromQuery] Guid elementTypeKey)
+        => Ok(await dataBaseService.GetElementTypeUsageDetail(elementTypeKey));
 
     [HttpGet("tags")]
     [ProducesResponseType<IEnumerable<TagMapping>>(StatusCodes.Status200OK)]

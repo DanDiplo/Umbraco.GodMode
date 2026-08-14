@@ -25,12 +25,14 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
         void this._load();
     }
 
-    private async _load() {
+    private async _load(refresh = false) {
         this._loading = true;
         try {
             const status = await godmodeGet<ElementTypeUsageStatus>("element-type-usage/status");
             this._status = status;
-            this._items = status.isSupported ? await godmodeGet<ElementTypeUsageSummary[]>("element-type-usage") : [];
+            this._items = status.isSupported
+                ? await godmodeGet<ElementTypeUsageSummary[]>("element-type-usage", refresh ? { refresh: true } : undefined)
+                : [];
         } finally {
             this._loading = false;
         }
@@ -90,12 +92,16 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
     }
 
     override render() {
+        const description = this._status?.libraryFeatureAvailable
+            ? "Browse stored and configured block usage, Library Items and Element Picker references."
+            : "Browse stored block occurrences plus Block List, Block Grid and Rich Text configuration references.";
+
         return html`
             <godmode-page
                 heading="Element Type Usage"
-                description="Browse Element Type usage across Block Lists, Block Grids, Library Items and Element Pickers."
+                description=${description}
                 show-reload
-                @reload=${() => void this._load()}
+                @reload=${() => void this._load(true)}
             >
                 ${this._loading ? html`<uui-loader></uui-loader>` : this._renderContent()}
             </godmode-page>
@@ -116,14 +122,6 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
         const totalPages = Math.max(1, Math.ceil(results.length / this._pageSize));
 
         return html`
-            ${this._status && !this._status.libraryFeatureAvailable
-                ? html`
-                      <uui-box class="notice">
-                          <p><uui-icon name="icon-info"></uui-icon> ${this._status.message}</p>
-                      </uui-box>
-                  `
-                : ""}
-
             <uui-box>
                 <div class="filters">
                     <div>
@@ -156,6 +154,13 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                 </div>
             </uui-box>
 
+            <div class="usage-disclaimer" role="note">
+                <umb-icon name="icon-alert" aria-hidden="true"></umb-icon>
+                <p>
+                    <strong>Before deleting:</strong> God Mode might be omniscient, but usage detection isn't infallible. A count of zero doesn't guarantee that an Element Type is unused, so please verify it before deletion.
+                </p>
+            </div>
+
             <p class="results"><strong>${results.length}</strong> / <strong>${this._items.length}</strong></p>
 
             <uui-table @sort-change=${this._onSortChange}>
@@ -164,8 +169,13 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                     <godmode-sort-header column="usageCount" .sort=${this._sort}>Usage Count</godmode-sort-header>
                     <godmode-sort-header column="contentUses" .sort=${this._sort}>Content Uses</godmode-sort-header>
                     <godmode-sort-header column="settingsUses" .sort=${this._sort}>Settings Uses</godmode-sort-header>
-                    <godmode-sort-header column="libraryItems" .sort=${this._sort}>Library Items</godmode-sort-header>
-                    <godmode-sort-header column="elementPickerUses" .sort=${this._sort}>Element Picker Uses</godmode-sort-header>
+                    <godmode-sort-header column="configuredUses" .sort=${this._sort}>Configured Uses</godmode-sort-header>
+                    ${this._status?.libraryFeatureAvailable
+                        ? html`
+                              <godmode-sort-header column="libraryItems" .sort=${this._sort}>Library Items</godmode-sort-header>
+                              <godmode-sort-header column="elementPickerUses" .sort=${this._sort}>Element Picker Uses</godmode-sort-header>
+                          `
+                        : ""}
                     <uui-table-head-cell>Actions</uui-table-head-cell>
                 </uui-table-head>
                 ${pageResults.map(
@@ -173,10 +183,11 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                         <uui-table-row>
                             <uui-table-cell>
                                 <a
+                                    class="element-type-link"
                                     href=${editUrl("documentType", item.elementTypeKey)}
                                     @click=${(e: Event) => openEditorModal(this, "documentType", item.elementTypeKey, e)}
                                 >
-                                    ${item.icon ? html`<uui-icon name=${item.icon}></uui-icon>` : ""}
+                                    <umb-icon name=${item.icon || "icon-document"}></umb-icon>
                                     <strong>${item.elementTypeName}</strong>
                                 </a>
                                 <div><code>${item.elementTypeAlias}</code></div>
@@ -186,8 +197,13 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                             </uui-table-cell>
                             <uui-table-cell>${item.contentUses}</uui-table-cell>
                             <uui-table-cell>${item.settingsUses}</uui-table-cell>
-                            <uui-table-cell>${item.libraryItems}</uui-table-cell>
-                            <uui-table-cell>${item.elementPickerUses}</uui-table-cell>
+                            <uui-table-cell>${item.configuredUses}</uui-table-cell>
+                            ${this._status?.libraryFeatureAvailable
+                                ? html`
+                                      <uui-table-cell>${item.libraryItems}</uui-table-cell>
+                                      <uui-table-cell>${item.elementPickerUses}</uui-table-cell>
+                                  `
+                                : ""}
                             <uui-table-cell class="action-cell">
                                 <uui-button compact look="secondary" label="Details" @click=${(e: Event) => this._openDetail(item, e)}>
                                     Details
@@ -226,6 +242,24 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
             margin: var(--uui-size-space-3) 0;
             color: var(--uui-color-text-alt);
         }
+        .usage-disclaimer {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--uui-size-space-3);
+            margin-top: var(--uui-size-space-4);
+            padding: var(--uui-size-space-4);
+            border-left: 3px solid var(--uui-color-warning);
+            background: var(--uui-color-surface-alt);
+        }
+        .usage-disclaimer umb-icon {
+            flex: 0 0 auto;
+            margin-top: 0.15em;
+            color: var(--uui-color-warning-emphasis);
+            font-size: var(--uui-type-h5-size);
+        }
+        .usage-disclaimer p {
+            margin: 0;
+        }
         a {
             color: var(--uui-color-interactive);
             text-decoration: none;
@@ -233,15 +267,14 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
         a:hover {
             text-decoration: underline;
         }
-        .notice {
-            margin-bottom: var(--uui-size-space-4);
-        }
-        .notice p {
-            display: flex;
+        .element-type-link {
+            display: inline-flex;
             align-items: center;
             gap: var(--uui-size-space-2);
-            margin: 0;
-            color: var(--uui-color-text-alt);
+        }
+        .element-type-link umb-icon {
+            flex: 0 0 auto;
+            font-size: var(--uui-type-h5-size);
         }
         .zero {
             color: var(--uui-color-warning-emphasis);
