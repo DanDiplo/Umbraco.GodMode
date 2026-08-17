@@ -170,6 +170,7 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                     <godmode-sort-header column="contentUses" .sort=${this._sort}>Content Uses</godmode-sort-header>
                     <godmode-sort-header column="settingsUses" .sort=${this._sort}>Settings Uses</godmode-sort-header>
                     <godmode-sort-header column="configuredUses" .sort=${this._sort}>Configured Uses</godmode-sort-header>
+                    <godmode-sort-header column="nestedUses" .sort=${this._sort}>Nested Uses</godmode-sort-header>
                     ${this._status?.libraryFeatureAvailable
                         ? html`
                               <godmode-sort-header column="libraryItems" .sort=${this._sort}>Library Items</godmode-sort-header>
@@ -198,6 +199,7 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                             <uui-table-cell>${item.contentUses}</uui-table-cell>
                             <uui-table-cell>${item.settingsUses}</uui-table-cell>
                             <uui-table-cell>${item.configuredUses}</uui-table-cell>
+                            <uui-table-cell>${item.nestedUses}</uui-table-cell>
                             ${this._status?.libraryFeatureAvailable
                                 ? html`
                                       <uui-table-cell>${item.libraryItems}</uui-table-cell>
