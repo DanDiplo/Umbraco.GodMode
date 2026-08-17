@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.1.5</VersionPrefix>
+    <VersionPrefix>17.2.1</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Aligns the GodMode backoffice navigation with core Umbraco conventions, adds more health check coverage and health check browser improvements, and improves log viewer filtering and log level selection.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds an Element Type Usage browser covering stored, configured, and nested inline block usage across SQL Server and SQLite, with detailed references, reliable occurrence counting, cache-bypassing reloads, and forward-compatible Umbraco 18 Library Item and Element Picker support.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->

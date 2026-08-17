@@ -65,6 +65,7 @@ public sealed class ElementTypeUsageTests
         StringAssert.Contains(sql, "$.blocks.contentData");
         StringAssert.Contains(sql, "$.blocks.settingsData");
         StringAssert.Contains(sql, "ISJSON(upd.textValue)");
+        StringAssert.Contains(sql, "upd.id AS PropertyDataId");
         Assert.IsFalse(sql.Contains("SELECT DISTINCT", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -76,6 +77,7 @@ public sealed class ElementTypeUsageTests
         StringAssert.Contains(sql, "$.blocks.contentData");
         StringAssert.Contains(sql, "$.blocks.settingsData");
         StringAssert.Contains(sql, "json_valid(upd.textValue)");
+        StringAssert.Contains(sql, "upd.id AS PropertyDataId");
         Assert.IsFalse(sql.Contains("SELECT DISTINCT", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -92,10 +94,13 @@ public sealed class ElementTypeUsageTests
     public void BuildElementTypeUsageCte_IncludesV18SourcesWhenElementsSchemaIsAvailable()
     {
         var sql = UmbracoDatabaseService.BuildElementTypeUsageCte(includeLibrarySources: true, isSqlite: false);
+        var normalizedSql = sql.ReplaceLineEndings("\n");
 
         StringAssert.Contains(sql, "FROM umbracoElement ue");
         StringAssert.Contains(sql, "rt.alias = 'umbElement'");
         StringAssert.Contains(sql, "'ElementPicker'");
+        StringAssert.Contains(normalizedSql, "NULL,\n        referencingNode.id");
+        StringAssert.Contains(normalizedSql, "NULL,\n        libNode.id");
         Assert.IsFalse(sql.Contains("SELECT DISTINCT", StringComparison.OrdinalIgnoreCase));
     }
 

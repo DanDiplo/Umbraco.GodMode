@@ -1,7 +1,7 @@
 {
   "name": "diplo-godmode-client",
   "private": true,
-  "version": "17.1.5",
+  "version": "17.2.1",
   "type": "module",
   "scripts": {
     "build": "vite build",

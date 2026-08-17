@@ -16,6 +16,13 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.2.1
+* Adds an Element Type Usage browser for stored block occurrences and configuration references across Block List, Block Grid, Rich Text, and single-block editors (thanks Marc Goodson).
+* Detects Element Types nested inside Rich Text properties at any nesting depth, while keeping top-level, configured, and nested usage counts distinct.
+* Includes forward-compatible Umbraco 18 Library Item and Element Picker usage when those features are available.
+* Improves reliability across SQL Server and SQLite, correctly counts repeated occurrences, tolerates malformed JSON, adds detailed configuration links, and forces a fresh scan on reload.
+* Scopes nested-usage deduplication to the exact property and optimises detail scans to query only the requested Element Type.
+
 ### 17.1.5
 * Aligns the GodMode backoffice navigation with core Umbraco conventions, replacing the bespoke root menu element with the standard tree stack (thanks Rick Butterfield),
 * Adds more health check coverage and improves the health check browser,
