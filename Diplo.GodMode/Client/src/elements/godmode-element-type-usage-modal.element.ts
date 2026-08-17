@@ -24,6 +24,12 @@ const SOURCE_GROUPS: Array<{ sourceTypes: ElementTypeUsageSourceType[]; heading:
         description: "Configured as an available content or settings type in a block editor data type."
     },
     {
+        sourceTypes: ["NestedInlineBlock"],
+        heading: "Nested Inline Blocks",
+        description:
+            "Found nested inside another block's Rich Text property (an inline block inserted into an RTE that is itself part of another block). Detected via a text scan rather than exact structure, so the precise nesting path isn't shown — open the linked item to locate it."
+    },
+    {
         sourceTypes: ["ElementPicker"],
         heading: "Element Picker",
         description: "Referenced by an Element Picker property when the Umbraco Elements feature is available."

@@ -519,6 +519,7 @@ SELECT
     COALESCE(U.ContentUses, 0) AS ContentUses,
     COALESCE(U.SettingsUses, 0) AS SettingsUses,
     0 AS ConfiguredUses,
+    0 AS NestedUses,
     COALESCE(U.LibraryItems, 0) AS LibraryItems,
     COALESCE(U.ElementPickerUses, 0) AS ElementPickerUses,
     COALESCE(U.UsageCount, 0) AS UsageCount
@@ -543,14 +544,21 @@ ORDER BY ETN.[text]");
             }
 
             var configuredUsage = await this.GetElementTypeConfigurationUsage();
+            var nestedUsage = await this.GetElementTypeNestedInlineBlockUsage(status);
+
             var configuredCounts = configuredUsage
+                .GroupBy(x => x.ElementTypeKey)
+                .ToDictionary(group => group.Key, group => group.Count());
+
+            var nestedCounts = nestedUsage
                 .GroupBy(x => x.ElementTypeKey)
                 .ToDictionary(group => group.Key, group => group.Count());
 
             foreach (var item in result)
             {
                 item.ConfiguredUses = configuredCounts.GetValueOrDefault(item.ElementTypeKey);
-                item.UsageCount += item.ConfiguredUses;
+                item.NestedUses = nestedCounts.GetValueOrDefault(item.ElementTypeKey);
+                item.UsageCount += item.ConfiguredUses + item.NestedUses;
             }
 
             this.memoryCache.Set(ElementTypeUsageSummaryCacheKey, result, ElementTypeUsageSummaryCacheDuration);
@@ -603,6 +611,9 @@ ORDER BY SourceType, ContentPath",
             }
 
             result.AddRange((await this.GetElementTypeConfigurationUsage())
+                .Where(x => x.ElementTypeKey == elementTypeKey));
+
+            result.AddRange((await this.GetElementTypeNestedInlineBlockUsage(status))
                 .Where(x => x.ElementTypeKey == elementTypeKey));
 
             return result.OrderBy(x => x.SourceType).ThenBy(x => x.ContentName);
@@ -849,6 +860,210 @@ ElementTypeUsage AS
                     yield return new ElementTypeConfigurationReference(block.SettingsKey.Value, "ConfigurationSettings");
                 }
             }
+        }
+
+        /// <summary>
+        /// Finds Element Types occurring nested inside another block's Rich Text property — e.g. an
+        /// inline block inserted into an RTE that is itself a property of a Block List/Grid/RTE
+        /// block — which <see cref="BuildElementTypeUsageCte"/> cannot see because the entire nested
+        /// tree is serialized into the single outer property's <c>textValue</c>, not a separate row.
+        /// </summary>
+        /// <remarks>
+        /// Rather than recursively deserializing the block tree (unbounded depth, and awkward to do
+        /// in SQL on both providers), this scans each candidate property's raw <c>textValue</c> text
+        /// for the literal GUID of every Element Type known to be configured as an insertable inline
+        /// block in some Rich Text data type (see <see cref="GetRiskyInlineElementTypeKeys"/> — in
+        /// practice a small list). This works at any nesting depth because a GUID's characters are
+        /// unaffected by however many layers of JSON string-escaping surround it — only the
+        /// surrounding quotes/backslashes change per escaping level, never the 36 hex/hyphen
+        /// characters of the GUID itself. A random GUID coincidentally appearing in unrelated text is
+        /// negligibly unlikely (122 bits of randomness), so a plain case-insensitive substring count
+        /// is reliable without parsing the JSON at all.
+        /// <para>
+        /// Occurrences already found by <see cref="BuildElementTypeUsageCte"/> as a top-level
+        /// BlockContent/BlockSettings/ElementPicker/LibraryItem match on the same content node are
+        /// subtracted so they aren't double-counted as "nested". This is scoped per content node,
+        /// not per property, so it will under-count by one in the narrow case where the same risky
+        /// Element Type is both nested in one property AND separately used top-level (or via
+        /// ElementPicker/LibraryItem) in a different property on the very same node.
+        /// </para>
+        /// </remarks>
+        private async Task<List<ElementTypeUsageDetail>> GetElementTypeNestedInlineBlockUsage(ElementTypeUsageStatus status)
+        {
+            var riskyKeys = await this.GetRiskyInlineElementTypeKeys();
+            if (riskyKeys.Count == 0)
+            {
+                return [];
+            }
+
+            using var scope = this.scopeProvider.CreateScope(autoComplete: true);
+            bool isSqlite = this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite;
+
+            var rawSql = new Sql(@"
+SELECT
+    ucv.nodeId AS ContentNodeId,
+    un.uniqueId AS ContentKey,
+    ucv.[text] AS ContentName,
+    up.[text] AS ParentName,
+    un.[path] AS ContentPath,
+    ucv.versionDate AS VersionDate,
+    un.nodeObjectType AS ReferencingNodeObjectType,
+    upd.textValue AS TextValue
+FROM umbracoPropertyData upd
+INNER JOIN umbracoContentVersion ucv ON ucv.id = upd.versionId
+INNER JOIN umbracoNode un ON un.id = ucv.nodeId
+LEFT JOIN umbracoNode up ON up.id = un.parentId
+INNER JOIN cmsPropertyType cpt ON cpt.id = upd.propertyTypeId
+INNER JOIN umbracoDataType udt ON udt.nodeId = cpt.dataTypeId
+WHERE ucv.[current] = 1
+AND udt.propertyEditorAlias IN ('Umbraco.BlockList', 'Umbraco.BlockGrid', 'Umbraco.RichText')
+AND upd.textValue IS NOT NULL");
+
+            var rows = scope.Database.Fetch<NestedScanRow>(rawSql);
+            if (rows.Count == 0)
+            {
+                return [];
+            }
+
+            var topLevel = GetStoredElementTypeUsageKeysForKeys(scope.Database, status, isSqlite, riskyKeys);
+
+            var result = new List<ElementTypeUsageDetail>();
+
+            foreach (var row in rows)
+            {
+                if (string.IsNullOrEmpty(row.TextValue))
+                {
+                    continue;
+                }
+
+                foreach (var riskyKey in riskyKeys)
+                {
+                    int rawCount = CountOccurrences(row.TextValue, riskyKey);
+                    if (rawCount == 0)
+                    {
+                        continue;
+                    }
+
+                    int alreadyCounted = topLevel[(row.ContentNodeId, riskyKey)].Count();
+                    int nestedCount = rawCount - alreadyCounted;
+
+                    for (int i = 0; i < nestedCount; i++)
+                    {
+                        result.Add(new ElementTypeUsageDetail
+                        {
+                            ContentNodeId = row.ContentNodeId,
+                            ContentKey = row.ContentKey,
+                            ContentName = row.ContentName,
+                            ParentName = row.ParentName,
+                            ContentPath = row.ContentPath,
+                            VersionDate = row.VersionDate,
+                            SourceType = "NestedInlineBlock",
+                            EntityType = MapEntityType(row.ReferencingNodeObjectType),
+                            ElementTypeKey = riskyKey
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the distinct set of Element Type keys configured as insertable inline blocks (content
+        /// or settings) in any Rich Text data type — the candidate set for nested-usage scanning.
+        /// </summary>
+        private async Task<List<Guid>> GetRiskyInlineElementTypeKeys()
+        {
+            var dataTypes = await this.dataTypeService.GetAllAsync();
+
+            return dataTypes
+                .Where(dataType => dataType.EditorAlias == "Umbraco.RichText")
+                .SelectMany(dataType => GetConfiguredElementTypeReferences(dataType.ConfigurationObject))
+                .Select(reference => reference.ElementTypeKey)
+                .Distinct()
+                .ToList();
+        }
+
+        /// <summary>
+        /// Gets (ContentNodeId, ElementTypeKey) occurrences already found by
+        /// <see cref="BuildElementTypeUsageCte"/>, restricted to the given keys, so
+        /// <see cref="GetElementTypeNestedInlineBlockUsage"/> can subtract them from its raw text-scan
+        /// counts and avoid double-counting non-nested usage as nested.
+        /// </summary>
+        private static ILookup<(int ContentNodeId, Guid ElementTypeKey), StoredUsageKeyRow> GetStoredElementTypeUsageKeysForKeys(
+            IUmbracoDatabase database, ElementTypeUsageStatus status, bool isSqlite, IReadOnlyList<Guid> keys)
+        {
+            string placeholders = string.Join(", ", Enumerable.Range(0, keys.Count).Select(i => $"@{i}"));
+            string predicate = isSqlite
+                ? $"ElementTypeKey COLLATE NOCASE IN ({placeholders})"
+                : $"ElementTypeKey IN ({placeholders})";
+
+            var sql = new Sql(BuildElementTypeUsageCte(status.LibraryFeatureAvailable, isSqlite) + $@"
+SELECT ContentNodeId, ElementTypeKey
+FROM ElementTypeUsage
+WHERE {predicate}",
+                keys.Cast<object>().ToArray());
+
+            return database.Fetch<StoredUsageKeyRow>(sql)
+                .ToLookup(row => (row.ContentNodeId, row.ElementTypeKey));
+        }
+
+        /// <summary>
+        /// Counts case-insensitive, non-overlapping occurrences of a GUID's literal text within
+        /// <paramref name="text"/>. A plain substring scan is used instead of Regex: a GUID's
+        /// hex/hyphen characters have no regex-special meaning, so there is nothing a Regex would
+        /// buy here over <see cref="string.IndexOf(string, int, StringComparison)"/>, which is both
+        /// simpler and avoids constructing a pattern per key.
+        /// </summary>
+        private static int CountOccurrences(string text, Guid key)
+        {
+            string needle = key.ToString();
+            int count = 0;
+            int index = 0;
+
+            while ((index = text.IndexOf(needle, index, StringComparison.OrdinalIgnoreCase)) >= 0)
+            {
+                count++;
+                index += needle.Length;
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Maps an <c>umbracoNode.nodeObjectType</c> GUID to the client-facing entity type used to
+        /// build edit links. Compares as parsed GUIDs (not raw strings) so it is unaffected by any
+        /// casing differences between SQL Server and SQLite storage.
+        /// </summary>
+        private static string MapEntityType(string? nodeObjectType)
+        {
+            if (nodeObjectType is not null && Guid.TryParse(nodeObjectType, out var objectType))
+            {
+                if (objectType == Guid.Parse(Constants.ObjectTypes.Strings.Document)) return "content";
+                if (objectType == Guid.Parse(Constants.ObjectTypes.Strings.Media)) return "media";
+                if (objectType == Guid.Parse(Constants.ObjectTypes.Strings.Member)) return "member";
+                if (objectType == Guid.Parse(ElementObjectTypeString)) return "element";
+            }
+
+            return "unknown";
+        }
+
+        private sealed class NestedScanRow
+        {
+            public int ContentNodeId { get; set; }
+            public Guid ContentKey { get; set; } = Guid.Empty;
+            public string ContentName { get; set; } = string.Empty;
+            public string? ParentName { get; set; }
+            public string ContentPath { get; set; } = string.Empty;
+            public DateTime VersionDate { get; set; }
+            public string? ReferencingNodeObjectType { get; set; }
+            public string? TextValue { get; set; }
+        }
+
+        private sealed class StoredUsageKeyRow
+        {
+            public int ContentNodeId { get; set; }
+            public Guid ElementTypeKey { get; set; }
         }
 
         /// <summary>

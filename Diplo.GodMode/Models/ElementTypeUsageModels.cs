@@ -35,6 +35,13 @@ public class ElementTypeUsageSummary
     public int ConfiguredUses { get; set; }
 
     /// <summary>
+    /// Occurrences of this Element Type nested inside another block's Rich Text property (an inline
+    /// block inserted into an RTE that is itself a property of a Block List/Grid/RTE block), found
+    /// via a text scan rather than JSON parsing. See <see cref="ElementTypeUsageDetail.SourceType"/>.
+    /// </summary>
+    public int NestedUses { get; set; }
+
+    /// <summary>
     /// Standing Library items of this Element Type. Available when the Umbraco 18 Elements schema
     /// is present; otherwise zero.
     /// </summary>
@@ -47,8 +54,8 @@ public class ElementTypeUsageSummary
     public int ElementPickerUses { get; set; }
 
     /// <summary>
-    /// Total usage count across stored blocks, block-editor configuration references, Library
-    /// items and Element Picker references.
+    /// Total usage count across stored blocks, nested inline blocks, block-editor configuration
+    /// references, Library items and Element Picker references.
     /// </summary>
     public int UsageCount { get; set; }
 }
@@ -74,7 +81,7 @@ public class ElementTypeUsageDetail
 
     /// <summary>
     /// One of: BlockContent, BlockSettings, ConfigurationContent, ConfigurationSettings,
-    /// ElementPicker, LibraryItem, LibraryItem (Trashed).
+    /// NestedInlineBlock, ElementPicker, LibraryItem, LibraryItem (Trashed).
     /// </summary>
     public string SourceType { get; set; } = string.Empty;
 
