@@ -613,7 +613,7 @@ ORDER BY SourceType, ContentPath",
             result.AddRange((await this.GetElementTypeConfigurationUsage())
                 .Where(x => x.ElementTypeKey == elementTypeKey));
 
-            result.AddRange((await this.GetElementTypeNestedInlineBlockUsage(status))
+            result.AddRange((await this.GetElementTypeNestedInlineBlockUsage(status, elementTypeKey))
                 .Where(x => x.ElementTypeKey == elementTypeKey));
 
             return result.OrderBy(x => x.SourceType).ThenBy(x => x.ContentName);
@@ -648,6 +648,7 @@ ElementTypeUsage AS
             // virtue of being a real GUID comparison rather than a string comparison.
             const string sqlServerBlockSourcesSql = @"
     SELECT
+        upd.id AS PropertyDataId,
         ucv.nodeId AS ContentNodeId,
         un.uniqueId AS ContentKey,
         ucv.[text] AS ContentName,
@@ -700,6 +701,7 @@ ElementTypeUsage AS
             // silently matches zero rows without it.
             const string sqliteBlockSourcesSql = @"
     SELECT
+        upd.id AS PropertyDataId,
         ucv.nodeId AS ContentNodeId,
         un.uniqueId AS ContentKey,
         ucv.[text] AS ContentName,
@@ -728,6 +730,7 @@ ElementTypeUsage AS
     UNION ALL
 
     SELECT
+        upd.id,
         ucv.nodeId,
         un.uniqueId,
         ucv.[text],
@@ -761,6 +764,7 @@ ElementTypeUsage AS
     UNION ALL
 
     SELECT
+        NULL,
         referencingNode.id,
         referencingNode.uniqueId,
         rucv.[text],
@@ -784,6 +788,7 @@ ElementTypeUsage AS
     UNION ALL
 
     SELECT
+        NULL,
         libNode.id,
         libNode.uniqueId,
         lucv.[text],
@@ -880,17 +885,22 @@ ElementTypeUsage AS
         /// negligibly unlikely (122 bits of randomness), so a plain case-insensitive substring count
         /// is reliable without parsing the JSON at all.
         /// <para>
-        /// Occurrences already found by <see cref="BuildElementTypeUsageCte"/> as a top-level
-        /// BlockContent/BlockSettings/ElementPicker/LibraryItem match on the same content node are
-        /// subtracted so they aren't double-counted as "nested". This is scoped per content node,
-        /// not per property, so it will under-count by one in the narrow case where the same risky
-        /// Element Type is both nested in one property AND separately used top-level (or via
-        /// ElementPicker/LibraryItem) in a different property on the very same node.
+        /// Occurrences already found by <see cref="BuildElementTypeUsageCte"/> as top-level
+        /// BlockContent or BlockSettings matches in the same property-data row are subtracted so
+        /// they aren't double-counted as "nested". Element Picker and Library Item usages are not
+        /// subtracted because they do not represent occurrences in the scanned property value.
         /// </para>
         /// </remarks>
-        private async Task<List<ElementTypeUsageDetail>> GetElementTypeNestedInlineBlockUsage(ElementTypeUsageStatus status)
+        private async Task<List<ElementTypeUsageDetail>> GetElementTypeNestedInlineBlockUsage(
+            ElementTypeUsageStatus status,
+            Guid? elementTypeKey = null)
         {
             var riskyKeys = await this.GetRiskyInlineElementTypeKeys();
+            if (elementTypeKey.HasValue)
+            {
+                riskyKeys = riskyKeys.Where(key => key == elementTypeKey.Value).ToList();
+            }
+
             if (riskyKeys.Count == 0)
             {
                 return [];
@@ -901,6 +911,7 @@ ElementTypeUsage AS
 
             var rawSql = new Sql(@"
 SELECT
+    upd.id AS PropertyDataId,
     ucv.nodeId AS ContentNodeId,
     un.uniqueId AS ContentKey,
     ucv.[text] AS ContentName,
@@ -918,6 +929,14 @@ INNER JOIN umbracoDataType udt ON udt.nodeId = cpt.dataTypeId
 WHERE ucv.[current] = 1
 AND udt.propertyEditorAlias IN ('Umbraco.BlockList', 'Umbraco.BlockGrid', 'Umbraco.RichText')
 AND upd.textValue IS NOT NULL");
+
+            // The detail endpoint only needs one Element Type. Filter candidate rows in the
+            // database as well as narrowing the in-memory key list, avoiding a transfer and scan
+            // of every block-editor value in the installation.
+            if (elementTypeKey.HasValue)
+            {
+                rawSql.Append("AND LOWER(upd.textValue) LIKE @0", $"%{elementTypeKey.Value:D}%");
+            }
 
             var rows = scope.Database.Fetch<NestedScanRow>(rawSql);
             if (rows.Count == 0)
@@ -944,7 +963,7 @@ AND upd.textValue IS NOT NULL");
                         continue;
                     }
 
-                    int alreadyCounted = topLevel[(row.ContentNodeId, riskyKey)].Count();
+                    int alreadyCounted = topLevel[(row.PropertyDataId, riskyKey)].Count();
                     int nestedCount = rawCount - alreadyCounted;
 
                     for (int i = 0; i < nestedCount; i++)
@@ -985,12 +1004,12 @@ AND upd.textValue IS NOT NULL");
         }
 
         /// <summary>
-        /// Gets (ContentNodeId, ElementTypeKey) occurrences already found by
+        /// Gets (PropertyDataId, ElementTypeKey) top-level block occurrences already found by
         /// <see cref="BuildElementTypeUsageCte"/>, restricted to the given keys, so
         /// <see cref="GetElementTypeNestedInlineBlockUsage"/> can subtract them from its raw text-scan
         /// counts and avoid double-counting non-nested usage as nested.
         /// </summary>
-        private static ILookup<(int ContentNodeId, Guid ElementTypeKey), StoredUsageKeyRow> GetStoredElementTypeUsageKeysForKeys(
+        private static ILookup<(int PropertyDataId, Guid ElementTypeKey), StoredUsageKeyRow> GetStoredElementTypeUsageKeysForKeys(
             IUmbracoDatabase database, ElementTypeUsageStatus status, bool isSqlite, IReadOnlyList<Guid> keys)
         {
             string placeholders = string.Join(", ", Enumerable.Range(0, keys.Count).Select(i => $"@{i}"));
@@ -999,13 +1018,15 @@ AND upd.textValue IS NOT NULL");
                 : $"ElementTypeKey IN ({placeholders})";
 
             var sql = new Sql(BuildElementTypeUsageCte(status.LibraryFeatureAvailable, isSqlite) + $@"
-SELECT ContentNodeId, ElementTypeKey
+SELECT PropertyDataId, ElementTypeKey
 FROM ElementTypeUsage
-WHERE {predicate}",
+WHERE SourceType IN ('BlockContent', 'BlockSettings')
+AND PropertyDataId IS NOT NULL
+AND {predicate}",
                 keys.Cast<object>().ToArray());
 
             return database.Fetch<StoredUsageKeyRow>(sql)
-                .ToLookup(row => (row.ContentNodeId, row.ElementTypeKey));
+                .ToLookup(row => (row.PropertyDataId, row.ElementTypeKey));
         }
 
         /// <summary>
@@ -1050,6 +1071,7 @@ WHERE {predicate}",
 
         private sealed class NestedScanRow
         {
+            public int PropertyDataId { get; set; }
             public int ContentNodeId { get; set; }
             public Guid ContentKey { get; set; } = Guid.Empty;
             public string ContentName { get; set; } = string.Empty;
@@ -1062,7 +1084,7 @@ WHERE {predicate}",
 
         private sealed class StoredUsageKeyRow
         {
-            public int ContentNodeId { get; set; }
+            public int PropertyDataId { get; set; }
             public Guid ElementTypeKey { get; set; }
         }
 
