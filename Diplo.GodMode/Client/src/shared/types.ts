@@ -735,6 +735,7 @@ export interface ElementTypeUsageSummary {
     contentUses: number;
     settingsUses: number;
     configuredUses: number;
+    nestedUses: number;
     libraryItems: number;
     elementPickerUses: number;
     usageCount: number;
@@ -746,6 +747,7 @@ export type ElementTypeUsageSourceType =
     | "BlockSettings"
     | "ConfigurationContent"
     | "ConfigurationSettings"
+    | "NestedInlineBlock"
     | "ElementPicker"
     | "LibraryItem"
     | "LibraryItem (Trashed)";
