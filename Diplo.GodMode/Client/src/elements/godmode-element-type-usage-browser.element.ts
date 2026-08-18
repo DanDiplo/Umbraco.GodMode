@@ -128,6 +128,7 @@ export class GodModeElementTypeUsageBrowserElement extends UmbElementMixin(LitEl
                         <label for="search">Search</label>
                         <uui-input
                             id="search"
+                            label="Search"
                             type="search"
                             autocomplete="off"
                             autocorrect="off"

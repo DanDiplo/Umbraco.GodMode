@@ -1056,9 +1056,9 @@ AND {predicate}",
         /// build edit links. Compares as parsed GUIDs (not raw strings) so it is unaffected by any
         /// casing differences between SQL Server and SQLite storage.
         /// </summary>
-        private static string MapEntityType(string? nodeObjectType)
+        private static string MapEntityType(Guid? nodeObjectType)
         {
-            if (nodeObjectType is not null && Guid.TryParse(nodeObjectType, out var objectType))
+            if (nodeObjectType is Guid objectType)
             {
                 if (objectType == Guid.Parse(Constants.ObjectTypes.Strings.Document)) return "content";
                 if (objectType == Guid.Parse(Constants.ObjectTypes.Strings.Media)) return "media";
@@ -1078,7 +1078,7 @@ AND {predicate}",
             public string? ParentName { get; set; }
             public string ContentPath { get; set; } = string.Empty;
             public DateTime VersionDate { get; set; }
-            public string? ReferencingNodeObjectType { get; set; }
+            public Guid? ReferencingNodeObjectType { get; set; }
             public string? TextValue { get; set; }
         }
 

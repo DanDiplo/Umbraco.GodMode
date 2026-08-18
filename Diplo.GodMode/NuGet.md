@@ -16,6 +16,10 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.2.2
+* Fixes the Element Type Usage browser on SQL Server by mapping `nodeObjectType` values to their native GUID type during nested inline-block scans.
+* Adds the required accessible label to the Element Type search input.
+
 ### 17.2.1
 * Adds an Element Type Usage browser for stored block occurrences and configuration references across Block List, Block Grid, Rich Text, and single-block editors (thanks Marc Goodson).
 * Detects Element Types nested inside Rich Text properties at any nesting depth, while keeping top-level, configured, and nested usage counts distinct.
