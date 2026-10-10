@@ -15,4 +15,5 @@ export * from "./evidence-drawer";
 export * from "./modal-feedback";
 export * from "./format";
 export * from "./date-time";
+export * from "./hidden-features";
 export type * from "./types";

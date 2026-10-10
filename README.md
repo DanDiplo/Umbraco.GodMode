@@ -129,7 +129,34 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
 }
 ```
 
-`FeaturesToHide` hides complete God Mode sections by name or alias, for example `"Services"` or `"Content Browser"`.
+`FeaturesToHide` hides complete God Mode features from the tree and the Welcome page. Each value can be the feature's name as shown in the tree or its alias, and matching is case-insensitive, for example `"Services"`, `"serviceBrowser"` or `"Content Browser"`. A folder disappears when all of its features are hidden, and listing a folder name (such as `"Types"` or `"Health & operations"`) hides that whole folder. Hidden features are removed from navigation only; their API endpoints are still available to backoffice users with access to God Mode.
+
+| Feature | Alias |
+| --- | --- |
+| Overview (also `Information`) | `informationBrowser` |
+| Health & Risk | `healthRisk` |
+| Diagnostics | `diagnosticBrowser` |
+| Log Browser | `logBrowser` |
+| Database Browser | `databaseBrowser` |
+| Content Browser | `contentBrowser` |
+| DocType Browser | `docTypeBrowser` |
+| DataType Browser | `dataTypeBrowser` |
+| Template Browser | `templateBrowser` |
+| Partial Browser | `partialBrowser` |
+| Media Browser | `mediaBrowser` |
+| Member Browser | `memberBrowser` |
+| Tag Browser | `tagBrowser` |
+| Reference Graph | `referenceGraph` |
+| Usage Browser | `usageBrowser` |
+| Element Type Usage | `elementTypeUsage` |
+| Types (folder) | `typesIntro` |
+| Services | `serviceBrowser` |
+| Extension Explorer | `extensionExplorer` |
+| NuGet Packages | `nugetPackages` |
+| Key Values | `keyValueBrowser` |
+| Utilities | `utilityBrowser` |
+
+Individual pages inside the Types folder can also be hidden, for example `"Surface Controllers"`, `"Composers"` or `"Interface Browser"`.
 
 `GroupsToHide` hides complete diagnostic groups by title, such as `"Server Configuration"` or `"Umbraco Configuration"`.
 

@@ -5,6 +5,7 @@ import {
     GODMODE_TREE_FOLDER_ENTITY_TYPE,
     GODMODE_TREE_ITEM_ENTITY_TYPE
 } from "../constants";
+import { GodModeHiddenFeatures } from "../shared/hidden-features";
 
 /**
  * A single node in the GodMode tree. Folders group browsers; leaves point at
@@ -137,12 +138,36 @@ export function getFolderName(unique: string): string | undefined {
     return folderNamesByUnique.get(unique);
 }
 
-/** Top-level tree nodes (the six category folders). */
-export function getRootNodes(): GodModeTreeNode[] {
-    return ROOT_NODES;
+/** Browser id a folder can be hidden by (the Types folder maps to its intro page). */
+const FOLDER_FEATURE_IDS: Readonly<Record<string, string>> = { [TYPES_FOLDER_UNIQUE]: "typesIntro" };
+
+/**
+ * A leaf is visible unless its browser is listed in `FeaturesToHide`. A folder
+ * is visible unless it is listed itself or every one of its children is hidden.
+ */
+function isVisible(node: GodModeTreeNode, hidden: GodModeHiddenFeatures): boolean {
+    if (!node.isFolder) {
+        return !hidden.isHidden(node.unique, node.name, byId.get(node.unique)?.label);
+    }
+
+    const featureId = FOLDER_FEATURE_IDS[node.unique] ?? node.unique;
+    if (hidden.isHidden(featureId, node.unique, node.name)) {
+        return false;
+    }
+
+    return (childrenByParent.get(node.unique) ?? []).some((child) => isVisible(child, hidden));
 }
 
-/** Children of a folder node, keyed by the folder's unique. */
-export function getChildNodes(parentUnique: string): GodModeTreeNode[] {
-    return childrenByParent.get(parentUnique) ?? [];
+function visibleNodes(nodes: GodModeTreeNode[], hidden: GodModeHiddenFeatures): GodModeTreeNode[] {
+    return hidden.isEmpty ? nodes : nodes.filter((node) => isVisible(node, hidden));
+}
+
+/** Top-level tree nodes (Overview plus the category folders), minus any configured as hidden. */
+export function getRootNodes(hidden: GodModeHiddenFeatures = GodModeHiddenFeatures.none): GodModeTreeNode[] {
+    return visibleNodes(ROOT_NODES, hidden);
+}
+
+/** Children of a folder node, keyed by the folder's unique, minus any configured as hidden. */
+export function getChildNodes(parentUnique: string, hidden: GodModeHiddenFeatures = GodModeHiddenFeatures.none): GodModeTreeNode[] {
+    return visibleNodes(childrenByParent.get(parentUnique) ?? [], hidden);
 }
