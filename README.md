@@ -22,10 +22,20 @@ If Umbraco is an Allen key then God Mode is the swiss army knife that helps you 
 
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
-- Browse templates, partials, controllers, database tables, generated models, registered services, Content Finders, and URL providers.
+- Find where Element Types are used across Block List, Block Grid, Rich Text, and single-block editors, including nested usage.
+- Trace relationships between types, templates, data types, and block elements with the Reference Graph, and see how many instances of each content type exist.
+- Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
 - View content, members and media in searchable/filterable tables.
-- Inspect diagnostics and configuration values, with optional redaction for sensitive settings.
+- See pending scheduled publishing, overdue schedules, publishing suspension, and when the scheduled publishing job last ran.
+- Check the server time zone, UTC date handling and Umbraco 17 system-date migration settings, and switch dates between Local, Server, and UTC display. See [Server time and scheduling diagnostics](docs/server-time-diagnostics.md).
+- Surface broken references, configuration drift, and cleanup opportunities with Health & Risk checks.
+- Inspect diagnostics and configuration values, with optional redaction for sensitive settings, plus key system, package, and Content Delivery API information.
+- Filter and search Umbraco JSON logs by level and time.
+- Inspect database tables, row counts, columns, and declared relationships.
+- Inspect registered backoffice extension manifests and runtime NuGet package versions, including package advisories.
+- Edit and delete rows in the `umbracoKeyValue` table.
 - Inspect and clear Umbraco caches and restart the app where supported.
+- Hide any God Mode feature you don't need with configuration.
 - Optionally add contextual AI explanations with the separate `Diplo.GodMode.AI` companion package.
 
 ## Screenshots
@@ -103,12 +113,31 @@ dotnet add package Diplo.GodMode.AI
 
 ## Configuration
 
-God Mode reads its options from the `GodMode` section of `appsettings.json`. All settings are optional; this example shows the current defaults:
+God Mode reads its options from the `GodMode` section of `appsettings.json`. All settings are optional; this example shows the current defaults.
+
+**Note:** list settings that have defaults, such as `KeysToRedact`, `KeyMatchesToRedact`, `AliasesToIgnore` and `SensitiveAliasTerms`, are added to the defaults by .NET configuration binding rather than replacing them. You can add entries, but you can't remove a default entry.
 
 ```json
 {
   "GodMode": {
     "FeaturesToHide": [],
+    "AliasesToIgnore": [
+      "umbracoFile"
+    ],
+    "DeliveryApi": {
+      "SensitiveAliasTerms": [
+        "account",
+        "auth",
+        "config",
+        "customer",
+        "member",
+        "profile",
+        "secret",
+        "secure",
+        "setting",
+        "user"
+      ]
+    },
     "Diagnostics": {
       "GroupsToHide": [],
       "SectionsToHide": [],
@@ -159,6 +188,10 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
 
 Individual pages inside the Types folder can also be hidden, for example `"Surface Controllers"`, `"Composers"` or `"Interface Browser"`.
 
+`AliasesToIgnore` lists property aliases that Health & Risk and configuration drift checks should skip, case-insensitively. The default ignores `umbracoFile`, which is expected to repeat across media types.
+
+`DeliveryApi:SensitiveAliasTerms` lists words that flag a document type as sensitive-looking when it is exposed by the Content Delivery API. Aliases are split into words on camel case and punctuation, and a term must match a whole word, so `member` matches `memberProfile` but not `remembered`.
+
 `GroupsToHide` hides complete diagnostic groups by title, such as `"Server Configuration"` or `"Umbraco Configuration"`.
 
 `SectionsToHide` hides individual diagnostic sections by heading, such as `"MVC Version"`.
@@ -168,6 +201,28 @@ Individual pages inside the Types folder can also be hidden, for example `"Surfa
 `KeyMatchesToRedact` redacts any diagnostic whose key contains one of the configured words, case-insensitively. By default this catches keys containing `password`, `pwd`, `secret`, or `key`.
 
 Restart the site after changing these settings.
+
+### God Mode AI Settings
+
+The optional AI add-on reads its settings from the `Diplo:GodMode:AI` section (note the `Diplo` parent, unlike the core `GodMode` section). All settings are optional:
+
+```json
+{
+  "Diplo": {
+    "GodMode": {
+      "AI": {
+        "ChatProfileAlias": "my-profile-alias",
+        "MaxOutputTokens": 1000,
+        "Temperature": 0.2
+      }
+    }
+  }
+}
+```
+
+`ChatProfileAlias` is the alias of the Umbraco.AI profile used for explanations. When it is not set, Umbraco.AI selects the profile using its own defaults.
+
+`MaxOutputTokens` and `Temperature` override the profile's chat options for God Mode explanations only.
 
 ### Revealing Redacted Diagnostics
 

@@ -16,6 +16,15 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.3.0
+* Adds a Scheduled Publishing view listing pending publish and unpublish schedules, overdue items, publishing suspension, Umbraco 17 background jobs and registered servers (thanks @suedeapple).
+* Adds server time zone information to the Overview, including a Time Zone card, live server, UTC and browser clocks, clock drift, the next daylight saving change and the Umbraco 17 system-date migration settings with on-demand evidence.
+* Adds a Local / Server / UTC date display switch, remembered per browser, across the content, media, member, data type, key/value, NuGet and log views. God Mode API dates are now sent as UTC.
+* Adds Date & Time and UTC System Date Migration sections to Diagnostics, and Health & Risk rules for time zone, date migration, future-dated rows, overdue schedules, stalled background jobs and stale servers.
+* Uptime now uses the real process start time.
+* Fixes `FeaturesToHide` so hidden features are removed from the God Mode tree as well as the Welcome page. Matching is now case-insensitive, and folders are hidden when listed or when all their features are hidden (#59).
+* Documents the `AliasesToIgnore`, `DeliveryApi:SensitiveAliasTerms` and God Mode AI settings.
+
 ### 17.2.2
 * Fixes the Element Type Usage browser on SQL Server by mapping `nodeObjectType` values to their native GUID type during nested inline-block scans.
 * Adds the required accessible label to the Element Type search input.
@@ -55,11 +64,18 @@ UI/UX improvements, including:
 * Quickly search document types, templates, editors, media, content, members, and tags.
 * See document type inheritance, composition usage, data type usage, and property editor usage.
 * Distinguish between element types and types that vary by culture or segment.
+* Find where Element Types are used across Block List, Block Grid, Rich Text, and single-block editors, including nested usage.
+* Trace relationships between types, templates, data types, and block elements with the Reference Graph.
 * Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
 * View content, media, and members in searchable/filterable tables.
 * List tags and the content associated with each tag, including orphaned tags.
+* See pending scheduled publishing, overdue schedules, and when the scheduled publishing job last ran.
+* Check the server time zone and UTC date handling, and switch dates between Local, Server, and UTC display.
+* Surface broken references, configuration drift, and cleanup opportunities with Health & Risk checks.
 * Inspect diagnostics, server details, and configuration values, with optional redaction for sensitive settings.
+* Filter and search Umbraco JSON logs, and inspect database tables, extension manifests, and NuGet packages.
 * Clear Umbraco caches and restart the app where supported.
+* Hide any God Mode feature you don't need with configuration.
 * Add contextual AI explanations by installing the separate [Diplo.GodMode.AI](https://www.nuget.org/packages/Diplo.GodMode.AI) companion package.
 
 ## Requirements and Dependencies
