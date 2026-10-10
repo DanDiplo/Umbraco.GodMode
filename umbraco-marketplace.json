@@ -15,7 +15,7 @@
     "ImageUrl": "https://pbs.twimg.com/profile_images/794295655846002688/S8SQ_XFM_400x400.jpg"
   },
   "Category": "Developer Tools",
-  "Description": "God Mode provides developers with tools, diagnostics and in-depth insights into their Umbraco site. This custom tree in the Settings section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers, services and models. It also provides diagnostics about your Umbraco set-up and the server it is running on.",
+  "Description": "God Mode provides developers with tools, diagnostics and in-depth insights into their Umbraco site. This custom tree in the Settings section of Umbraco allows you to browse, query and search your document types and compositions; your templates and partials; your datatypes and property editors; your media library; your custom controllers, services and models. It also provides diagnostics about your Umbraco set-up and the server it is running on, Health & Risk checks, a log browser, a database browser, a reference graph, Element Type usage, scheduled publishing and server time zone insights.",
   "DocumentationUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v17/README.md",
   "LicenseTypes": [
     "Free"
@@ -48,7 +48,11 @@
     "diagnostics",
     "IOC",
     "reflection",
-    "backend"
+    "backend",
+    "health checks",
+    "logs",
+    "scheduled publishing",
+    "time zone"
   ],
   "Screenshots": [
     {

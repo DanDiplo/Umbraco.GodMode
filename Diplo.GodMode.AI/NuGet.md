@@ -26,6 +26,27 @@ God Mode AI uses your [Umbraco.AI](https://docs.umbraco.com/ai-in-umbraco) confi
 5. Select the model you want the profile to use, for example `gpt-4.1-nano` for OpenAI.
 6. Restart the site and open God Mode in the backoffice.
 
+## Configuration
+
+Settings are optional and read from the `Diplo:GodMode:AI` section of `appsettings.json`:
+
+```json
+{
+  "Diplo": {
+    "GodMode": {
+      "AI": {
+        "ChatProfileAlias": "my-profile-alias",
+        "MaxOutputTokens": 1000,
+        "Temperature": 0.2
+      }
+    }
+  }
+}
+```
+
+* `ChatProfileAlias` is the alias of the Umbraco.AI profile used for explanations. When it is not set, Umbraco.AI selects the profile using its own defaults.
+* `MaxOutputTokens` and `Temperature` override the profile's chat options for God Mode explanations only.
+
 Useful Umbraco.AI docs:
 
 * Getting started: https://docs.umbraco.com/ai-in-umbraco/getting-started/getting-started
