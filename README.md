@@ -30,6 +30,7 @@ If Umbraco is an Allen key then God Mode is the swiss army knife that helps you 
 - Check the server time zone, UTC date handling and Umbraco 17 system-date migration settings, and switch dates between Local, Server, and UTC display. See [Server time and scheduling diagnostics](docs/server-time-diagnostics.md).
 - Surface broken references, configuration drift, and cleanup opportunities with Health & Risk checks.
 - Inspect diagnostics and configuration values, with optional redaction for sensitive settings, plus key system, package, and Content Delivery API information.
+- See the latest stable Umbraco version in the running major and how many listed releases behind it is, loaded asynchronously in the Overview. See [Release checks](docs/umbraco-release-check.md).
 - Filter and search Umbraco JSON logs by level and time.
 - Inspect database tables, row counts, columns, and declared relationships.
 - Inspect registered backoffice extension manifests and runtime NuGet package versions, including package advisories.

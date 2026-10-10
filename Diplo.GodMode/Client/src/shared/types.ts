@@ -710,6 +710,18 @@ export interface Page<T> {
     items: T[];
 }
 
+export interface UmbracoReleaseStatus {
+    currentVersion: string;
+    status: "unavailable" | "behind" | "upToDate" | "newerThanFeed" | "prerelease";
+    latestVersion: string | null;
+    releasesBehind: number | null;
+    checkedAt: string | null;
+    lastAttemptAt: string | null;
+    isStale: boolean;
+    sourceUrl: string;
+    releaseNotesUrl: string;
+}
+
 export interface GodModeConfigResponse {
     featuresToHide: string[];
     aliasesToIgnore: string[];

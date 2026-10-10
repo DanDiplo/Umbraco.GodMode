@@ -4,7 +4,7 @@ import { godmodeGet } from "../api/client";
 import "../shared";
 import "../shared/godmode-live-clock.element";
 import { browserTimeZone, formatOffset, loadServerTime, parseApiDate, zoneOffsetMinutes } from "../shared/date-time";
-import type { DeliveryApiDiagnostics, ServerTimeInfo, SystemDateEvidence, UtilityDiagnostics } from "../shared/types";
+import type { DeliveryApiDiagnostics, ServerTimeInfo, SystemDateEvidence, UmbracoReleaseStatus, UtilityDiagnostics } from "../shared/types";
 
 /** Clock differences smaller than this are treated as normal network jitter. */
 const DRIFT_WARNING_MS = 30_000;
@@ -14,6 +14,8 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
     @state() private _diagnostics: UtilityDiagnostics | null = null;
     @state() private _deliveryApiDiagnostics: DeliveryApiDiagnostics | null = null;
     @state() private _serverTime: ServerTimeInfo | null = null;
+    @state() private _releaseStatus: UmbracoReleaseStatus | null = null;
+    @state() private _releaseLoading = true;
     /** Server clock minus browser clock, in milliseconds. */
     @state() private _driftMs: number | null = null;
     @state() private _roundTripMs = 0;
@@ -51,11 +53,23 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
 
     private async _load() {
         void this._loadServerTime();
+        void this._loadReleaseStatus();
         try {
             this._diagnostics = await godmodeGet<UtilityDiagnostics>("utilities/diagnostics");
             this._deliveryApiDiagnostics = await godmodeGet<DeliveryApiDiagnostics>("delivery-api/diagnostics");
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    private async _loadReleaseStatus() {
+        this._releaseLoading = true;
+        try {
+            this._releaseStatus = await godmodeGet<UmbracoReleaseStatus>("utilities/umbraco-releases");
+        } catch {
+            this._releaseStatus = null;
+        } finally {
+            this._releaseLoading = false;
         }
     }
 
@@ -268,7 +282,6 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
     }
 
     private _renderHeroCards(d: UtilityDiagnostics) {
-        const umbracoVersion = this._splitVersion(d.app.umbracoSemanticVersion || d.app.umbracoVersion);
         const godModeVersion = this._splitVersion(d.app.godModeVersion);
 
         return html`
@@ -276,9 +289,45 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                 ${this._renderKeyCard("Environment", d.app.environmentName, d.app.debugMode ? "Debug mode enabled" : "Debug mode off", d.app.debugMode ? "warning" : "positive")}
                 ${this._renderKeyCard("Machine", d.app.machineName || "Unavailable", d.app.runtimeIdentifier, "default")}
                 ${this._renderTimeZoneCard()}
-                ${this._renderKeyCard("App", `Umbraco ${umbracoVersion.major}`, [umbracoVersion.detail, d.app.applicationMainUrl || "Main URL not configured"], "default")}
+                ${this._renderAppCard(d)}
                 ${this._renderKeyCard("GodMode", godModeVersion.major, [godModeVersion.detail, `Process ${d.app.processId} - ${d.app.uptime}`], "positive")}
             </div>
+        `;
+    }
+
+    private _renderAppCard(d: UtilityDiagnostics) {
+        const version = this._splitVersion(d.app.umbracoSemanticVersion || d.app.umbracoVersion);
+        const status = this._releaseStatus;
+        const tone = status?.isStale || status?.status === "behind" ? "warning" : status?.status === "upToDate" ? "positive" : "default";
+        return html`
+            <div class="key-card ${tone}">
+                <span class="metric-label">App</span>
+                <strong>Umbraco ${version.major}</strong>
+                <small>
+                    ${version.detail ? html`${version.detail}<br />` : ""}
+                    ${d.app.applicationMainUrl || "Main URL not configured"}<br />
+                    <span role="status" aria-live="polite">${this._renderReleaseStatus()}</span>
+                </small>
+            </div>
+        `;
+    }
+
+    private _renderReleaseStatus() {
+        if (this._releaseLoading) return html`Checking releases…`;
+        const status = this._releaseStatus;
+        if (!status?.latestVersion) return html`Release check unavailable`;
+        const label = status.status === "behind"
+            ? `${status.releasesBehind} ${status.releasesBehind === 1 ? "release" : "releases"} behind`
+            : status.status === "upToDate" ? "Up to date"
+            : status.status === "prerelease" ? "Preview version"
+            : "Running version newer than feed";
+        const major = status.latestVersion.split(".")[0];
+        return html`
+            <span title="Compared with listed stable Umbraco.Cms versions on NuGet within the same major.">
+                ${status.isStale ? "Last known: " : ""}${label}
+            </span><br />
+            <a href=${status.releaseNotesUrl} target="_blank" rel="noopener noreferrer">Latest in v${major}: ${status.latestVersion}</a>
+            ${status.isStale ? html`<br />Refresh unavailable · Checked <godmode-date .value=${status.checkedAt}></godmode-date>` : ""}
         `;
     }
 

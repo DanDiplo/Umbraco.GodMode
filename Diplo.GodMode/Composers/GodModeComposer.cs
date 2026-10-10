@@ -36,6 +36,16 @@ namespace Diplo.GodMode.Composers
                     AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
                 });
             builder.Services.AddMemoryCache();
+            builder.Services.AddSingleton<UmbracoReleaseService>();
+            builder.Services.AddHttpClient(UmbracoReleaseService.HttpClientName, client =>
+                {
+                    client.Timeout = Timeout.InfiniteTimeSpan; // The service applies one overall lookup deadline.
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    AllowAutoRedirect = false,
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
+                });
             
             builder.Services.AddSingleton(services => new RegisteredServiceCollection(builder.Services));
         }
