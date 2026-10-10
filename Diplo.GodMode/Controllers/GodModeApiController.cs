@@ -480,6 +480,18 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<UtilityDiagnostics> GetUtilityDiagnostics()
         => Ok(utilitiesService.GetDiagnostics());
 
+    [HttpGet("utilities/umbraco-releases")]
+    [ProducesResponseType<PackageReleaseStatus>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PackageReleaseStatus>> GetUmbracoReleaseStatus(
+        [FromServices] UmbracoReleaseService releaseService, CancellationToken cancellationToken)
+        => Ok(await releaseService.GetStatusAsync(cancellationToken));
+
+    [HttpGet("utilities/godmode-releases")]
+    [ProducesResponseType<PackageReleaseStatus>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PackageReleaseStatus>> GetGodModeReleaseStatus(
+        [FromServices] GodModeReleaseService releaseService, CancellationToken cancellationToken)
+        => Ok(await releaseService.GetStatusAsync(cancellationToken));
+
     [HttpGet("utilities/server-time")]
     [ProducesResponseType<ServerTimeInfo>(StatusCodes.Status200OK)]
     public ActionResult<ServerTimeInfo> GetServerTime()

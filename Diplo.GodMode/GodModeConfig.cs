@@ -14,6 +14,13 @@
 
         public string[] AliasesToIgnore { get; set; } = ["umbracoFile"];
 
+        /// <summary>
+        /// Gets or sets whether the Overview checks NuGet for newer Umbraco and God Mode releases.
+        /// When false, no new release lookups start and the release status is hidden when the Overview loads.
+        /// Lookups already in progress can finish within their existing timeout.
+        /// </summary>
+        public bool EnableReleaseCheck { get; set; } = true;
+
         public DeliveryApiConfig DeliveryApi { get; set; } = new DeliveryApiConfig();
 
         public DiagnosticsConfig Diagnostics { get; set; } = new DiagnosticsConfig();

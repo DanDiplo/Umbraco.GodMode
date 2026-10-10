@@ -4,7 +4,7 @@ import { godmodeGet } from "../api/client";
 import "../shared";
 import "../shared/godmode-live-clock.element";
 import { browserTimeZone, formatOffset, loadServerTime, parseApiDate, zoneOffsetMinutes } from "../shared/date-time";
-import type { DeliveryApiDiagnostics, ServerTimeInfo, SystemDateEvidence, UtilityDiagnostics } from "../shared/types";
+import type { DeliveryApiDiagnostics, ServerTimeInfo, SystemDateEvidence, PackageReleaseStatus, UtilityDiagnostics } from "../shared/types";
 
 /** Clock differences smaller than this are treated as normal network jitter. */
 const DRIFT_WARNING_MS = 30_000;
@@ -14,6 +14,8 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
     @state() private _diagnostics: UtilityDiagnostics | null = null;
     @state() private _deliveryApiDiagnostics: DeliveryApiDiagnostics | null = null;
     @state() private _serverTime: ServerTimeInfo | null = null;
+    @state() private _releaseStatuses: Record<"umbraco" | "godmode", PackageReleaseStatus | null> = { umbraco: null, godmode: null };
+    @state() private _releaseLoading = { umbraco: true, godmode: true };
     /** Server clock minus browser clock, in milliseconds. */
     @state() private _driftMs: number | null = null;
     @state() private _roundTripMs = 0;
@@ -51,11 +53,25 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
 
     private async _load() {
         void this._loadServerTime();
+        void this._loadReleaseStatus("umbraco");
+        void this._loadReleaseStatus("godmode");
         try {
             this._diagnostics = await godmodeGet<UtilityDiagnostics>("utilities/diagnostics");
             this._deliveryApiDiagnostics = await godmodeGet<DeliveryApiDiagnostics>("delivery-api/diagnostics");
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    private async _loadReleaseStatus(packageName: "umbraco" | "godmode") {
+        this._releaseLoading = { ...this._releaseLoading, [packageName]: true };
+        try {
+            const status = await godmodeGet<PackageReleaseStatus>(`utilities/${packageName}-releases`);
+            this._releaseStatuses = { ...this._releaseStatuses, [packageName]: status };
+        } catch {
+            this._releaseStatuses = { ...this._releaseStatuses, [packageName]: null };
+        } finally {
+            this._releaseLoading = { ...this._releaseLoading, [packageName]: false };
         }
     }
 
@@ -268,7 +284,6 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
     }
 
     private _renderHeroCards(d: UtilityDiagnostics) {
-        const umbracoVersion = this._splitVersion(d.app.umbracoSemanticVersion || d.app.umbracoVersion);
         const godModeVersion = this._splitVersion(d.app.godModeVersion);
 
         return html`
@@ -276,9 +291,40 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                 ${this._renderKeyCard("Environment", d.app.environmentName, d.app.debugMode ? "Debug mode enabled" : "Debug mode off", d.app.debugMode ? "warning" : "positive")}
                 ${this._renderKeyCard("Machine", d.app.machineName || "Unavailable", d.app.runtimeIdentifier, "default")}
                 ${this._renderTimeZoneCard()}
-                ${this._renderKeyCard("App", `Umbraco ${umbracoVersion.major}`, [umbracoVersion.detail, d.app.applicationMainUrl || "Main URL not configured"], "default")}
-                ${this._renderKeyCard("GodMode", godModeVersion.major, [godModeVersion.detail, `Process ${d.app.processId} - ${d.app.uptime}`], "positive")}
+                ${this._renderAppCard(d)}
+                ${this._renderKeyCard("GodMode", godModeVersion.major, [godModeVersion.detail, `Process ${d.app.processId} - ${d.app.uptime}`],
+                    this._releaseTone(this._releaseStatuses.godmode), this._renderReleaseStatus("godmode", "Diplo.GodMode"))}
             </div>
+        `;
+    }
+
+    private _renderAppCard(d: UtilityDiagnostics) {
+        const version = this._splitVersion(d.app.umbracoSemanticVersion || d.app.umbracoVersion);
+        return this._renderKeyCard("App", `Umbraco ${version.major}`, [version.detail, d.app.applicationMainUrl || "Main URL not configured"],
+            this._releaseTone(this._releaseStatuses.umbraco), this._renderReleaseStatus("umbraco", "Umbraco.Cms"));
+    }
+
+    private _releaseTone(status: PackageReleaseStatus | null): "default" | "positive" | "warning" {
+        return status?.isStale || status?.status === "behind" ? "warning" : status?.status === "upToDate" ? "positive" : "default";
+    }
+
+    private _renderReleaseStatus(packageName: "umbraco" | "godmode", packageId: string) {
+        if (this._releaseLoading[packageName]) return html`Checking releases…`;
+        const status = this._releaseStatuses[packageName];
+        if (status?.status === "disabled") return undefined;
+        if (!status?.latestVersion) return html`Release check unavailable`;
+        const label = status.status === "behind"
+            ? `${status.releasesBehind} ${status.releasesBehind === 1 ? "release" : "releases"} behind`
+            : status.status === "upToDate" ? "Up to date"
+            : status.status === "prerelease" ? "Preview version"
+            : "Running version newer than feed";
+        const major = status.latestVersion.split(".")[0];
+        return html`
+            <span title=${`Compared with listed stable ${packageId} versions on NuGet within the same major.`}>
+                ${status.isStale ? "Last known: " : ""}${label}
+            </span><br />
+            <a href=${status.releaseNotesUrl} target="_blank" rel="noopener noreferrer">Latest in v${major}: ${status.latestVersion}</a>
+            ${status.isStale ? html`<br />Refresh unavailable · Checked <godmode-date .value=${status.checkedAt}></godmode-date>` : ""}
         `;
     }
 
@@ -472,14 +518,14 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
         `;
     }
 
-    private _renderKeyCard(label: string, value: string, detail: string | string[], tone: "default" | "positive" | "warning") {
+    private _renderKeyCard(label: string, value: string, detail: string | string[], tone: "default" | "positive" | "warning", releaseStatus?: ReturnType<typeof html>) {
         const details = Array.isArray(detail) ? detail.filter(Boolean) : [detail];
 
         return html`
             <div class="key-card ${tone}">
                 <span class="metric-label">${label}</span>
                 <strong>${value}</strong>
-                <small>${details.map((item, index) => html`${index ? html`<br />` : ""}${item}`)}</small>
+                <small>${details.map((item, index) => html`${index ? html`<br />` : ""}${item}`)}${releaseStatus ? html`<br /><span role="status" aria-live="polite">${releaseStatus}</span>` : ""}</small>
             </div>
         `;
     }

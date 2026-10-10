@@ -30,6 +30,7 @@ If Umbraco is an Allen key then God Mode is the swiss army knife that helps you 
 - Check the server time zone, UTC date handling and Umbraco 17 system-date migration settings, and switch dates between Local, Server, and UTC display. See [Server time and scheduling diagnostics](docs/server-time-diagnostics.md).
 - Surface broken references, configuration drift, and cleanup opportunities with Health & Risk checks.
 - Inspect diagnostics and configuration values, with optional redaction for sensitive settings, plus key system, package, and Content Delivery API information.
+- See the latest stable Umbraco and God Mode versions in each running major and how many listed releases behind they are, loaded asynchronously in the Overview. See [Release checks](docs/umbraco-release-check.md).
 - Filter and search Umbraco JSON logs by level and time.
 - Inspect database tables, row counts, columns, and declared relationships.
 - Inspect registered backoffice extension manifests and runtime NuGet package versions, including package advisories.
@@ -124,6 +125,7 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
     "AliasesToIgnore": [
       "umbracoFile"
     ],
+    "EnableReleaseCheck": true,
     "DeliveryApi": {
       "SensitiveAliasTerms": [
         "account",
@@ -189,6 +191,8 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
 Individual pages inside the Types folder can also be hidden, for example `"Surface Controllers"`, `"Composers"` or `"Interface Browser"`.
 
 `AliasesToIgnore` lists property aliases that Health & Risk and configuration drift checks should skip, case-insensitively. The default ignores `umbracoFile`, which is expected to repeat across media types.
+
+`EnableReleaseCheck` controls the Overview release checks, which ask NuGet for the latest Umbraco and God Mode versions. Set it to `false` before starting servers that must never contact NuGet. The setting is read on each check, so changing it in `appsettings.json` takes effect without a restart and prevents new lookups; a lookup already in progress can finish within its existing three-second deadline. Reload an already-open Overview to hide its release status. See [Release checks](docs/umbraco-release-check.md).
 
 `DeliveryApi:SensitiveAliasTerms` lists words that flag a document type as sensitive-looking when it is exposed by the Content Delivery API. Aliases are split into words on camel case and punctuation, and a term must match a whole word, so `member` matches `memberProfile` but not `remembered`.
 

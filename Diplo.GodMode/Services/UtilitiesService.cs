@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services.Interfaces;
@@ -164,7 +164,6 @@ namespace Diplo.GodMode.Services
 
         public UtilityDiagnostics GetDiagnostics()
         {
-            var assembly = typeof(UtilitiesService).Assembly;
             var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
             var appPluginsRoot = Path.Combine(webRoot, "App_Plugins", "DiploGodMode");
             var mediaCacheFolder = GetConfiguredContentRootPath(imageCacheSettings.Value.CacheFolder);
@@ -224,9 +223,7 @@ namespace Diplo.GodMode.Services
                     ProcessId = Environment.ProcessId,
                     StartedAt = startedAt,
                     Uptime = FormatDuration(DateTime.UtcNow - startedAt),
-                    GodModeVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                        ?? assembly.GetName().Version?.ToString()
-                        ?? string.Empty
+                    GodModeVersion = GodModeVersionHelper.GetVersion()
                 },
                 Assets =
                 [
