@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.2.2</VersionPrefix>
+    <VersionPrefix>17.3.0</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Fixes the Element Type Usage browser on SQL Server by correctly materializing node object type GUIDs during nested inline-block scans. Also adds the required accessible label to the Element Type search input.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds a Scheduled Publishing view, server time zone and UTC date handling with a Local / Server / UTC display switch, and new Health &amp; Risk rules for time zone, date migration, scheduling and background jobs. Also fixes FeaturesToHide so hidden features are removed from the God Mode tree.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->
