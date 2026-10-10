@@ -4,6 +4,22 @@ import { openWithModalFeedback } from "./modal-feedback";
 
 export const GODMODE_EVIDENCE_DRAWER_ALIAS = "Diplo.Modal.GodMode.Evidence";
 
+export interface GodModeEvidenceDate {
+    kind: "godmode-date";
+    value: string | null | undefined;
+}
+
+/** Keep API dates intact so drawers can react to the shared display-mode switch. */
+export function evidenceDate(value: string | null | undefined): GodModeEvidenceDate {
+    return { kind: "godmode-date", value };
+}
+
+export function isEvidenceDate(value: unknown): value is GodModeEvidenceDate {
+    if (!value || typeof value !== "object") return false;
+    const date = value as Partial<GodModeEvidenceDate>;
+    return date.kind === "godmode-date" && (date.value == null || typeof date.value === "string");
+}
+
 export interface GodModeEvidenceSection {
     heading: string;
     description?: string;

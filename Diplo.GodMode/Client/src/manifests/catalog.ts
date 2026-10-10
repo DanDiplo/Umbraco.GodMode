@@ -67,6 +67,14 @@ export const browsers: BrowserDef[] = [
         element: () => import("../elements/godmode-content-browser.element")
     },
     {
+        id: "scheduleBrowser",
+        label: "Scheduled Publishing",
+        icon: "icon-calendar-alt",
+        description: "See pending scheduled publishing, overdue items and whether the publishing job is running",
+        weight: 895,
+        element: () => import("../elements/godmode-schedule-browser.element")
+    },
+    {
         id: "mediaBrowser",
         label: "Media Browser",
         icon: "icon-picture",

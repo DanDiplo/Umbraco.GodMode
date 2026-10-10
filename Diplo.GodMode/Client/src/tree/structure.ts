@@ -54,7 +54,8 @@ const GROUPS: GroupDef[] = [
             "partialBrowser",
             "mediaBrowser",
             "memberBrowser",
-            "tagBrowser"
+            "tagBrowser",
+            "scheduleBrowser"
         ]
     },
     { unique: "group-relationships", name: "Relationships & usage", ids: ["referenceGraph", "usageBrowser", "elementTypeUsage"] },

@@ -775,3 +775,105 @@ export interface ElementTypeUsageStatus {
     message: string | null;
 }
 
+
+export interface SystemDateMigrationInfo {
+    enabled: boolean;
+    configuredTimeZone: string;
+    configuredTimeZoneValid: boolean | null;
+    timeZoneValidationMessage: string;
+    effectiveTimeZoneResolved: boolean;
+    effectiveTimeZoneSupportsDaylightSaving: boolean | null;
+    effectiveTimeZone: string;
+    effectiveTimeZoneMatchesServer: boolean;
+    effectiveTimeZoneIsUtc: boolean;
+    databaseType: string;
+    usesBaseOffsetOnly: boolean;
+    upgradeComplete: boolean;
+    currentMigrationState: string;
+    finalMigrationState: string;
+}
+
+export interface ServerTimeInfo {
+    serverUtcNow: string;
+    serverLocalNow: string;
+    timeZoneId: string;
+    ianaId: string;
+    windowsId: string;
+    displayName: string;
+    standardName: string;
+    daylightName: string;
+    utcOffset: string;
+    utcOffsetMinutes: number;
+    baseUtcOffsetMinutes: number;
+    isUtc: boolean;
+    supportsDaylightSavingTime: boolean;
+    isDaylightSavingTime: boolean;
+    nextTransition: string | null;
+    nextTransitionUtcOffset: string;
+    tzEnvironmentVariable: string;
+    timeProviderType: string;
+    cultureName: string;
+    shortDatePattern: string;
+    longTimePattern: string;
+    processStartedUtc: string;
+    systemDateMigration: SystemDateMigrationInfo;
+}
+
+export interface SystemDateEvidence {
+    checkedAtUtc: string;
+    futureDateCutoffUtc: string;
+    logCheckSucceeded: boolean;
+    logCheckMessage: string;
+    databaseCheckSucceeded: boolean;
+    databaseCheckMessage: string;
+    migrationLogEntries: Array<{ timestamp: string | null; level: string; message: string }>;
+    futureDatedRows: Array<{ table: string; column: string; count: number; latest: string | null; checkSucceeded: boolean; checkMessage: string }>;
+}
+
+export interface ContentScheduleItem {
+    id: string;
+    nodeId: number;
+    nodeKey: string;
+    name: string;
+    contentTypeAlias: string;
+    icon: string;
+    culture: string;
+    action: "Release" | "Expire" | string;
+    date: string;
+    published: boolean;
+    trashed: boolean;
+    isOverdue: boolean;
+}
+
+export interface DistributedJobInfo {
+    name: string;
+    lastRun: string;
+    lastAttemptedRun: string;
+    periodSeconds: number;
+    isRunning: boolean;
+    isStale: boolean;
+}
+
+export interface RegisteredServerInfo {
+    id: number;
+    address: string;
+    computerName: string;
+    registeredDate: string;
+    lastNotifiedDate: string;
+    isActive: boolean;
+    isSchedulingPublisher: boolean;
+    isStale: boolean;
+}
+
+export interface ContentScheduleOverview {
+    serverUtcNow: string;
+    overdueAfterMinutes: number;
+    items: ContentScheduleItem[];
+    jobs: DistributedJobInfo[];
+    servers: RegisteredServerInfo[];
+    currentServerRole: string;
+    automaticServerRegistration: boolean;
+    scheduledPublishingSuspended: boolean;
+    jobsCheckSucceeded: boolean;
+    serversCheckSucceeded: boolean;
+}

@@ -83,6 +83,14 @@ namespace Diplo.GodMode.Services.Interfaces
 
         int DeleteLogRows(DateTimeOffset? olderThan = null);
 
+        IEnumerable<ContentScheduleItem> GetContentSchedules();
+
+        IEnumerable<DistributedJobInfo> GetDistributedJobs();
+
+        IEnumerable<FutureDatedRows> GetFutureDatedRows(DateTime cutoffUtc);
+
+        bool IsSqlServerTimeZoneValid(string timeZoneId);
+
         long GetContentVersionCount();
 
         long GetContentWithExcessiveVersionsCount(int versionThreshold);

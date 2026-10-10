@@ -3,9 +3,8 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
 import type { ContentItem, ContentMediaDetail, Lang, Page } from "../shared/types";
-import { truncate } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
-import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
+import { evidenceDate, openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 
 type CultureState = {
     iso: string;
@@ -169,8 +168,8 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                     rawPath: detail.path,
                                     parentId: detail.parentId,
                                     level: detail.level,
-                                    created: truncate(detail.createDate, 22),
-                                    updated: truncate(detail.updateDate, 22)
+                                    created: evidenceDate(detail.createDate),
+                                    updated: evidenceDate(detail.updateDate)
                                 }
                             },
                             {
@@ -192,7 +191,7 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                     edited: detail.state.edited,
                                     templateId: detail.state.templateId,
                                     publishedVersionId: detail.state.publishedVersionId,
-                                    publishDate: truncate(detail.state.publishDate ?? "", 22),
+                                    publishDate: evidenceDate(detail.state.publishDate ?? ""),
                                     availableCultures: detail.state.availableCultures,
                                     publishedCultures: detail.state.publishedCultures,
                                     editedCultures: detail.state.editedCultures
@@ -352,7 +351,7 @@ export class GodModeContentBrowserElement extends UmbElementMixin(LitElement) {
                                                 <uui-table-cell><code>${c.alias}</code></uui-table-cell>
                                                 <uui-table-cell>${this._renderCultureStates(c)}</uui-table-cell>
                                                 <uui-table-cell>${c.creatorName}</uui-table-cell>
-                                                <uui-table-cell><small>${truncate(c.updateDate, 22)}</small></uui-table-cell>
+                                                <uui-table-cell><small><godmode-date .value=${c.updateDate}></godmode-date></small></uui-table-cell>
                                                 <uui-table-cell><godmode-yes-no .value=${c.trashed}></godmode-yes-no></uui-table-cell>
                                                 <uui-table-cell class="action-cell">
                                                     <div class="action-wrap">

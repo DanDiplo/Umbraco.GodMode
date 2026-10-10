@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Asp.Versioning;
+using Diplo.GodMode.Filters;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Models;
 using Diplo.GodMode.Services;
@@ -35,6 +36,7 @@ namespace Diplo.GodMode.Controllers;
 [VersionedApiBackOfficeRoute("godmode")]
 [ApiExplorerSettings(GroupName = "GodMode")]
 [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
+[ServiceFilter(typeof(GodModeUtcDatesResultFilter))]
 public class GodModeApiController : ManagementApiControllerBase
 {
     private readonly IUmbracoDataService dataService;
@@ -50,6 +52,7 @@ public class GodModeApiController : ManagementApiControllerBase
     private readonly NuCacheSettings nuCacheSettings;
     private readonly RegisteredServiceCollection registeredServiceCollection;
     private readonly IOptions<GodModeConfig> godModeConfig;
+    private readonly IServerTimeService serverTimeService;
 
     public GodModeApiController(
         IUmbracoDataService dataService,
@@ -64,7 +67,8 @@ public class GodModeApiController : ManagementApiControllerBase
         IHostApplicationLifetime applicationLifetime,
         IOptions<NuCacheSettings> nuCacheSettings,
         RegisteredServiceCollection registeredServiceCollection,
-        IOptions<GodModeConfig> godModeConfig)
+        IOptions<GodModeConfig> godModeConfig,
+        IServerTimeService serverTimeService)
     {
         this.dataService = dataService;
         this.dataBaseService = dataBaseService;
@@ -79,6 +83,7 @@ public class GodModeApiController : ManagementApiControllerBase
         this.nuCacheSettings = nuCacheSettings.Value;
         this.registeredServiceCollection = registeredServiceCollection;
         this.godModeConfig = godModeConfig;
+        this.serverTimeService = serverTimeService;
     }
 
     // ─── Doc / content / data types ─────────────────────────────────
@@ -228,6 +233,11 @@ public class GodModeApiController : ManagementApiControllerBase
 
         return detail is null ? NotFound() : Ok(detail);
     }
+
+    [HttpGet("content/schedules")]
+    [ProducesResponseType<ContentScheduleOverview>(StatusCodes.Status200OK)]
+    public ActionResult<ContentScheduleOverview> GetContentSchedules()
+        => Ok(serverTimeService.GetContentSchedules());
 
     [HttpGet("content-type-aliases")]
     [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
@@ -470,6 +480,16 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<UtilityDiagnostics> GetUtilityDiagnostics()
         => Ok(utilitiesService.GetDiagnostics());
 
+    [HttpGet("utilities/server-time")]
+    [ProducesResponseType<ServerTimeInfo>(StatusCodes.Status200OK)]
+    public ActionResult<ServerTimeInfo> GetServerTime()
+        => Ok(serverTimeService.GetServerTime());
+
+    [HttpGet("utilities/system-date-evidence")]
+    [ProducesResponseType<SystemDateEvidence>(StatusCodes.Status200OK)]
+    public ActionResult<SystemDateEvidence> GetSystemDateEvidence()
+        => Ok(serverTimeService.GetSystemDateEvidence());
+
     [HttpGet("database/tables")]
     [ProducesResponseType<IEnumerable<DatabaseTableInfo>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<DatabaseTableInfo>> GetDatabaseTables()
@@ -653,7 +673,7 @@ public class GodModeApiController : ManagementApiControllerBase
                 return Ok(new ServerResponse($"Deleted {deleted:n0} rows from the Umbraco log table.", ServerResponseType.Success));
             }
 
-            return Ok(new ServerResponse($"Deleted {deleted:n0} Umbraco log rows older than {olderThan.Value.LocalDateTime:g}.", ServerResponseType.Success));
+            return Ok(new ServerResponse($"Deleted {deleted:n0} Umbraco log rows older than {olderThan.Value.UtcDateTime:yyyy-MM-dd HH:mm} UTC.", ServerResponseType.Success));
         }
         catch (Exception ex)
         {

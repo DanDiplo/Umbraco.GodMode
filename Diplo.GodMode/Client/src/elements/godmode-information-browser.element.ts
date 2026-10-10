@@ -2,19 +2,55 @@ import { LitElement, css, customElement, html, state, svg } from "@umbraco-cms/b
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
-import type { DeliveryApiDiagnostics, UtilityDiagnostics } from "../shared/types";
+import "../shared/godmode-live-clock.element";
+import { browserTimeZone, formatOffset, loadServerTime, parseApiDate, zoneOffsetMinutes } from "../shared/date-time";
+import type { DeliveryApiDiagnostics, ServerTimeInfo, SystemDateEvidence, UtilityDiagnostics } from "../shared/types";
+
+/** Clock differences smaller than this are treated as normal network jitter. */
+const DRIFT_WARNING_MS = 30_000;
 
 @customElement("godmode-information-browser")
 export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _diagnostics: UtilityDiagnostics | null = null;
     @state() private _deliveryApiDiagnostics: DeliveryApiDiagnostics | null = null;
+    @state() private _serverTime: ServerTimeInfo | null = null;
+    /** Server clock minus browser clock, in milliseconds. */
+    @state() private _driftMs: number | null = null;
+    @state() private _roundTripMs = 0;
+    @state() private _evidence: SystemDateEvidence | null = null;
+    @state() private _evidenceLoading = false;
+    @state() private _evidenceError = "";
 
     override connectedCallback(): void {
         super.connectedCallback();
         void this._load();
     }
 
+    private async _loadServerTime() {
+        const started = Date.now();
+        const info = await loadServerTime(true);
+        const finished = Date.now();
+        this._serverTime = info;
+        const serverNow = parseApiDate(info?.serverUtcNow)?.getTime();
+        this._roundTripMs = finished - started;
+        this._driftMs = serverNow === undefined ? null : serverNow - (started + finished) / 2;
+    }
+
+    private async _loadEvidence() {
+        this._evidenceLoading = true;
+        this._evidenceError = "";
+        try {
+            this._evidence = await godmodeGet<SystemDateEvidence>("utilities/system-date-evidence");
+        } catch (e) {
+            console.error(e);
+            this._evidenceError = "Evidence could not be loaded. Try again; no checks have been confirmed.";
+        } finally {
+            this._evidenceLoading = false;
+        }
+    }
+
     private async _load() {
+        void this._loadServerTime();
         try {
             this._diagnostics = await godmodeGet<UtilityDiagnostics>("utilities/diagnostics");
             this._deliveryApiDiagnostics = await godmodeGet<DeliveryApiDiagnostics>("delivery-api/diagnostics");
@@ -61,6 +97,9 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                 missingCacheFolders: diagnostics?.cache.folders.filter((folder) => !folder.exists).map((folder) => folder.label) ?? [],
                 cacheDatabaseRows: diagnostics?.cache.databaseRows,
                 serverStats: diagnostics?.serverStats,
+                serverTime: this._serverTime,
+                browserTimeZone: browserTimeZone(),
+                clockDriftMs: this._driftMs,
                 deliveryApi: this._deliveryApiDiagnostics
             },
             context: {
@@ -68,6 +107,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                 guidance: [
                     "Explain the current Umbraco environment and operational signals shown in the Information browser.",
                     "Call out missing package assets or folders and unusual cache folder state.",
+                    "Explain the server time zone, any clock drift, and whether the Umbraco 17 UTC system date migration settings look right.",
                     "Explain Delivery API exposure, sensitive-looking aliases, and practical next steps."
                 ]
             }
@@ -198,6 +238,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                             )}
                         </ul>
                     </section>
+                    ${this._renderDateTimePanel()}
                     <section class="panel operations-panel">
                         <div class="section-heading compact">
                             <h4>Cache & Database</h4>
@@ -234,6 +275,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
             <div class="hero-grid">
                 ${this._renderKeyCard("Environment", d.app.environmentName, d.app.debugMode ? "Debug mode enabled" : "Debug mode off", d.app.debugMode ? "warning" : "positive")}
                 ${this._renderKeyCard("Machine", d.app.machineName || "Unavailable", d.app.runtimeIdentifier, "default")}
+                ${this._renderTimeZoneCard()}
                 ${this._renderKeyCard("App", `Umbraco ${umbracoVersion.major}`, [umbracoVersion.detail, d.app.applicationMainUrl || "Main URL not configured"], "default")}
                 ${this._renderKeyCard("GodMode", godModeVersion.major, [godModeVersion.detail, `Process ${d.app.processId} - ${d.app.uptime}`], "positive")}
             </div>
@@ -258,8 +300,175 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
                     <dd>${d.app.webServer}</dd>
                     <dt>Content root</dt>
                     <dd>${d.app.contentRootPath}</dd>
+                    <dt>Started</dt>
+                    <dd><godmode-date .value=${d.app.startedAt}></godmode-date> (${d.app.uptime})</dd>
                 </dl>
             </section>
+        `;
+    }
+
+    private _renderTimeZoneCard() {
+        const t = this._serverTime;
+        if (!t) return this._renderKeyCard("Time Zone", "Loading", "", "default");
+
+        const browserZone = browserTimeZone();
+        const browserOffset = zoneOffsetMinutes(browserZone);
+        const sameOffset = browserOffset === t.utcOffsetMinutes;
+        const label = t.isUtc ? "UTC" : t.ianaId || t.timeZoneId;
+
+        return this._renderKeyCard(
+            "Time Zone",
+            label,
+            [
+                `${t.utcOffset}${t.isDaylightSavingTime ? " (daylight saving)" : ""}`,
+                sameOffset ? "Same offset as your browser" : `Your browser: ${browserZone} ${formatOffset(browserOffset)}`
+            ],
+            this._isDriftWarning() ? "warning" : "default"
+        );
+    }
+
+    private _isDriftWarning() {
+        return this._driftMs !== null && Math.abs(this._driftMs) > DRIFT_WARNING_MS;
+    }
+
+    private _renderDateTimePanel() {
+        const t = this._serverTime;
+        if (!t) {
+            return html`<section class="panel datetime-panel"><uui-loader></uui-loader></section>`;
+        }
+
+        const serverZone = t.ianaId || (t.isUtc ? "UTC" : "");
+        const browserZone = browserTimeZone();
+        const browserOffset = zoneOffsetMinutes(browserZone);
+        const migration = t.systemDateMigration;
+
+        return html`
+            <section class="panel datetime-panel">
+                <div class="section-heading compact">
+                    <h4>Date & Time</h4>
+                    <span>Umbraco 17 stores system dates in UTC</span>
+                </div>
+                <div class="datetime-grid">
+                    <div>
+                        <h5>Server</h5>
+                        <dl class="compact-dl">
+                            <dt>Server time</dt>
+                            <dd><strong><godmode-live-clock .timeZone=${serverZone || "UTC"} .driftMs=${this._driftMs ?? 0} .offsetMinutes=${serverZone ? 0 : t.utcOffsetMinutes}></godmode-live-clock></strong></dd>
+                            <dt>UTC</dt>
+                            <dd><godmode-live-clock timeZone="UTC" .driftMs=${this._driftMs ?? 0}></godmode-live-clock></dd>
+                            <dt>Time zone</dt>
+                            <dd>${t.timeZoneId}${t.ianaId && t.ianaId !== t.timeZoneId ? html` <small>(${t.ianaId})</small>` : ""}</dd>
+                            ${t.windowsId && t.windowsId !== t.timeZoneId ? html`<dt>Windows id</dt><dd>${t.windowsId}</dd>` : ""}
+                            <dt>Offset</dt>
+                            <dd>${t.utcOffset} ${t.isDaylightSavingTime ? html`<uui-tag look="secondary">${t.daylightName || "Daylight saving"}</uui-tag>` : ""}</dd>
+                            ${t.nextTransition
+                                ? html`<dt>Next change</dt><dd><godmode-date .value=${t.nextTransition} relative></godmode-date> to ${t.nextTransitionUtcOffset}</dd>`
+                                : ""}
+                            <dt>TZ variable</dt>
+                            <dd>${t.tzEnvironmentVariable || html`<span class="muted">Not set</span>`}</dd>
+                            <dt>Culture</dt>
+                            <dd>${t.cultureName || "Invariant"} <small>(${t.shortDatePattern} ${t.longTimePattern})</small></dd>
+                        </dl>
+                    </div>
+                    <div>
+                        <h5>You</h5>
+                        <dl class="compact-dl">
+                            <dt>Browser time</dt>
+                            <dd><strong><godmode-live-clock .timeZone=${browserZone}></godmode-live-clock></strong></dd>
+                            <dt>Time zone</dt>
+                            <dd>${browserZone} <small>(${formatOffset(browserOffset)})</small></dd>
+                            <dt>Difference</dt>
+                            <dd>${this._renderOffsetDifference(browserOffset - t.utcOffsetMinutes)}</dd>
+                            <dt>Clock drift</dt>
+                            <dd>${this._renderDrift()}</dd>
+                        </dl>
+                        <p class="muted">
+                            GodMode shows dates in your browser's time zone by default. Switch to server time or UTC here; the choice applies to every GodMode
+                            view.
+                        </p>
+                        <godmode-date-mode-toggle></godmode-date-mode-toggle>
+                    </div>
+                    <div>
+                        <h5>UTC Date Migration</h5>
+                        <dl class="compact-dl">
+                            <dt>Enabled</dt>
+                            <dd>${migration.enabled ? "Yes" : "No"} <small>(current setting)</small></dd>
+                            <dt>Time zone</dt>
+                            <dd>
+                                ${migration.configuredTimeZone
+                                    ? html`${migration.configuredTimeZone}
+                                           <uui-tag color=${migration.configuredTimeZoneValid === false ? "warning" : "default"}>
+                                               ${migration.configuredTimeZoneValid === null ? "Not validated" : migration.configuredTimeZoneValid ? "Valid for database" : "Not valid for database"}
+                                          </uui-tag>`
+                                    : html`<span class="muted">Not configured, uses ${migration.effectiveTimeZone}</span>`}
+                            </dd>
+                            <dt>Validation</dt><dd>${migration.timeZoneValidationMessage}</dd>
+                            <dt>Rules match server</dt><dd>${migration.effectiveTimeZoneResolved ? (migration.effectiveTimeZoneMatchesServer ? "Yes" : "No") : "Unknown"}</dd>
+                            <dt>Database</dt>
+                            <dd>${migration.databaseType}${migration.usesBaseOffsetOnly ? html` <small>(converts with base offset, ignores daylight saving)</small>` : ""}</dd>
+                            <dt>Migrations</dt>
+                            <dd><uui-tag color=${migration.upgradeComplete ? "positive" : "warning"}>${migration.upgradeComplete ? "All applied" : "Pending"}</uui-tag></dd>
+                        </dl>
+                        <p class="muted">Current settings do not establish what a completed upgrade used. Fresh v17 installs need no historical conversion; changing settings now does not rerun the migration.</p>
+                        ${this._renderEvidence()}
+                    </div>
+                </div>
+            </section>
+        `;
+    }
+
+    private _renderOffsetDifference(minutes: number) {
+        if (minutes === 0) return html`<uui-tag color="positive">Same as server</uui-tag>`;
+        const hours = Math.abs(minutes) / 60;
+        const amount = Number.isInteger(hours) ? `${hours}h` : `${Math.floor(hours)}h ${Math.abs(minutes) % 60}m`;
+        return html`<uui-tag color="warning">You are ${amount} ${minutes > 0 ? "ahead of" : "behind"} the server</uui-tag>`;
+    }
+
+    private _renderDrift() {
+        if (this._driftMs === null) return html`<span class="muted">Unknown</span>`;
+        const seconds = Math.round(this._driftMs / 1000);
+        const accuracy = Math.max(1, Math.round(this._roundTripMs / 2000));
+        const text = seconds === 0 ? "In sync" : `Server is ${Math.abs(seconds)}s ${seconds > 0 ? "ahead" : "behind"}`;
+        return html`<uui-tag color=${this._isDriftWarning() ? "danger" : "positive"} title="Measured against your browser's clock, accurate to about ±${accuracy}s"
+                >${text}</uui-tag
+            >${this._isDriftWarning() ? html` <small>Large drift can break sign-in tokens and scheduled publishing.</small>` : ""}`;
+    }
+
+    private _renderEvidence() {
+        const evidence = this._evidence;
+        if (!evidence) {
+            return html`${this._evidenceError ? html`<p>${this._evidenceError}</p>` : ""}<uui-button compact look="secondary" label="Check migration evidence" ?disabled=${this._evidenceLoading} @click=${() => void this._loadEvidence()}>
+                ${this._evidenceLoading ? "Checking..." : "Check migration evidence"}
+            </uui-button>`;
+        }
+
+        const future = evidence.futureDatedRows.filter((row) => row.checkSucceeded && row.count > 0);
+
+        return html`
+            <h5 class="subheading">Evidence</h5>
+            <p class="muted">Checked <godmode-date .value=${evidence.checkedAtUtc}></godmode-date>; cached for up to two minutes.</p>
+            <p>${evidence.logCheckMessage}</p>
+            <p>${evidence.databaseCheckMessage}</p>
+            <ul class="plain">
+                ${evidence.migrationLogEntries.length
+                    ? evidence.migrationLogEntries.map(
+                          (entry) => html`<li>
+                              <uui-tag color=${entry.level === "Error" || entry.level === "Fatal" ? "danger" : "default"}>${entry.level}</uui-tag>
+                              <span>${entry.message} <small><godmode-date .value=${entry.timestamp}></godmode-date></small></span>
+                          </li>`
+                      )
+                     : html`<li><span class="muted">${evidence.logCheckSucceeded ? "No migration entries in the checked local log files." : "Log evidence is unavailable or partial."}</span></li>`}
+                ${future.length
+                    ? future.map(
+                          (row) => html`<li>
+                              <uui-tag color="danger">${row.count.toLocaleString()}</uui-tag>
+                              <span>future dated rows in <code>${row.table}.${row.column}</code></span>
+                          </li>`
+                      )
+                     : evidence.databaseCheckSucceeded ? html`<li><span>No future dated rows in the four checked columns.</span></li>` : html`<li><uui-tag color="warning">Incomplete</uui-tag><span>Future date checks are unavailable or partial.</span></li>`}
+                ${evidence.futureDatedRows.filter((row) => !row.checkSucceeded).map((row) => html`<li>${row.table}.${row.column}: ${row.checkMessage}</li>`)}
+            </ul>
+            <p class="muted">Future date cutoff: <godmode-date .value=${evidence.futureDateCutoffUtc}></godmode-date>. Older shifts and shifts into the past are not detected. No matches does not prove a correct migration; future dates may also come from clock differences or imports.</p>
         `;
     }
 
@@ -430,8 +639,17 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
             gap: var(--uui-size-space-4);
             align-items: start;
         }
-        .operations-panel {
+        .operations-panel,
+        .datetime-panel {
             grid-column: span 3;
+        }
+        .datetime-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--uui-size-space-6);
+        }
+        .datetime-grid h5 {
+            margin: var(--uui-size-space-3) 0 var(--uui-size-space-2);
         }
         .operations-grid {
             display: grid;
@@ -440,7 +658,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
         }
         .hero-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
             gap: var(--uui-size-space-3);
             margin-bottom: var(--uui-size-space-4);
         }
@@ -652,10 +870,12 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
             .dashboard-grid,
             .hero-grid,
             .operations-grid,
+            .datetime-grid,
             .stat-grid {
                 grid-template-columns: 1fr;
             }
-            .operations-panel {
+            .operations-panel,
+            .datetime-panel {
                 grid-column: auto;
             }
             .section-heading {

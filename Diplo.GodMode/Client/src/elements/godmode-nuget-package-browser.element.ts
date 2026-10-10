@@ -286,7 +286,7 @@ export class GodModeNuGetPackageBrowserElement extends UmbElementMixin(LitElemen
                                       ${this._audit.restoreWarningCount
                                           ? html`${this._audit.restoreWarningCount} restore ${this._audit.restoreWarningCount === 1 ? "warning" : "warnings"} found.`
                                           : ""}
-                                      Last audited ${new Date(this._audit.auditedAt).toLocaleString()}.
+                                      Last audited <godmode-date .value=${this._audit.auditedAt}></godmode-date>.
                                   </span>
                               `
                             : html`<span>Audit runs on demand and contacts NuGet advisory data from the server.</span>`}

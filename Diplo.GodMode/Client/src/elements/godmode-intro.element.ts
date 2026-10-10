@@ -33,7 +33,7 @@ const PAGE_GROUPS: ReadonlyArray<PageGroup> = [
     },
     {
         label: "Content & schema",
-        ids: ["contentBrowser", "docTypeBrowser", "dataTypeBrowser", "templateBrowser", "partialBrowser", "mediaBrowser", "memberBrowser", "tagBrowser"]
+        ids: ["contentBrowser", "docTypeBrowser", "dataTypeBrowser", "templateBrowser", "partialBrowser", "mediaBrowser", "memberBrowser", "tagBrowser", "scheduleBrowser"]
     },
     {
         label: "Relationships & usage",

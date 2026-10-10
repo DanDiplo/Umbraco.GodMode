@@ -4,7 +4,7 @@ import { godmodeGet } from "../api/client";
 import "../shared";
 import type { DataTypeMap, ReferenceEdge } from "../shared/types";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
-import { truncate, uniqueBy } from "../shared/format";
+import { uniqueBy } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 import { openUsedByModal } from "../shared/used-by-modal";
 import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
@@ -185,7 +185,7 @@ export class GodModeDataTypeBrowserElement extends UmbElementMixin(LitElement) {
                                           <uui-table-cell><code>${d.dbType}</code></uui-table-cell>
                                           <uui-table-cell><godmode-yes-no .value=${d.isUsed}></godmode-yes-no></uui-table-cell>
                                           <uui-table-cell><godmode-yes-no .value=${d.isNestedUsed}></godmode-yes-no></uui-table-cell>
-                                          <uui-table-cell><small>${truncate(d.updateDate, 22)}</small></uui-table-cell>
+                                          <uui-table-cell><small><godmode-date .value=${d.updateDate}></godmode-date></small></uui-table-cell>
                                           <uui-table-cell class="action-cell">
                                               <uui-button compact look="secondary" label="Impact" @click=${(e: Event) => void this._openImpact(d, e)}>
                                                   <uui-icon name="icon-alert"></uui-icon>

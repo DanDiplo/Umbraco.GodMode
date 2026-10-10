@@ -183,7 +183,7 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
                         @input=${(e: Event) => this._setDraft(item.key, (e.target as HTMLTextAreaElement).value)}
                     ></uui-textarea>
                 </uui-table-cell>
-                <uui-table-cell>${this._formatDate(item.updated)}</uui-table-cell>
+                <uui-table-cell><godmode-date .value=${item.updated}></godmode-date></uui-table-cell>
                 <uui-table-cell>
                     <div class="actions">
                         <uui-button look="primary" label="Save" ?disabled=${busy || !changed} @click=${() => void this._save(item)}>
@@ -212,11 +212,6 @@ export class GodModeKeyValueBrowserElement extends UmbElementMixin(LitElement) {
                 table: "umbracoKeyValue"
             }
         };
-    }
-
-    private _formatDate(value: string): string {
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
     }
 
     static override styles = css`

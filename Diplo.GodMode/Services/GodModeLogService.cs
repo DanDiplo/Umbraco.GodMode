@@ -46,6 +46,30 @@ public sealed class GodModeLogService : IGodModeLogService
         };
     }
 
+    public SystemDateLogEvidence GetSystemDateMigrationLogs()
+    {
+        var result = ReadEventResult();
+        var matching = result.Events.Where(log => MatchesSearch(log, "MigrateSystemDatesToUtc")).ToList();
+        // Preserve errors even if later informational migration messages outnumber the display limit.
+        var selected = matching.Where(log => IsInsightLevel(log.Level))
+            .OrderByDescending(log => log.Timestamp).Take(50)
+            .Concat(matching.OrderByDescending(log => log.Timestamp).Take(50))
+            .DistinctBy(log => log.Id).OrderByDescending(log => log.Timestamp);
+        return new SystemDateLogEvidence
+        {
+            CheckSucceeded = result.Complete,
+            CheckMessage = result.Complete
+                ? "Checked up to 60 recent local JSON log files. Older, remote or expired logs are outside this check."
+                : "Local log evidence is incomplete: files are missing, unreadable or contain unparseable entries.",
+            Entries = selected.Select(log => new SystemDateLogEntry
+            {
+                Timestamp = log.Timestamp,
+                Level = log.Level,
+                Message = log.Message
+            }).ToList()
+        };
+    }
+
     public Page<GodModeLogEvent> GetLogs(long page, long pageSize, DateTimeOffset? from, DateTimeOffset? to, string? level, string? search, string? queryExpression)
     {
         page = Math.Max(1, page);
@@ -143,26 +167,37 @@ public sealed class GodModeLogService : IGodModeLogService
     }
 
     private IEnumerable<GodModeLogEvent> ReadEvents()
+        => ReadEventResult().Events;
+
+    private sealed class LogReadResult
+    {
+        public List<GodModeLogEvent> Events { get; } = [];
+        public bool Complete { get; set; } = true;
+    }
+
+    private LogReadResult ReadEventResult()
     {
         var signature = GetLogFileSignature();
-        var cacheKey = $"godmode:logs:events:{signature}";
+        var cacheKey = $"godmode:logs:events:v2:{signature}";
 
         return memoryCache.GetOrCreate(cacheKey, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
             entry.SlidingExpiration = TimeSpan.FromSeconds(10);
 
-            return ReadEventsFromDisk().ToList();
-        }) ?? [];
+            return ReadEventsFromDisk();
+        })!;
     }
 
-    private IEnumerable<GodModeLogEvent> ReadEventsFromDisk()
+    private LogReadResult ReadEventsFromDisk()
     {
+        var result = new LogReadResult();
         var folder = GetLogFolder();
 
         if (!Directory.Exists(folder))
         {
-            yield break;
+            result.Complete = false;
+            return result;
         }
 
         var files = Directory.EnumerateFiles(folder, "*.json")
@@ -173,11 +208,9 @@ public sealed class GodModeLogService : IGodModeLogService
 
         foreach (var file in files)
         {
-            foreach (var logEvent in ReadFileEvents(file))
-            {
-                yield return logEvent;
-            }
+            result.Events.AddRange(ReadFileEvents(file, result));
         }
+        return result;
     }
 
     private string GetLogFileSignature()
@@ -198,7 +231,7 @@ public sealed class GodModeLogService : IGodModeLogService
         return CreateId("files", string.Join("|", signature));
     }
 
-    private List<GodModeLogEvent> ReadFileEvents(FileInfo file)
+    private List<GodModeLogEvent> ReadFileEvents(FileInfo file, LogReadResult result)
     {
         var events = new List<GodModeLogEvent>();
 
@@ -222,11 +255,13 @@ public sealed class GodModeLogService : IGodModeLogService
                 }
                 catch (JsonException)
                 {
+                    result.Complete = false;
                     continue;
                 }
                 catch (Exception ex)
                 {
                     logger.LogDebug(ex, "Unable to parse Umbraco log event from {LogFile}", file.FullName);
+                    result.Complete = false;
                     continue;
                 }
 
@@ -234,11 +269,16 @@ public sealed class GodModeLogService : IGodModeLogService
                 {
                     events.Add(logEvent);
                 }
+                else
+                {
+                    result.Complete = false;
+                }
             }
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Unable to read Umbraco log file {LogFile}", file.FullName);
+            result.Complete = false;
         }
 
         return events;

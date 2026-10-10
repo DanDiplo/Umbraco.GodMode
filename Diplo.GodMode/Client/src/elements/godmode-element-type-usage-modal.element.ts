@@ -4,7 +4,6 @@ import { godmodeGet } from "../api/client";
 import type { ElementTypeUsageDetail, ElementTypeUsageEntityType, ElementTypeUsageSourceType } from "../shared/types";
 import type { GodModeElementTypeUsageModalData } from "../shared/element-type-usage-modal";
 import { editUrl } from "../shared/edit-links";
-import { truncate } from "../shared/format";
 import "../shared";
 
 const SOURCE_GROUPS: Array<{ sourceTypes: ElementTypeUsageSourceType[]; heading: string; description: string }> = [
@@ -180,7 +179,7 @@ export class GodModeElementTypeUsageModalElement extends UmbElementMixin(LitElem
                                         : html`<strong>${row.contentName}</strong>`}
                                 </uui-table-cell>
                                 <uui-table-cell>${row.parentName ?? html`<span class="muted">None</span>`}</uui-table-cell>
-                                <uui-table-cell><small>${truncate(row.versionDate, 22)}</small></uui-table-cell>
+                                <uui-table-cell><small><godmode-date .value=${row.versionDate}></godmode-date></small></uui-table-cell>
                                 <uui-table-cell><span class="pill">${row.sourceType}</span></uui-table-cell>
                             </uui-table-row>
                         `;

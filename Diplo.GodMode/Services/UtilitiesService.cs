@@ -199,6 +199,7 @@ namespace Diplo.GodMode.Services
             }
 
             var process = Process.GetCurrentProcess();
+            var startedAt = ProcessTimeHelper.GetStartedUtc(process, StartedAt);
 
             return new UtilityDiagnostics
             {
@@ -221,8 +222,8 @@ namespace Diplo.GodMode.Services
                     ContentRootPath = env.ContentRootPath,
                     WebRootPath = webRoot,
                     ProcessId = Environment.ProcessId,
-                    StartedAt = StartedAt,
-                    Uptime = FormatDuration(DateTime.UtcNow - StartedAt),
+                    StartedAt = startedAt,
+                    Uptime = FormatDuration(DateTime.UtcNow - startedAt),
                     GodModeVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
                         ?? assembly.GetName().Version?.ToString()
                         ?? string.Empty

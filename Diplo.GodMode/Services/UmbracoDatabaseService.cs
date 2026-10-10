@@ -1629,6 +1629,138 @@ AND {predicate}",
             };
         }
 
+        /// <summary>
+        /// Gets all pending scheduled publish/unpublish entries, soonest first
+        /// </summary>
+        public IEnumerable<ContentScheduleItem> GetContentSchedules()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                const string sql = @"SELECT CS.id AS Id, CS.nodeId AS NodeId, N.uniqueId AS NodeKey, N.text AS Name,
+                    CT.alias AS ContentTypeAlias, CT.icon AS Icon, L.languageISOCode AS Culture, CS.action AS Action,
+                    CS.date AS Date, D.published AS Published, N.trashed AS Trashed
+                    FROM umbracoContentSchedule CS
+                    INNER JOIN umbracoNode N ON N.id = CS.nodeId
+                    LEFT JOIN umbracoContent C ON C.nodeId = N.id
+                    LEFT JOIN cmsContentType CT ON CT.nodeId = C.contentTypeId
+                    LEFT JOIN umbracoDocument D ON D.nodeId = N.id
+                    LEFT JOIN umbracoLanguage L ON L.id = CS.languageId
+                    ORDER BY CS.date";
+
+                return scope.Database.Fetch<ContentScheduleItem>(sql);
+            }
+        }
+
+        /// <summary>
+        /// Gets the Umbraco 17 distributed background jobs and when they last ran
+        /// </summary>
+        public IEnumerable<DistributedJobInfo> GetDistributedJobs()
+        {
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                try
+                {
+                    return scope.Database
+                        .Fetch<DistributedJobRow>("SELECT Name, lastRun AS LastRun, lastAttemptedRun AS LastAttemptedRun, period AS Period, IsRunning FROM umbracoDistributedJob ORDER BY Name")
+                        .Select(x => new DistributedJobInfo
+                        {
+                            Name = x.Name,
+                            LastRun = x.LastRun,
+                            LastAttemptedRun = x.LastAttemptedRun,
+                            PeriodSeconds = (long)TimeSpan.FromTicks(x.Period).TotalSeconds,
+                            IsRunning = x.IsRunning
+                        })
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogDebug(ex, "Could not read umbracoDistributedJob.");
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Counts rows in key system date columns that are dated after the given UTC cutoff.
+        /// This is a limited symptom check, not proof of correct or incorrect historical date conversion.
+        /// </summary>
+        public IEnumerable<FutureDatedRows> GetFutureDatedRows(DateTime cutoffUtc)
+        {
+            var checks = new (string Table, string Column)[]
+            {
+                ("umbracoNode", "createDate"),
+                ("umbracoContentVersion", "versionDate"),
+                ("umbracoLog", "Datestamp"),
+                ("umbracoUser", "lastLoginDate")
+            };
+
+            object cutoff = this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite
+                ? cutoffUtc.ToString("yyyy-MM-dd HH:mm:ss")
+                : cutoffUtc;
+
+            var results = new List<FutureDatedRows>();
+
+            using (var scope = this.scopeProvider.CreateScope(autoComplete: true))
+            {
+                foreach (var (table, column) in checks)
+                {
+                    try
+                    {
+                        var row = scope.Database.FirstOrDefault<FutureDatedRowCount>(
+                            $"SELECT COUNT(*) AS Total, MAX({QuoteIdentifier(column)}) AS Latest FROM {QuoteIdentifier(table)} WHERE {QuoteIdentifier(column)} > @0",
+                            cutoff);
+
+                        results.Add(new FutureDatedRows
+                        {
+                            Table = table,
+                            Column = column,
+                            CheckSucceeded = true,
+                            Count = row?.Total ?? 0,
+                            Latest = row?.Total > 0 ? row.Latest : null
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogDebug(ex, "Could not check {Table}.{Column} for future dated rows.", table, column);
+                        results.Add(new FutureDatedRows
+                        {
+                            Table = table,
+                            Column = column,
+                            CheckMessage = "This column could not be checked. See the server logs for details."
+                        });
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public bool IsSqlServerTimeZoneValid(string timeZoneId)
+        {
+            using var scope = scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.ExecuteScalar<int>("SELECT COUNT(*) FROM sys.time_zone_info WHERE name = @0", timeZoneId) > 0;
+        }
+
+        private sealed class DistributedJobRow
+        {
+            public string Name { get; set; } = string.Empty;
+
+            public DateTime LastRun { get; set; }
+
+            public DateTime LastAttemptedRun { get; set; }
+
+            public long Period { get; set; }
+
+            public bool IsRunning { get; set; }
+        }
+
+        private sealed class FutureDatedRowCount
+        {
+            public long Total { get; set; }
+
+            public DateTime? Latest { get; set; }
+        }
+
         private List<DatabaseTableName> GetTableNames(IUmbracoDatabase database)
         {
             if (this.scopeProvider.SqlContext.DatabaseType == DatabaseType.SQLite)

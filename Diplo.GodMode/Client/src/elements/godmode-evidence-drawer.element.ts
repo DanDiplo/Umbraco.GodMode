@@ -1,6 +1,6 @@
 import { LitElement, css, customElement, html, property, state, svg } from "@umbraco-cms/backoffice/external/lit";
 import type { GodModeEvidenceDrawerData, GodModeEvidenceSection } from "../shared/evidence-drawer";
-import { takeEvidenceLoader } from "../shared/evidence-drawer";
+import { isEvidenceDate, takeEvidenceLoader } from "../shared/evidence-drawer";
 import "../shared";
 
 interface DatabaseRelationshipGraphData {
@@ -98,6 +98,7 @@ export class GodModeEvidenceDrawerElement extends LitElement {
         return html`
             <godmode-modal-layout headline=${data?.title || "Evidence"} width="min(1120px, 94vw)" max-height="84vh" @close=${this._close}>
                 ${data?.subtitle ? html`<p class="subtitle">${data.subtitle}</p>` : ""}
+                <godmode-date-mode-toggle></godmode-date-mode-toggle>
                 ${data?.summary?.length ? this._renderSummary(data.summary) : ""}
                 ${this._loading ? this._renderLoading() : this._error ? this._renderError() : html`<div class="sections">${(data?.sections ?? []).map((section) => this._renderSection(section))}</div>`}
             </godmode-modal-layout>
@@ -259,6 +260,7 @@ export class GodModeEvidenceDrawerElement extends LitElement {
     }
 
     private _renderValue(value: unknown): unknown {
+        if (isEvidenceDate(value)) return this._formatScalar(value);
         if (Array.isArray(value)) {
             return value.length ? html`<ul class="compact">${value.map((item): unknown => html`<li>${this._renderValue(item)}</li>`)}</ul>` : html`<span class="muted">None</span>`;
         }
@@ -274,7 +276,8 @@ export class GodModeEvidenceDrawerElement extends LitElement {
         return html`<span>${this._formatScalar(value)}</span>`;
     }
 
-    private _formatScalar(value: unknown): string {
+    private _formatScalar(value: unknown): unknown {
+        if (isEvidenceDate(value)) return html`<godmode-date .value=${value.value} empty="None"></godmode-date>`;
         if (value === null || value === undefined || value === "") return "None";
         if (typeof value === "boolean") return value ? "Yes" : "No";
         return String(value);

@@ -2,6 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { godmodeGet } from "../api/client";
 import "../shared";
+import { describeDate } from "../shared/date-time";
 import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared/ai-availability";
 import type { GodModeAiExplainSubject } from "../shared/godmode-ai-explain-host.element";
 import type { GodModeLogEvent, GodModeLogInsight, GodModeLogLevelCount, GodModeLogOverview, GodModeSavedLogQuery, Page } from "../shared/types";
@@ -199,7 +200,7 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
 
     private _renderExpanded(log: GodModeLogEvent) {
         const rows = [
-            ["Timestamp", this._formatDate(log.timestamp)],
+            ["Timestamp", log.timestamp ? describeDate(log.timestamp).split("\n").join(" · ") : "Unknown"],
             ["@MessageTemplate", log.messageTemplate || "None"],
             ...this._properties(log).map(([key, value]) => [this._formatLabel(key), this._formatValue(value)])
         ];
@@ -280,11 +281,11 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                             </select>
                         </div>
                         <div>
-                            <label>From</label>
+                            <label title="Filter dates use your browser's time zone">From</label>
                             <input type="date" .value=${this._fromDate} @input=${(e: Event) => (this._fromDate = (e.target as HTMLInputElement).value)} />
                         </div>
                         <div>
-                            <label>To</label>
+                            <label title="Filter dates use your browser's time zone">To</label>
                             <input type="date" .value=${this._toDate} @input=${(e: Event) => (this._toDate = (e.target as HTMLInputElement).value)} />
                         </div>
                         <uui-button type="submit" look="primary" label="Apply filters">
@@ -300,6 +301,7 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                           ${this._renderInsights()}
                           <div class="results">
                               <span>Page ${this._currentPage} of ${totalPages}</span>
+                              <godmode-date-mode-toggle></godmode-date-mode-toggle>
                               <span>${logs.length} shown</span>
                           </div>
                           <div class="log-table">
@@ -320,7 +322,7 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                                           @keydown=${(e: KeyboardEvent) => this._onRowKeydown(log, e)}
                                       >
                                           <div>
-                                              <time>${this._formatDate(log.timestamp)}</time>
+                                              <time><godmode-date .value=${log.timestamp} empty="Unknown"></godmode-date></time>
                                               <small>${log.logFile}</small>
                                           </div>
                                           <div><uui-tag color=${this._levelColor(log.level)}>${log.level}</uui-tag></div>
@@ -372,7 +374,7 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
                                     <strong>${insight.title}</strong>
                                     <small>${insight.sourceContext || "Unknown source"}${insight.requestPaths.length ? ` · ${insight.requestPaths[0]}` : ""}</small>
                                 </div>
-                                <time>${this._formatDate(insight.lastSeen)}</time>
+                                <time><godmode-date .value=${insight.lastSeen} empty="Unknown"></godmode-date></time>
                                 ${this._isAiExplainAvailable
                                     ? html`
                                           <div @click=${(e: Event) => e.stopPropagation()}>
@@ -419,10 +421,6 @@ export class GodModeLogBrowserElement extends UmbElementMixin(LitElement) {
 
     private _endOfDay(value: string): string | undefined {
         return value ? new Date(`${value}T23:59:59.999`).toISOString() : undefined;
-    }
-
-    private _formatDate(value: string | null): string {
-        return value ? new Date(value).toLocaleString() : "Unknown";
     }
 
     private _formatValue(value: unknown): string {

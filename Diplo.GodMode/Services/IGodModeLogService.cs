@@ -7,6 +7,8 @@ public interface IGodModeLogService
 {
     GodModeLogOverview GetOverview();
 
+    SystemDateLogEvidence GetSystemDateMigrationLogs();
+
     Page<GodModeLogEvent> GetLogs(long page, long pageSize, DateTimeOffset? from, DateTimeOffset? to, string? level, string? search, string? queryExpression);
 
     IEnumerable<GodModeLogInsight> GetInsights(DateTimeOffset? from, DateTimeOffset? to, int take);

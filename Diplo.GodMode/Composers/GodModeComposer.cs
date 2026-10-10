@@ -1,4 +1,5 @@
-﻿using Diplo.GodMode.Models;
+﻿using Diplo.GodMode.Filters;
+using Diplo.GodMode.Models;
 using Diplo.GodMode.Services;
 using Diplo.GodMode.Services.Interfaces;
 using System.Net;
@@ -25,6 +26,8 @@ namespace Diplo.GodMode.Composers
             builder.Services.AddScoped<IGodModeHealthRiskService, GodModeHealthRiskService>();
             builder.Services.AddScoped<IGodModeSnapshotService, GodModeSnapshotService>();
             builder.Services.AddScoped<IGodModeLogService, GodModeLogService>();
+            builder.Services.AddScoped<IServerTimeService, ServerTimeService>();
+            builder.Services.AddSingleton<GodModeUtcDatesResultFilter>();
             builder.Services.AddScoped<INuGetPackageInventoryService, NuGetPackageInventoryService>();
             builder.Services
                 .AddHttpClient<INuGetPackageAuditService, NuGetPackageAuditService>()

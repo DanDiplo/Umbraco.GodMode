@@ -1,3 +1,5 @@
+import { formatDateTime } from "./date-time";
+
 /** Replaces the legacy `godModeFileSize` filter. */
 export function formatBytes(bytes: number | null | undefined, precision = 1): string {
     if (bytes == null) return "N/A";
@@ -28,10 +30,7 @@ export function truncate(s: string | null | undefined, n: number): string {
     return s.length <= n ? s : s.slice(0, n) + "…";
 }
 
-/** ISO date → short readable string. Returns the input as-is if not parseable. */
+/** API date → readable string in the current date display mode. Returns the input as-is if not parseable. */
 export function formatDate(s: string | null | undefined): string {
-    if (!s) return "";
-    const d = new Date(s);
-    if (Number.isNaN(d.getTime())) return s;
-    return d.toLocaleString();
+    return formatDateTime(s);
 }

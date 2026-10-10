@@ -4,9 +4,9 @@ import "@umbraco-cms/backoffice/imaging";
 import { godmodeGet } from "../api/client";
 import "../shared";
 import type { ContentMediaDetail, ItemBase, MediaMap, Page } from "../shared/types";
-import { formatBytes, truncate } from "../shared/format";
+import { formatBytes } from "../shared/format";
 import { editUrl, openEditorModal } from "../shared/edit-links";
-import { openLazyEvidenceDrawer } from "../shared/evidence-drawer";
+import { evidenceDate, openLazyEvidenceDrawer } from "../shared/evidence-drawer";
 
 @customElement("godmode-media-browser")
 export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
@@ -86,7 +86,7 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                             { label: "Depth", value: Math.max(detail.ancestors.length - 1, 0) },
                             { label: "Extension", value: detail.mediaFile?.extension || media.ext },
                             { label: "Size", value: formatBytes(detail.mediaFile?.size ?? media.size) },
-                            { label: "Updated", value: truncate(detail.updateDate, 22) },
+                            { label: "Updated", value: evidenceDate(detail.updateDate) },
                             { label: "Trashed", value: detail.trashed }
                         ],
                         sections: [
@@ -101,8 +101,8 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                                     rawPath: detail.path,
                                     parentId: detail.parentId,
                                     level: detail.level,
-                                    created: truncate(detail.createDate, 22),
-                                    updated: truncate(detail.updateDate, 22)
+                                    created: evidenceDate(detail.createDate),
+                                    updated: evidenceDate(detail.updateDate)
                                 }
                             },
                             {
@@ -300,7 +300,7 @@ export class GodModeMediaBrowserElement extends UmbElementMixin(LitElement) {
                                                 <uui-table-cell><code>${m.type}</code></uui-table-cell>
                                                 <uui-table-cell><code>${m.ext ?? ""}</code></uui-table-cell>
                                                 <uui-table-cell>${formatBytes(m.size)}</uui-table-cell>
-                                                <uui-table-cell><small>${truncate(m.updateDate, 22)}</small></uui-table-cell>
+                                                <uui-table-cell><small><godmode-date .value=${m.updateDate}></godmode-date></small></uui-table-cell>
                                                 <uui-table-cell class="action-cell">
                                                     <div class="action-wrap">
                                                         <uui-button compact look="secondary" label="Details" @click=${(e: Event) => void this._openDetails(m, e)}>Details</uui-button>

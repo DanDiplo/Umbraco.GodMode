@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Globalization;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -48,6 +49,7 @@ namespace Diplo.GodMode.Services
         private readonly IConfiguration configuration;
         private readonly IServer webServer;
         private readonly IOptions<GodModeConfig> godModeConfig;
+        private readonly IServerTimeService serverTimeService;
 
         private HttpContext httpContext;
 
@@ -67,7 +69,8 @@ namespace Diplo.GodMode.Services
             UmbracoFeatures features,
             IConfiguration configuration,
             IServer webServer,
-            IOptions<GodModeConfig> godModeConfig)
+            IOptions<GodModeConfig> godModeConfig,
+            IServerTimeService serverTimeService)
         {
             this.runtimeState = runtimeState;
             version = umbracoVersion;
@@ -83,6 +86,7 @@ namespace Diplo.GodMode.Services
             this.configuration = configuration;
             this.webServer = webServer;
             this.godModeConfig = godModeConfig;
+            this.serverTimeService = serverTimeService;
         }
 
         public IEnumerable<DiagnosticGroup> GetDiagnosticGroups(bool revealRedactedValues = false)
@@ -185,6 +189,8 @@ namespace Diplo.GodMode.Services
         {
             return new DiagnosticGroup("Server Configuration")
                 .Add(CreateServerSettingsSection())
+                .Add(CreateDateTimeSection())
+                .AddIfNotNull(TryCreateSystemDateMigrationSection())
                 .Add(DiagnosticSection.From("Web Host Environment", webHostEnvironment))
                 .Add(CreateWebServerFeaturesSection())
                 .Add(DiagnosticSection.FromOptions<CookieOptions>("Cookie Options", factory))
@@ -216,6 +222,110 @@ namespace Diplo.GodMode.Services
                 .Add("Current Culture", Thread.CurrentThread.CurrentCulture)
                 .Add("Current Thread State", Thread.CurrentThread.ThreadState);
         }
+
+        private DiagnosticSection CreateDateTimeSection()
+        {
+            var time = serverTimeService.GetServerTime();
+
+            var section = new DiagnosticSection("Date & Time")
+                .Add("Server Time (UTC)", FormatUtc(time.ServerUtcNow))
+                .Add("Server Time (Local)", time.ServerLocalNow.ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture))
+                .Add("Time Zone Id", time.TimeZoneId)
+                .Add("IANA Time Zone", ValueOrNone(time.IanaId))
+                .Add("Windows Time Zone", ValueOrNone(time.WindowsId))
+                .Add("Display Name", time.DisplayName)
+                .Add("Standard Name", time.StandardName)
+                .Add("Daylight Name", time.DaylightName)
+                .Add("Current UTC Offset", time.UtcOffset)
+                .Add("Base UTC Offset", ServerTimeService.FormatOffset(TimeSpan.FromMinutes(time.BaseUtcOffsetMinutes)))
+                .Add("Is UTC?", time.IsUtc)
+                .Add("Supports Daylight Saving?", time.SupportsDaylightSavingTime)
+                .Add("Daylight Saving In Effect?", time.IsDaylightSavingTime);
+
+            if (time.NextTransition.HasValue)
+            {
+                section.Add("Next Offset Change", $"{time.NextTransition.Value.ToString("yyyy-MM-dd HH:mm zzz", CultureInfo.InvariantCulture)} (becomes {time.NextTransitionUtcOffset})");
+            }
+
+            return section
+                .Add("TZ Environment Variable", ValueOrNone(time.TzEnvironmentVariable))
+                .Add("Time Provider", time.TimeProviderType)
+                .Add("Culture", time.CultureName)
+                .Add("Short Date Pattern", time.ShortDatePattern)
+                .Add("Long Time Pattern", time.LongTimePattern)
+                .Add("Process Started (UTC)", FormatUtc(time.ProcessStartedUtc));
+        }
+
+        private DiagnosticSection TryCreateSystemDateMigrationSection()
+        {
+            try
+            {
+                var migration = serverTimeService.GetServerTime().SystemDateMigration;
+                var evidence = serverTimeService.GetSystemDateEvidence();
+
+                var section = new DiagnosticSection("UTC System Date Migration (Umbraco 17)")
+                    .Add("SystemDateMigration:Enabled", migration.Enabled)
+                    .Add("SystemDateMigration:LocalServerTimeZone", ValueOrNone(migration.ConfiguredTimeZone));
+
+                if (migration.ConfiguredTimeZoneValid.HasValue)
+                {
+                    section.Add("Configured Time Zone Valid?", migration.ConfiguredTimeZoneValid.Value);
+                }
+
+                section
+                    .Add("Configuration Scope", "Current settings only; these do not establish which settings a completed upgrade used. Fresh v17 installs need no historical conversion.")
+                    .Add("Time Zone Validation", migration.TimeZoneValidationMessage)
+                    .Add("Effective Time Zone", migration.EffectiveTimeZone)
+                    .Add("Effective Time Zone Rules Match Server?", migration.EffectiveTimeZoneResolved ? migration.EffectiveTimeZoneMatchesServer.ToString() : "Unknown (zone not resolved locally)")
+                    .Add("Migration Zone Supports DST?", migration.EffectiveTimeZoneSupportsDaylightSaving?.ToString() ?? "Unknown")
+                    .Add("Effective Time Zone Is UTC?", migration.EffectiveTimeZoneIsUtc)
+                    .Add("Database Type", migration.DatabaseType)
+                    .Add("Converts Using Base Offset Only?", migration.UsesBaseOffsetOnly ? "Yes (SQLite ignores daylight saving when converting)" : "No")
+                    .Add("All Migrations Applied?", migration.UpgradeComplete)
+                    .Add("Current Migration State", migration.CurrentMigrationState)
+                    .Add("Final Migration State", migration.FinalMigrationState);
+
+                var logEntries = evidence.MigrationLogEntries.ToList();
+                section
+                    .Add("Evidence Checked (UTC)", FormatUtc(evidence.CheckedAtUtc))
+                    .Add("Evidence Cache", "Up to two minutes")
+                    .Add("Log Check", evidence.LogCheckMessage)
+                    .Add("Database Check", evidence.DatabaseCheckMessage)
+                    .Add("Future Date Cutoff (UTC)", FormatUtc(evidence.FutureDateCutoffUtc))
+                    .Add("Future Date Limitations", "Checks four columns only. Older shifts and shifts into the past are not detected; no matches does not prove a correct migration.");
+                if (logEntries.Count == 0)
+                {
+                    section.Add("Migration Log Entries", evidence.LogCheckSucceeded ? "None found in the checked local log files" : "Unknown or partial: log check did not complete");
+                }
+                else
+                {
+                    foreach (var entry in logEntries)
+                    {
+                        section.Add($"Log {entry.Timestamp?.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} UTC", $"[{entry.Level}] {entry.Message}");
+                    }
+                }
+
+                foreach (var row in evidence.FutureDatedRows)
+                {
+                    section.Add(
+                        $"Future Dated {row.Table}.{row.Column}",
+                        !row.CheckSucceeded ? row.CheckMessage : row.Count == 0 ? "0" : $"{row.Count:n0} (latest {FormatUtc(row.Latest ?? DateTime.MinValue)})");
+                }
+
+                return section;
+            }
+            catch
+            {
+                // Deliberate: diagnostic output should not fail if the checks fail.
+                return null;
+            }
+        }
+
+        private static string FormatUtc(DateTime value)
+            => DateTime.SpecifyKind(value, DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + " UTC";
+
+        private static string ValueOrNone(string value)
+            => string.IsNullOrWhiteSpace(value) ? "(not set)" : value;
 
         private static void AddCurrentProcessDiagnostic(DiagnosticSection section)
         {
@@ -365,7 +475,7 @@ namespace Diplo.GodMode.Services
 
                 return new DiagnosticSection(
                     "Registered Servers",
-                    servers.Select(server => new Diagnostic($"{server.Id}: {server.ComputerName}", server.ToDiagnostic())));
+                    servers.Select(server => new Diagnostic($"{server.Id}: {server.ComputerName}", server.ToDiagnostic(serverTimeService.AutomaticServerRegistration))));
             }
             catch
             {
