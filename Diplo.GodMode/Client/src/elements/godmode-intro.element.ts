@@ -1,15 +1,10 @@
 import { LitElement, css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_SECTION_CONTEXT } from "@umbraco-cms/backoffice/section";
-import { godmodeGet } from "../api/client";
 import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
 import { browsers } from "../manifests/catalog";
-import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared";
+import { getGodModeHiddenFeatures, isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared";
 import "../shared";
-
-interface GodModeConfigResponse {
-    featuresToHide?: string[];
-}
 
 interface PageInfo {
     name: string;
@@ -91,13 +86,8 @@ export class GodModeIntroElement extends UmbElementMixin(LitElement) {
             this._aiAvailable = true;
         });
 
-        try {
-            const cfg = await godmodeGet<GodModeConfigResponse>("config");
-            const hidden = new Set(cfg.featuresToHide ?? []);
-            this._pages = PAGES.filter((p) => !hidden.has(p.id) && !hidden.has(p.name));
-        } catch {
-            // Config call failed — fall back to all pages.
-        }
+        const hidden = await getGodModeHiddenFeatures();
+        this._pages = PAGES.filter((p) => !hidden.isHidden(p.id, p.name));
     }
 
     override disconnectedCallback() {

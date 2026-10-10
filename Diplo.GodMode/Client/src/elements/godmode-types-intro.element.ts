@@ -2,6 +2,7 @@ import { LitElement, css, customElement, html, state } from "@umbraco-cms/backof
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_SECTION_CONTEXT } from "@umbraco-cms/backoffice/section";
 import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
+import { getGodModeHiddenFeatures } from "../shared";
 import "../shared";
 
 const PAGES = [
@@ -24,6 +25,7 @@ const PAGES = [
 @customElement("godmode-types-intro")
 export class GodModeTypesIntroElement extends UmbElementMixin(LitElement) {
     @state() private _pathname?: string;
+    @state() private _pages = PAGES;
 
     constructor() {
         super();
@@ -36,6 +38,12 @@ export class GodModeTypesIntroElement extends UmbElementMixin(LitElement) {
                 "observePathname"
             );
         });
+    }
+
+    override async connectedCallback() {
+        super.connectedCallback();
+        const hidden = await getGodModeHiddenFeatures();
+        this._pages = PAGES.filter((p) => !hidden.isHidden(p.id, p.name));
     }
 
     private _hrefFor(id: string): string {
@@ -51,7 +59,7 @@ export class GodModeTypesIntroElement extends UmbElementMixin(LitElement) {
                             <uui-table-head-cell style="width:30%">Page</uui-table-head-cell>
                             <uui-table-head-cell>Description</uui-table-head-cell>
                         </uui-table-head>
-                        ${PAGES.map(
+                        ${this._pages.map(
                             (p) => html`
                                 <uui-table-row>
                                     <uui-table-cell>

@@ -9,14 +9,17 @@ import {
     GODMODE_TREE_FOLDER_ENTITY_TYPE,
     GODMODE_TREE_ROOT_ENTITY_TYPE
 } from "../constants";
+import { getGodModeHiddenFeatures } from "../shared/hidden-features";
 import { getChildNodes, getRootNodes, type GodModeTreeNode } from "./structure";
 import type { GodModeTreeItemModel } from "./types";
 
 /**
  * Client-side tree data source. The GodMode "tree" is a static catalogue, so
  * the root/children functions just return the in-memory {@link structure}
- * rather than calling the server. Mirrors the shape Umbraco's server-backed
- * trees use so the default tree/treeItem kinds work unchanged.
+ * rather than calling the server for nodes. The only server call is the cached
+ * config lookup that removes features listed in `GodMode:FeaturesToHide`.
+ * Mirrors the shape Umbraco's server-backed trees use so the default
+ * tree/treeItem kinds work unchanged.
  */
 export class GodModeTreeServerDataSource extends UmbTreeServerDataSourceBase<
     GodModeTreeNode,
@@ -30,7 +33,7 @@ export class GodModeTreeServerDataSource extends UmbTreeServerDataSourceBase<
 const getRootItems = async (
     _args: UmbTreeRootItemsRequestArgs
 ): Promise<UmbDataSourceResponse<UmbTargetPagedModel<GodModeTreeNode>>> => {
-    const items = getRootNodes();
+    const items = getRootNodes(await getGodModeHiddenFeatures());
     return { data: { total: items.length, items } };
 };
 
@@ -40,7 +43,7 @@ const getChildrenOf = async (
     if (args.parent.unique === null) {
         return getRootItems(args);
     }
-    const items = getChildNodes(args.parent.unique);
+    const items = getChildNodes(args.parent.unique, await getGodModeHiddenFeatures());
     return { data: { total: items.length, items } };
 };
 
