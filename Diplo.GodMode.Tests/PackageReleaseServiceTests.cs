@@ -1,12 +1,14 @@
 using System.Net;
 using System.Text.Json;
+using System.Reflection;
+using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Diplo.GodMode.Tests;
 
 [TestClass]
-public sealed class UmbracoReleaseServiceTests
+public sealed class PackageReleaseServiceTests
 {
     [TestMethod]
     public async Task CountsDistinctListedStableVersionsWithinRunningMajor()
@@ -175,6 +177,67 @@ public sealed class UmbracoReleaseServiceTests
 
     private static object Entry(string version, bool listed = true) => new { catalogEntry = new { version, listed } };
 
+    [TestMethod]
+    public async Task GodModeUsesItsOwnPackageFeedCountAndVersionLink()
+    {
+        using var handler = new FeedHandler(InlineFeed(Entry("17.7.1")))
+        {
+            GodModeFeed = InlineFeed(Entry("16.9.0"), Entry("17.1.0"), Entry("17.2.0"), Entry("17.2.2"),
+                Entry("17.2.2+build"), Entry("17.3.0-rc1"), Entry("17.4.0", false), Entry("18.0.0"))
+        };
+        var factory = new ClientFactory(handler);
+        var godMode = new GodModeReleaseService(factory, "17.1.0+abc", NullLogger<GodModeReleaseService>.Instance, new MutableClock());
+        var umbraco = Create(handler);
+        var results = await Task.WhenAll(godMode.GetStatusAsync(), umbraco.GetStatusAsync());
+        Assert.AreEqual("17.2.2", results[0].LatestVersion);
+        Assert.AreEqual(2, results[0].ReleasesBehind);
+        Assert.AreEqual("https://www.nuget.org/packages/Diplo.GodMode", results[0].SourceUrl);
+        Assert.AreEqual("https://www.nuget.org/packages/Diplo.GodMode/17.2.2", results[0].ReleaseNotesUrl);
+        Assert.AreEqual("17.7.1", results[1].LatestVersion);
+        await Task.WhenAll(godMode.GetStatusAsync(), umbraco.GetStatusAsync());
+        Assert.AreEqual(4, handler.Calls);
+    }
+
+    [TestMethod]
+    public async Task GodModeRefreshFailureDoesNotAffectUmbracoCache()
+    {
+        var clock = new MutableClock();
+        using var handler = new FeedHandler(InlineFeed(Entry("17.7.1"))) { GodModeFeed = InlineFeed(Entry("17.2.2")) };
+        var godMode = new GodModeReleaseService(new ClientFactory(handler), "17.1.0", NullLogger<GodModeReleaseService>.Instance, clock);
+        var umbraco = Create(handler, clock);
+        await Task.WhenAll(godMode.GetStatusAsync(), umbraco.GetStatusAsync());
+        clock.Advance(TimeSpan.FromHours(6));
+        handler.FailGodMode = true;
+        handler.Feed = InlineFeed(Entry("17.7.1"), Entry("17.7.2"));
+        var results = await Task.WhenAll(godMode.GetStatusAsync(), umbraco.GetStatusAsync());
+        Assert.IsTrue(results[0].IsStale);
+        Assert.AreEqual("17.2.2", results[0].LatestVersion);
+        Assert.IsFalse(results[1].IsStale);
+        Assert.AreEqual("17.7.2", results[1].LatestVersion);
+    }
+
+    [TestMethod]
+    [DataRow("17.2.2+abc", "upToDate")]
+    [DataRow("17.3.0+abc", "newerThanFeed")]
+    [DataRow("17.3.0-rc1+abc", "prerelease")]
+    public async Task GodModeHandlesCurrentLocalAndPreviewBuilds(string current, string expected)
+    {
+        using var handler = new FeedHandler(InlineFeed(Entry("17.2.2")));
+        var service = new GodModeReleaseService(new ClientFactory(handler), current,
+            NullLogger<GodModeReleaseService>.Instance, new MutableClock());
+        Assert.AreEqual(expected, (await service.GetStatusAsync()).Status);
+    }
+
+    [TestMethod]
+    public async Task GodModeVersionComesFromTheInstalledCoreAssembly()
+    {
+        using var handler = new FeedHandler(InlineFeed(Entry("17.99.0")));
+        var service = new GodModeReleaseService(new ClientFactory(handler), NullLogger<GodModeReleaseService>.Instance);
+        var expected = typeof(UtilitiesService).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        Assert.AreEqual(expected, GodModeVersionHelper.GetVersion());
+        Assert.AreEqual(expected, (await service.GetStatusAsync()).CurrentVersion);
+    }
+
     private static object PageLink(string lower, string upper, string url)
         => new Dictionary<string, object> { ["lower"] = lower, ["upper"] = upper, ["@id"] = url };
 
@@ -205,19 +268,23 @@ public sealed class UmbracoReleaseServiceTests
         private int calls;
         public int Calls => calls;
         public string Feed { get; set; } = feed;
+        public string? GodModeFeed { get; set; }
         public string Page { get; set; } = "{}";
         public bool Fail { get; set; }
+        public bool FailGodMode { get; set; }
         public Func<CancellationToken, Task>? BeforeResponse { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref calls);
             if (BeforeResponse is not null) await BeforeResponse(cancellationToken);
-            if (Fail) return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+            if (Fail || (FailGodMode && request.RequestUri!.AbsolutePath == "/registration/diplo.godmode/index.json"))
+                return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
             var json = request.RequestUri!.AbsolutePath switch
             {
                 "/v3/index.json" => "{\"resources\":[{\"@type\":\"RegistrationsBaseUrl/3.6.0\",\"@id\":\"https://api.nuget.org/registration/\"}]}",
                 "/registration/umbraco.cms/index.json" => Feed,
+                "/registration/diplo.godmode/index.json" => GodModeFeed ?? Feed,
                 "/page" => Page,
                 _ => throw new InvalidOperationException("Unexpected metadata request: " + request.RequestUri)
             };

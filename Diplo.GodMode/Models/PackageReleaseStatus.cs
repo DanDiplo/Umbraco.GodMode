@@ -1,6 +1,6 @@
 namespace Diplo.GodMode.Models;
 
-public sealed record UmbracoReleaseStatus
+public sealed record PackageReleaseStatus
 {
     public string CurrentVersion { get; init; } = string.Empty;
     public string Status { get; init; } = "unavailable";
@@ -9,6 +9,6 @@ public sealed record UmbracoReleaseStatus
     public DateTimeOffset? CheckedAt { get; init; }
     public DateTimeOffset? LastAttemptAt { get; init; }
     public bool IsStale { get; init; }
-    public string SourceUrl { get; init; } = "https://www.nuget.org/packages/Umbraco.Cms";
-    public string ReleaseNotesUrl { get; init; } = "https://releases.umbraco.com/all-releases";
+    public string SourceUrl { get; init; } = string.Empty;
+    public string ReleaseNotesUrl { get; init; } = string.Empty;
 }

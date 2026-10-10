@@ -710,7 +710,7 @@ export interface Page<T> {
     items: T[];
 }
 
-export interface UmbracoReleaseStatus {
+export interface PackageReleaseStatus {
     currentVersion: string;
     status: "unavailable" | "behind" | "upToDate" | "newerThanFeed" | "prerelease";
     latestVersion: string | null;

@@ -37,7 +37,8 @@ namespace Diplo.GodMode.Composers
                 });
             builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<UmbracoReleaseService>();
-            builder.Services.AddHttpClient(UmbracoReleaseService.HttpClientName, client =>
+            builder.Services.AddSingleton<GodModeReleaseService>();
+            builder.Services.AddHttpClient(NuGetReleaseChecker.HttpClientName, client =>
                 {
                     client.Timeout = Timeout.InfiniteTimeSpan; // The service applies one overall lookup deadline.
                 })
