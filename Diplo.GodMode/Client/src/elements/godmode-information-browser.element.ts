@@ -311,6 +311,7 @@ export class GodModeInformationBrowserElement extends UmbElementMixin(LitElement
     private _renderReleaseStatus(packageName: "umbraco" | "godmode", packageId: string) {
         if (this._releaseLoading[packageName]) return html`Checking releases…`;
         const status = this._releaseStatuses[packageName];
+        if (status?.status === "disabled") return undefined;
         if (!status?.latestVersion) return html`Release check unavailable`;
         const label = status.status === "behind"
             ? `${status.releasesBehind} ${status.releasesBehind === 1 ? "release" : "releases"} behind`

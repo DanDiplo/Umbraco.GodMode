@@ -125,6 +125,7 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
     "AliasesToIgnore": [
       "umbracoFile"
     ],
+    "EnableReleaseCheck": true,
     "DeliveryApi": {
       "SensitiveAliasTerms": [
         "account",
@@ -190,6 +191,8 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
 Individual pages inside the Types folder can also be hidden, for example `"Surface Controllers"`, `"Composers"` or `"Interface Browser"`.
 
 `AliasesToIgnore` lists property aliases that Health & Risk and configuration drift checks should skip, case-insensitively. The default ignores `umbracoFile`, which is expected to repeat across media types.
+
+`EnableReleaseCheck` controls the Overview release checks, which ask NuGet for the latest Umbraco and God Mode versions. Set it to `false` before starting servers that must never contact NuGet. The setting is read on each check, so changing it in `appsettings.json` takes effect without a restart and prevents new lookups; a lookup already in progress can finish within its existing three-second deadline. Reload an already-open Overview to hide its release status. See [Release checks](docs/umbraco-release-check.md).
 
 `DeliveryApi:SensitiveAliasTerms` lists words that flag a document type as sensitive-looking when it is exposed by the Content Delivery API. Aliases are split into words on camel case and punctuation, and a term must match a whole word, so `member` matches `memberProfile` but not `remembered`.
 

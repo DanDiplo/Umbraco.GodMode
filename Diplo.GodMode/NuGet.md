@@ -17,7 +17,7 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 ## Release Notes
 
 ### 17.3.0
-* Adds asynchronous Overview release checks for Umbraco and God Mode, showing the latest stable versions in each running major and the number of newer listed releases, with shared helpers, independent caches and graceful handling of unavailable NuGet access.
+* Adds asynchronous Overview release checks for Umbraco and God Mode, showing the latest stable versions in each running major and the number of newer listed releases, with shared helpers, independent caches and graceful handling of unavailable NuGet access. Set `GodMode:EnableReleaseCheck` to `false` to turn off the outbound check.
 * Adds a Scheduled Publishing view listing pending publish and unpublish schedules, overdue items, publishing suspension, Umbraco 17 background jobs and registered servers (thanks @suedeapple).
 * Adds server time zone information to the Overview, including a Time Zone card, live server, UTC and browser clocks, clock drift, the next daylight saving change and the Umbraco 17 system-date migration settings with on-demand evidence.
 * Adds a Local / Server / UTC date display switch, remembered per browser, across the content, media, member, data type, key/value, NuGet and log views. God Mode API dates are now sent as UTC.

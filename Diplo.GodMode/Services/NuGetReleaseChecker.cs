@@ -21,8 +21,9 @@ internal sealed class NuGetReleaseChecker
     private readonly Func<string, string> releaseNotesUrl;
     private readonly TimeProvider clock;
     private readonly TimeSpan lookupTimeout;
+    private readonly Func<bool> isEnabled;
     private readonly string currentVersion;
-    private readonly Version currentNumber;
+    private readonly Version? currentNumber;
     private readonly bool isPrerelease;
     private PackageReleaseStatus cached;
     private DateTimeOffset nextCheckAt;
@@ -30,7 +31,7 @@ internal sealed class NuGetReleaseChecker
 
     internal NuGetReleaseChecker(IHttpClientFactory clientFactory, string packageId, string currentVersion,
         ILogger logger, TimeProvider clock, Func<string, string>? releaseNotesUrl = null,
-        string? fallbackNotesUrl = null, TimeSpan? lookupTimeout = null)
+        string? fallbackNotesUrl = null, TimeSpan? lookupTimeout = null, Func<bool>? isEnabled = null)
     {
         this.clientFactory = clientFactory;
         this.logger = logger;
@@ -39,8 +40,12 @@ internal sealed class NuGetReleaseChecker
         this.releaseNotesUrl = releaseNotesUrl ?? (version => $"{sourceUrl}/{version}");
         this.clock = clock;
         this.lookupTimeout = lookupTimeout ?? TimeSpan.FromSeconds(3);
+        this.isEnabled = isEnabled ?? (() => true);
         this.currentVersion = currentVersion;
-        currentNumber = ParseNumber(currentVersion);
+        // An unparseable running version can never be compared, so it stays unavailable rather than failing construction.
+        currentNumber = TryParseNumber(currentVersion);
+        if (currentNumber is null)
+            logger.LogDebug("Release checks for {PackageId} are unavailable because the running version '{Version}' could not be parsed.", packageId, currentVersion);
         isPrerelease = currentVersion.Split('+', 2)[0].Contains('-');
         cached = new PackageReleaseStatus
         {
@@ -53,6 +58,8 @@ internal sealed class NuGetReleaseChecker
     public async Task<PackageReleaseStatus> GetStatusAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (!isEnabled()) return cached with { Status = "disabled", LatestVersion = null, ReleasesBehind = null, IsStale = false };
+        if (currentNumber is null) return cached;
         Task<PackageReleaseStatus> pending;
         lock (gate)
         {
@@ -77,13 +84,14 @@ internal sealed class NuGetReleaseChecker
             deadline.Token.ThrowIfCancellationRequested();
             if (versions.Count == 0) throw new JsonException("No listed stable releases found for the running major.");
             var latest = versions.Max()!;
-            var behind = versions.Count(version => version > currentNumber);
+            var running = currentNumber!;
+            var behind = versions.Count(version => version > running);
             var result = new PackageReleaseStatus
             {
                 CurrentVersion = currentVersion,
                 LatestVersion = latest.ToString(3),
                 ReleasesBehind = isPrerelease ? null : behind,
-                Status = isPrerelease ? "prerelease" : currentNumber > latest ? "newerThanFeed" : behind > 0 ? "behind" : "upToDate",
+                Status = isPrerelease ? "prerelease" : running > latest ? "newerThanFeed" : behind > 0 ? "behind" : "upToDate",
                 CheckedAt = clock.GetUtcNow(),
                 LastAttemptAt = attemptedAt,
                 SourceUrl = cached.SourceUrl,
@@ -96,9 +104,9 @@ internal sealed class NuGetReleaseChecker
                 return cached;
             }
         }
-        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException
-            or InvalidOperationException or KeyNotFoundException or FormatException or IOException)
+        catch (Exception ex)
         {
+            // The check is informational only: any failure, expected or not, is cached and backed off rather than surfaced.
             logger.LogDebug(ex, "Could not check releases for {PackageId} on NuGet; retrying after the backoff interval.", packageId);
             lock (gate)
             {
@@ -122,7 +130,7 @@ internal sealed class NuGetReleaseChecker
             cancellationToken.ThrowIfCancellationRequested();
             var lower = ParseNumber(page.GetProperty("lower").GetString()!);
             var upper = ParseNumber(page.GetProperty("upper").GetString()!);
-            if (lower.Major > currentNumber.Major || upper.Major < currentNumber.Major) continue;
+            if (lower.Major > currentNumber!.Major || upper.Major < currentNumber.Major) continue;
 
             if (page.TryGetProperty("items", out var items)) AddVersions(items, versions);
             else
@@ -143,7 +151,7 @@ internal sealed class NuGetReleaseChecker
             var text = entry.GetProperty("version").GetString() ?? throw new JsonException("Missing package version.");
             if (text.Split('+', 2)[0].Contains('-')) continue;
             var number = ParseNumber(text);
-            if (number.Major == currentNumber.Major) versions.Add(number);
+            if (number.Major == currentNumber!.Major) versions.Add(number);
         }
     }
 
@@ -160,11 +168,13 @@ internal sealed class NuGetReleaseChecker
     }
 
     private static Version ParseNumber(string text)
+        => TryParseNumber(text) ?? throw new FormatException("Invalid package release version.");
+
+    private static Version? TryParseNumber(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text)) throw new FormatException("Missing package release version.");
+        if (string.IsNullOrWhiteSpace(text)) return null;
         var numeric = text.Split('+', 2)[0].Split('-', 2)[0];
-        if (!Version.TryParse(numeric, out var version) || version.Build < 0 || version.Revision > 0)
-            throw new FormatException("Invalid package release version.");
+        if (!Version.TryParse(numeric, out var version) || version.Build < 0 || version.Revision > 0) return null;
         return new Version(version.Major, version.Minor, version.Build);
     }
 }

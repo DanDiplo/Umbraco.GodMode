@@ -712,7 +712,7 @@ export interface Page<T> {
 
 export interface PackageReleaseStatus {
     currentVersion: string;
-    status: "unavailable" | "behind" | "upToDate" | "newerThanFeed" | "prerelease";
+    status: "unavailable" | "disabled" | "behind" | "upToDate" | "newerThanFeed" | "prerelease";
     latestVersion: string | null;
     releasesBehind: number | null;
     checkedAt: string | null;

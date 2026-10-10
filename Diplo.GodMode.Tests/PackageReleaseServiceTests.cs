@@ -4,6 +4,7 @@ using System.Reflection;
 using Diplo.GodMode.Helpers;
 using Diplo.GodMode.Services;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace Diplo.GodMode.Tests;
 
@@ -232,10 +233,58 @@ public sealed class PackageReleaseServiceTests
     public async Task GodModeVersionComesFromTheInstalledCoreAssembly()
     {
         using var handler = new FeedHandler(InlineFeed(Entry("17.99.0")));
-        var service = new GodModeReleaseService(new ClientFactory(handler), NullLogger<GodModeReleaseService>.Instance);
+        var service = new GodModeReleaseService(new ClientFactory(handler), NullLogger<GodModeReleaseService>.Instance,
+            new ConfigMonitor(new GodModeConfig()));
         var expected = typeof(UtilitiesService).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         Assert.AreEqual(expected, GodModeVersionHelper.GetVersion());
         Assert.AreEqual(expected, (await service.GetStatusAsync()).CurrentVersion);
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow("not-a-version")]
+    [DataRow("17.3.0.1")]
+    public async Task UnparseableRunningVersionIsUnavailableWithoutRequests(string current)
+    {
+        using var handler = new FeedHandler(InlineFeed(Entry("17.7.1")));
+        var umbraco = Create(handler, current: current);
+        var godMode = new GodModeReleaseService(new ClientFactory(handler), current,
+            NullLogger<GodModeReleaseService>.Instance, new MutableClock());
+        Assert.AreEqual("unavailable", (await umbraco.GetStatusAsync()).Status);
+        Assert.AreEqual("unavailable", (await godMode.GetStatusAsync()).Status);
+        Assert.AreEqual(0, handler.Calls);
+    }
+
+    [TestMethod]
+    public async Task UnexpectedExceptionIsCachedAndBackedOff()
+    {
+        var clock = new MutableClock();
+        using var handler = new FeedHandler(InlineFeed(Entry("17.7.1"))) { Throw = new ArgumentException("boom") };
+        var service = Create(handler, clock);
+        var result = await service.GetStatusAsync();
+        Assert.AreEqual("unavailable", result.Status);
+        await service.GetStatusAsync();
+        Assert.AreEqual(1, handler.Calls);
+        clock.Advance(TimeSpan.FromMinutes(10));
+        handler.Throw = null;
+        Assert.AreEqual("behind", (await service.GetStatusAsync()).Status);
+    }
+
+    [TestMethod]
+    public async Task DisabledCheckMakesNoRequestsAndCanBeReenabled()
+    {
+        var config = new GodModeConfig { EnableReleaseCheck = false };
+        var monitor = new ConfigMonitor(config);
+        using var handler = new FeedHandler(InlineFeed(Entry("17.7.1")));
+        var umbraco = new UmbracoReleaseService(new ClientFactory(handler), "17.4.2", NullLogger<UmbracoReleaseService>.Instance,
+            new MutableClock(), isEnabled: () => monitor.CurrentValue.EnableReleaseCheck);
+        var godMode = new GodModeReleaseService(new ClientFactory(handler), NullLogger<GodModeReleaseService>.Instance, monitor);
+        var disabled = await Task.WhenAll(umbraco.GetStatusAsync(), godMode.GetStatusAsync());
+        Assert.IsTrue(disabled.All(status => status.Status == "disabled" && status.LatestVersion is null));
+        Assert.AreEqual(0, handler.Calls);
+        config.EnableReleaseCheck = true;
+        Assert.AreEqual("behind", (await umbraco.GetStatusAsync()).Status);
+        Assert.AreNotEqual(0, handler.Calls);
     }
 
     private static object PageLink(string lower, string upper, string url)
@@ -256,6 +305,13 @@ public sealed class PackageReleaseServiceTests
         public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
+    private sealed class ConfigMonitor(GodModeConfig value) : IOptionsMonitor<GodModeConfig>
+    {
+        public GodModeConfig CurrentValue => value;
+        public GodModeConfig Get(string? name) => value;
+        public IDisposable? OnChange(Action<GodModeConfig, string?> listener) => null;
+    }
+
     private sealed class MutableClock : TimeProvider
     {
         private DateTimeOffset now = new(2026, 10, 10, 12, 0, 0, TimeSpan.Zero);
@@ -272,12 +328,14 @@ public sealed class PackageReleaseServiceTests
         public string Page { get; set; } = "{}";
         public bool Fail { get; set; }
         public bool FailGodMode { get; set; }
+        public Exception? Throw { get; set; }
         public Func<CancellationToken, Task>? BeforeResponse { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref calls);
             if (BeforeResponse is not null) await BeforeResponse(cancellationToken);
+            if (Throw is not null) throw Throw;
             if (Fail || (FailGodMode && request.RequestUri!.AbsolutePath == "/registration/diplo.godmode/index.json"))
                 return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
             var json = request.RequestUri!.AbsolutePath switch
