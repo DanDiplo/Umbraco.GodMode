@@ -74,6 +74,7 @@ UI/UX improvements, including:
 * Check the server time zone and UTC date handling, and switch dates between Local, Server, and UTC display.
 * Surface broken references, configuration drift, and cleanup opportunities with Health & Risk checks.
 * Inspect diagnostics, server details, and configuration values, with optional redaction for sensitive settings.
+* See the latest stable Umbraco and God Mode versions in each running major and how many listed releases behind they are, loaded asynchronously in the Overview.
 * Filter and search Umbraco JSON logs, and inspect database tables, extension manifests, and NuGet packages.
 * Clear Umbraco caches and restart the app where supported.
 * Hide any God Mode feature you don't need with configuration.
@@ -176,6 +177,8 @@ Useful Umbraco.AI docs:
 ## Configuration
 
 God Mode reads its options from the `GodMode` section of `appsettings.json`. Configuration is optional and documented in the project README:
+
+Overview release checks are enabled by default and use server-side HTTPS requests to NuGet. Set `GodMode:EnableReleaseCheck` to `false` before starting servers that must never contact NuGet. Disabling the setting prevents new lookups; an existing lookup can finish within its three-second deadline. Reload an already-open Overview to hide its release status.
 
 https://github.com/DanDiplo/Umbraco.GodMode/tree/v17
 

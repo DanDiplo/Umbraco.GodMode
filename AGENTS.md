@@ -74,7 +74,7 @@ dotnet pack Diplo.GodMode/Diplo.GodMode.csproj -c Release
 dotnet pack Diplo.GodMode.AI/Diplo.GodMode.AI.csproj -c Release
 ```
 
-Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. Inspect the generated packages before publishing: the core package must include `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`, the AI package must include `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`, and the AI package should declare a dependency on `Diplo.GodMode` `17.1.0`.
+Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. Inspect the generated packages before publishing: the core package must include `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`, the AI package must include `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`, and an AI package built from this release should declare a minimum dependency on `Diplo.GodMode` `17.3.0`. Do not upload the rebuilt AI `1.0.0` package if that version has already been published.
 
 The `Diplo.GodMode` and `Diplo.GodMode.AI` projects have MSBuild targets that run their client builds. When each package's `Client/node_modules` folder is missing, the build restores packages with `npm ci`; package builds also run `npm ci` and `npm run build`.
 
@@ -92,7 +92,7 @@ Then open the Umbraco backoffice and verify the GodMode package loads from `/App
 - Built manifest: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/umbraco-package.json`.
 - Vite output directory: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/`.
 - NuGet package should contain `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
-- Core release version for this release: `17.1.0`.
+- Core release version for this release: `17.3.0`.
 - AI source manifest: `Diplo.GodMode.AI/Client/public/umbraco-package.json`.
 - AI built manifest: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/umbraco-package.json`.
 - AI Vite output directory: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/`.

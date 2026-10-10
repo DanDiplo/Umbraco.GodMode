@@ -20,6 +20,9 @@ If Umbraco is an Allen key then God Mode is the swiss army knife that helps you 
 
 ## Features
 
+For the full 17.3.0 release notes, see the [package README](Diplo.GodMode/NuGet.md#1730).
+Package validation and manual upload details are recorded in the [17.3.0 release checklist](docs/release-17.3.0.md).
+
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
 - Find where Element Types are used across Block List, Block Grid, Rich Text, and single-block editors, including nested usage.
@@ -310,7 +313,7 @@ Before publishing, inspect the generated `.nupkg` files and confirm:
 
 - `Diplo.GodMode` contains `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
 - `Diplo.GodMode.AI` contains `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
-- `Diplo.GodMode.AI` declares a dependency on `Diplo.GodMode` `17.1.0`.
+- Published AI `1.0.0` requires `Diplo.GodMode` `17.1.0` or later and can be used with core `17.3.0`. A local AI rebuild from this release declares a minimum dependency of `17.3.0`, matching its project reference. AI `1.0.0` is already published; a future AI release needs a new version before uploading.
 
 Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. The Umbraco Marketplace reads package details from NuGet and augments them with the root `umbraco-marketplace.json` file for God Mode and `umbraco-marketplace-diplo.godmode.ai.json` for the AI add-on.
 

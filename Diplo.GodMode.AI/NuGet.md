@@ -10,10 +10,12 @@ This package targets:
 
 * **.NET 10** (`net10.0`)
 * **Umbraco 17**
-* `Diplo.GodMode` `17.1.0`
+* Published AI `1.0.0`: `Diplo.GodMode` `17.1.0` or later (including `17.3.0`)
 * `Umbraco.AI`
 
 The package supports Umbraco `17.x`. Because `Umbraco.AI` currently depends on Umbraco CMS `17.3.0` or later, God Mode AI declares its Umbraco CMS dependencies as `[17.3.0,18.0.0)`.
+
+A local AI rebuild from the core `17.3.0` release declares a minimum God Mode dependency of `17.3.0` through its project reference. AI `1.0.0` is already published; a future AI release needs a new version before uploading.
 
 ## Umbraco.AI Setup
 

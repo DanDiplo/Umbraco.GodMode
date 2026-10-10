@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Adds a Scheduled Publishing view, server time zone and UTC date handling with a Local / Server / UTC display switch, and new Health &amp; Risk rules for time zone, date migration, scheduling and background jobs. Also fixes FeaturesToHide so hidden features are removed from the God Mode tree.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds asynchronous, cached Overview release checks for Umbraco and God Mode, with an EnableReleaseCheck opt-out. Adds Scheduled Publishing, server time zone and UTC diagnostics, a Local / Server / UTC date display switch, and Health &amp; Risk rules for date migration, scheduling and background jobs. Uses the real process start time for uptime and fixes FeaturesToHide in the God Mode tree. See the package README for full 17.3.0 release notes.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->
