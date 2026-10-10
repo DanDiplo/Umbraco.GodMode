@@ -146,6 +146,7 @@ God Mode reads its options from the `GodMode` section of `appsettings.json`. All
 | Media Browser | `mediaBrowser` |
 | Member Browser | `memberBrowser` |
 | Tag Browser | `tagBrowser` |
+| Scheduled Publishing | `scheduleBrowser` |
 | Reference Graph | `referenceGraph` |
 | Usage Browser | `usageBrowser` |
 | Element Type Usage | `elementTypeUsage` |
