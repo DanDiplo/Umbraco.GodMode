@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.3.0</VersionPrefix>
+    <VersionPrefix>17.4.0</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Adds asynchronous, cached Overview release checks for Umbraco and God Mode, with an EnableReleaseCheck opt-out. Adds Scheduled Publishing, server time zone and UTC diagnostics, a Local / Server / UTC date display switch, and Health &amp; Risk rules for date migration, scheduling and background jobs. Uses the real process start time for uptime and fixes FeaturesToHide in the God Mode tree. See the package README for full 17.3.0 release notes.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds Dictionary Browser for comparing language values and finding missing translations, with native side-panel editing. Adds indexed Property Search with word, phrase and prefix matching, property/type/language filters, highlighted snippets, side-panel editing and published-page View links. Adds About God Mode with author, contribution and related package links. See the package README for full 17.4.0 release notes.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->

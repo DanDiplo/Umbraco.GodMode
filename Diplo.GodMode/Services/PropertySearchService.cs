@@ -3,14 +3,18 @@ using Examine;
 using Examine.Search;
 using Lucene.Net.QueryParsers.Classic;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
 
 namespace Diplo.GodMode.Services;
 
 public class PropertySearchService(IExamineManager examineManager, IContentTypeService contentTypes,
-    Interfaces.IUmbracoDatabaseService database, IOptions<GodModeConfig> config)
+    Interfaces.IUmbracoDatabaseService database, IOptions<GodModeConfig> config,
+    IPublishedContentQuery publishedContent, IPublishedUrlProvider urlProvider, ILogger<PropertySearchService> logger)
 {
     public PropertySearchOptions GetOptions()
     {
@@ -44,12 +48,48 @@ public class PropertySearchService(IExamineManager examineManager, IContentTypeS
                 .ToArray();
             var nameField = string.IsNullOrEmpty(culture) ? "nodeName" : "nodeName_" + culture.ToLowerInvariant();
             var state = hit.Values.GetValueOrDefault("__Published");
-            return new PropertySearchItem(hit.Id, hit.Values.GetValueOrDefault("__Key") ?? "",
+            var key = hit.Values.GetValueOrDefault("__Key") ?? "";
+            return new PropertySearchItem(hit.Id, key,
                 hit.Values.GetValueOrDefault(nameField) ?? hit.Values.GetValueOrDefault("nodeName") ?? hit.Id,
                 hit.Values.GetValueOrDefault("__NodeTypeAlias") ?? "", state is null ? null : state == "y",
-                matches.Take(6).ToArray(), matches.Length);
+                matches.Take(6).ToArray(), matches.Length, ResolvePublishedUrl(key, culture, matches));
         }).ToArray();
         return new(hits.TotalItemCount, page, (int)Math.Ceiling((double)hits.TotalItemCount / pageSize), items);
+    }
+
+    private string? ResolvePublishedUrl(string key, string? culture, PropertySearchMatch[] matches)
+    {
+        if (!Guid.TryParse(key, out var contentKey)) return null;
+        try
+        {
+            // Resolve from the published snapshot, not from the index's potentially
+            // stale publication flag or a guessed concatenation of URL segments.
+            var content = publishedContent.Content(contentKey);
+            if (content is null) return null;
+            string? viewCulture = null;
+            if (content.ContentType.VariesByCulture())
+            {
+                if (!string.IsNullOrEmpty(culture))
+                {
+                    if (!content.Cultures.ContainsKey(culture)) return null;
+                    viewCulture = culture;
+                }
+                else
+                {
+                    viewCulture = matches.Select(x => x.Culture).FirstOrDefault(c => c is not null && content.Cultures.ContainsKey(c))
+                        ?? content.Cultures.Keys.FirstOrDefault();
+                    if (viewCulture is null) return null;
+                }
+            }
+            var url = content.Url(urlProvider, culture: viewCulture, mode: UrlMode.Absolute);
+            return Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == "http" || uri.Scheme == "https") ? url : null;
+        }
+        catch (Exception exception)
+        {
+            // A custom URL provider must not prevent otherwise valid search results.
+            logger.LogDebug(exception, "Could not resolve a published URL for Property Search result {ContentKey}", key);
+            return null;
+        }
     }
 
     private PropertySearchField[] GetFields()

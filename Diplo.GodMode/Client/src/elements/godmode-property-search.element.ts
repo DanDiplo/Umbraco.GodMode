@@ -8,7 +8,7 @@ import "../shared";
 interface Choice { alias: string; name: string; }
 interface SearchOptions { available: boolean; message: string | null; properties: Choice[]; documentTypes: Choice[]; }
 interface Match { propertyAlias: string; propertyName: string; culture: string | null; snippet: string; }
-interface SearchItem { id: string; key: string; name: string; documentType: string; published: boolean | null; matches: Match[]; matchingFieldCount: number; }
+interface SearchItem { id: string; key: string; name: string; documentType: string; published: boolean | null; publishedUrl: string | null; matches: Match[]; matchingFieldCount: number; }
 interface SearchResults { totalItems: number; currentPage: number; totalPages: number; items: SearchItem[]; }
 interface SearchQuery { text: string; mode: string; property: string; documentType: string; culture: string; }
 
@@ -44,14 +44,30 @@ export class GodModePropertySearchElement extends UmbElementMixin(LitElement) {
 
     private _submit(e?: Event) {
         e?.preventDefault();
+        if (!this._text.trim()) { this._clearResults(); return; }
         const words = this._text.trim().split(/\s+/).filter(Boolean);
         if (this._text.trim().length < 2 || this._text.length > 200 || words.length > 8 || (this._mode === "prefix" && words.length !== 1)) {
+            this._clearResults(false);
             this._error = "Enter 2–200 characters (up to eight words). Word prefix searches accept one word.";
             return;
         }
         this._active = { text: this._text.trim(), mode: this._mode, property: this._property, documentType: this._documentType, culture: this._culture };
         this._result = undefined;
         void this._search(1);
+    }
+
+    private _clearResults(clearText = true) {
+        this._request++;
+        if (clearText) this._text = "";
+        this._active = undefined;
+        this._result = undefined;
+        this._loading = false;
+        this._error = "";
+    }
+
+    private _textChanged(e: Event) {
+        this._text = (e.target as HTMLInputElement).value;
+        if (!this._text.trim()) this._clearResults();
     }
 
     private async _search(page: number, keepResults = false) {
@@ -89,11 +105,12 @@ export class GodModePropertySearchElement extends UmbElementMixin(LitElement) {
                             <div class="search-input">
                                 <label for="search">Search property values</label>
                                 <uui-input id="search" label="Search property values" placeholder="e.g. embedded rich text" maxlength="200" autocomplete="off"
-                                    .value=${this._text} @input=${(e: Event) => this._text = (e.target as HTMLInputElement).value}
+                                    .value=${this._text} @input=${this._textChanged}
                                     @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter") this._submit(e); }}></uui-input>
                             </div>
                             <uui-button type="submit" look="primary" color="positive" label="Search properties"
                                 ?disabled=${this._initialising || !this._options?.available || this._loading}>Search</uui-button>
+                            ${this._text || this._result || this._error ? html`<uui-button type="button" look="secondary" label="Clear search" @click=${() => this._clearResults()}>Clear</uui-button>` : ""}
                         </div>
                         <div class="filters">
                             <div><label for="mode">Match</label><select id="mode" .value=${this._mode} @change=${(e: Event) => this._mode = (e.target as HTMLSelectElement).value}>
@@ -134,7 +151,8 @@ export class GodModePropertySearchElement extends UmbElementMixin(LitElement) {
                         <div><h2><a href=${editUrl("content", item.key)} @click=${(e: Event) => this._open(item, e)}>${item.name}</a></h2>
                             <div class="meta"><code>${item.documentType}</code><span>ID ${item.id}</span><span>${item.published === null ? "Publication state unknown" : item.published ? "Published" : "Unpublished"}</span></div>
                         </div>
-                        <uui-button look="secondary" label=${`Edit ${item.name}`} @click=${(e: Event) => this._open(item, e)}>Edit</uui-button>
+                        ${item.publishedUrl ? html`<uui-button look="secondary" href=${item.publishedUrl} target="_blank" rel="noopener noreferrer"
+                            label=${`View published page: ${item.name}`} title="Open published page in a new tab">View <span aria-hidden="true">↗</span></uui-button>` : ""}
                     </div>
                     ${item.matches.map(match => html`<div class="match">
                         <div class="match-heading"><strong>${match.propertyName}</strong><code>${match.propertyAlias}</code><uui-tag>${match.culture ?? "Shared"}</uui-tag></div>

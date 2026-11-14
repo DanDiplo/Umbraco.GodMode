@@ -16,12 +16,11 @@ This package adds a **God Mode** tree to the **Settings** section of **Umbraco 1
 
 It gives developers fast access to site structure, diagnostics, configuration, content references, services, templates, partials, media, members, tags, and other implementation details that are useful while building or supporting an Umbraco 17 site.
 
-If Umbraco is an Allen key then God Mode is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development.
-
+If Umbraco is an Allen key then God Mode is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development. [Read more](https://www.diplo.co.uk/articles/god-mode-for-umbraco-17/).
 ## Features
 
-For the full 17.3.0 release notes, see the [package README](Diplo.GodMode/NuGet.md#1730).
-Package validation and manual upload details are recorded in the [17.3.0 release checklist](docs/release-17.3.0.md).
+For details of the new 17.4.0 features, see the [package release notes](Diplo.GodMode/NuGet.md#1740).
+Package validation and manual upload details are recorded in the [17.4.0 release checklist](docs/release-17.4.0.md).
 
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
@@ -43,22 +42,6 @@ Package validation and manual upload details are recorded in the [17.3.0 release
 - Inspect and clear Umbraco caches and restart the app where supported.
 - Hide any God Mode feature you don't need with configuration.
 - Optionally add contextual AI explanations with the separate `Diplo.GodMode.AI` companion package.
-
-## Property Search
-
-Open **Settings → God Mode → Content & schema → Property Search** to search content property values in Umbraco's existing `InternalIndex`. Choose all words within one property, a phrase, or a single word prefix. Narrow results by property alias, document type or language; language filters also include shared properties. Property aliases listed in `GodMode:AliasesToIgnore` are excluded.
-
-Results show indexed text snippets with highlighted search terms. Open a result in the native content side editor; closing it refreshes the results while keeping the query and filters. Recycle-bin content and media are excluded, and results are paged by the index.
-
-This is an indexed text search, not an exhaustive scan of saved values. Index updates can lag behind edits, some editors omit values, and flattened block text can omit hyperlink destinations and nested structure. Snippets show the containing property rather than the exact block location. Custom index analyzers may match content without producing a display snippet. The feature can be hidden with `GodMode:FeaturesToHide` using `propertySearch` or `Property Search`.
-
-## Dictionary Browser
-
-Open **Settings → God Mode → Content & schema → Dictionary Browser** to compare dictionary values across languages. Search matches keys and translated values; selecting a language limits value searches and translation status checks to that language. With **All languages** selected, an item is missing translations if any configured language has a blank or absent value.
-
-Empty parent items (items with children but no values in any language) may be used for grouping. They are hidden by default and can be included using the checkbox. A **Complete** status means the selected languages have non-empty values; it does not assess translation quality.
-
-The browser is read-only. Select a key or parent link to open Umbraco's dictionary editor in a side panel, where normal language permissions apply. Closing the editor refreshes the results while preserving the current filters and page. Results are paged on the server, and translations are loaded only for the current page. The feature can be hidden with `GodMode:FeaturesToHide` using `dictionaryBrowser` or `Dictionary Browser`.
 
 ## Screenshots
 
@@ -331,7 +314,7 @@ Before publishing, inspect the generated `.nupkg` files and confirm:
 
 - `Diplo.GodMode` contains `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
 - `Diplo.GodMode.AI` contains `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
-- Published AI `1.0.0` requires `Diplo.GodMode` `17.1.0` or later and can be used with core `17.3.0`. A local AI rebuild from this release declares a minimum dependency of `17.3.0`, matching its project reference. AI `1.0.0` is already published; a future AI release needs a new version before uploading.
+- Published AI `1.0.0` requires `Diplo.GodMode` `17.1.0` or later and can be used with core `17.4.0`. A local AI rebuild from this release declares a minimum dependency of `17.4.0`, matching its project reference. AI `1.0.0` is already published; a future AI release needs a new version before uploading.
 
 Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. The Umbraco Marketplace reads package details from NuGet and augments them with the root `umbraco-marketplace.json` file for God Mode and `umbraco-marketplace-diplo.godmode.ai.json` for the AI add-on.
 

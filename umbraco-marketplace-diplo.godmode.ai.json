@@ -27,6 +27,7 @@
     "Diplo.AuditLogViewer",
     "Diplo.MediaDownloader",
     "Diplo.Translator",
+    "Diplo.Translator.Omni",
     "Diplo.DictionaryEditor",
     "DiploTraceLogViewer"
   ],

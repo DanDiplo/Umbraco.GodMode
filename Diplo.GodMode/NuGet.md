@@ -16,6 +16,25 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.4.0
+
+* Adds **About God Mode**, with author information, contribution and issue links, and related Umbraco packages.
+
+#### Property Search
+
+* Adds **Property Search** under **Content & schema**, using Umbraco's existing `InternalIndex` to find text in content properties, including supported blocks and rich text. Choose all words within one property, a phrase, or a single word prefix, and filter by property, document type or language. Language filters include shared properties; `AliasesToIgnore` is respected.
+* Shows highlighted indexed snippets and paged results, excluding media and recycle-bin content. Select a result title to edit in a side panel without losing the search context. **View** opens the published page in a new tab when its URL can be resolved, using the selected language where applicable or preferring a matching published language when all languages are selected.
+* Emptying the input or selecting **Clear** removes the results and ignores pending search responses while preserving filters.
+* Searches indexed text rather than every saved value. Index updates can lag behind edits, and some editor values and hyperlink destinations may be omitted. Block snippets identify the containing property rather than the exact nested block; custom analyzers may match an item without producing a display snippet.
+
+#### Dictionary Browser
+
+* Adds **Dictionary Browser** under **Content & schema**, with searches across keys and translated values, side-by-side language columns, and filters for missing or complete translations. Selecting a language scopes value searches and status checks to that language; **All languages** flags an item if any configured language has a blank or absent value.
+* Hides empty parent items by default because they may be used for grouping, with an option to include them. **Complete** indicates non-empty values in the selected languages, rather than a translation-quality assessment.
+* Opens keys and parent links in Umbraco's dictionary side editor, where normal language permissions apply. Closing the editor refreshes results while preserving filters, page and scroll position. Results are paged on the server, with translations fetched only for the current page.
+
+Both features can be hidden through `GodMode:FeaturesToHide` using `propertySearch` or `dictionaryBrowser`, or their displayed names.
+
 ### 17.3.0
 * Adds asynchronous Overview release checks for Umbraco and God Mode, showing the latest stable versions in each running major and the number of newer listed releases, with shared helpers, independent caches and graceful handling of unavailable NuGet access. Set `GodMode:EnableReleaseCheck` to `false` to turn off the outbound check.
 * Adds a Scheduled Publishing view listing pending publish and unpublish schedules, overdue items, publishing suspension, Umbraco 17 background jobs and registered servers (thanks @suedeapple).
@@ -69,6 +88,8 @@ UI/UX improvements, including:
 * Trace relationships between types, templates, data types, and block elements with the Reference Graph.
 * Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
 * View content, media, and members in searchable/filterable tables.
+* Find indexed text in content properties, including supported blocks and rich text, with Property Search.
+* Search dictionary keys and translations, compare language values and find missing translations with the Dictionary Browser.
 * List tags and the content associated with each tag, including orphaned tags.
 * See pending scheduled publishing, overdue schedules, and when the scheduled publishing job last ran.
 * Check the server time zone and UTC date handling, and switch dates between Local, Server, and UTC display.
@@ -188,3 +209,4 @@ https://github.com/DanDiplo/Umbraco.GodMode/tree/v17
 * Umbraco Marketplace: https://marketplace.umbraco.com/package/diplo.godmode
 * NuGet: https://www.nuget.org/packages/Diplo.GodMode
 * God Mode AI NuGet: https://www.nuget.org/packages/Diplo.GodMode.AI
+* Author: https://www.diplo.co.uk
