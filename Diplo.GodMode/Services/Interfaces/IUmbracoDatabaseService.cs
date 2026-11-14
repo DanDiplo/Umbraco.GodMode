@@ -42,6 +42,9 @@ namespace Diplo.GodMode.Services.Interfaces
 
         IEnumerable<DictionaryTranslationStatus> GetDictionaryTranslationStatus();
 
+        Page<DictionaryBrowserItem> GetDictionaryItems(long page, int pageSize, string? search = null,
+            int? languageId = null, string status = "all", bool includeGroups = false);
+
         IEnumerable<MemberGroupModel> GetMemberGroups();
 
         IEnumerable<MemberGroupModel> GetMemberTypes();

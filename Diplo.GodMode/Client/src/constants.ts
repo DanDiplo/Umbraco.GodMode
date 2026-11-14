@@ -25,6 +25,7 @@ export const GODMODE_FOLDER_WORKSPACE_ALIAS = "Diplo.Workspace.GodMode.Folder";
 // Editor URLs in the v17 backoffice, used by browsers when offering a "edit" link.
 // These match what the v17 router uses for built-in entities.
 export const EDIT_URLS = {
+    dictionary: "section/translation/workspace/dictionary/edit/",
     template: "section/settings/workspace/template/edit/",
     dataType: "section/settings/workspace/data-type/edit/",
     documentType: "section/settings/workspace/document-type/edit/",

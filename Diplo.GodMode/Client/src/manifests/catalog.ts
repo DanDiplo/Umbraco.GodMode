@@ -19,6 +19,14 @@ import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
  */
 export const browsers: BrowserDef[] = [
     {
+        id: "dictionaryBrowser",
+        label: "Dictionary Browser",
+        icon: "icon-book",
+        description: "Search dictionary keys and translations, compare languages and find missing values",
+        weight: 825,
+        element: () => import("../elements/godmode-dictionary-browser.element")
+    },
+    {
         id: "intro",
         label: "Welcome",
         icon: "icon-science",
@@ -360,6 +368,14 @@ export const browsers: BrowserDef[] = [
         description: "Inspect and clear caches, restart application pool and warm-up your little templates",
         weight: 590,
         element: () => import("../elements/godmode-utility-browser.element")
+    },
+    {
+        id: "about",
+        label: "About God Mode",
+        icon: "icon-user",
+        description: "Meet the developer, contribute and discover more Umbraco packages",
+        weight: 0,
+        element: () => import("../elements/godmode-about.element")
     }
 ];
 

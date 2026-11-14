@@ -29,6 +29,7 @@ Package validation and manual upload details are recorded in the [17.3.0 release
 - Trace relationships between types, templates, data types, and block elements with the Reference Graph, and see how many instances of each content type exist.
 - Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
 - View content, members and media in searchable/filterable tables.
+- Search dictionary keys and translations, compare language values and find missing translations with the Dictionary Browser.
 - See pending scheduled publishing, overdue schedules, publishing suspension, and when the scheduled publishing job last ran.
 - Check the server time zone, UTC date handling and Umbraco 17 system-date migration settings, and switch dates between Local, Server, and UTC display. See [Server time and scheduling diagnostics](docs/server-time-diagnostics.md).
 - Surface broken references, configuration drift, and cleanup opportunities with Health & Risk checks.
@@ -41,6 +42,14 @@ Package validation and manual upload details are recorded in the [17.3.0 release
 - Inspect and clear Umbraco caches and restart the app where supported.
 - Hide any God Mode feature you don't need with configuration.
 - Optionally add contextual AI explanations with the separate `Diplo.GodMode.AI` companion package.
+
+## Dictionary Browser
+
+Open **Settings → God Mode → Content & schema → Dictionary Browser** to compare dictionary values across languages. Search matches keys and translated values; selecting a language limits value searches and translation status checks to that language. With **All languages** selected, an item is missing translations if any configured language has a blank or absent value.
+
+Empty parent items (items with children but no values in any language) may be used for grouping. They are hidden by default and can be included using the checkbox. A **Complete** status means the selected languages have non-empty values; it does not assess translation quality.
+
+The browser is read-only. Select a key or parent link to open Umbraco's dictionary editor in a side panel, where normal language permissions apply. Closing the editor refreshes the results while preserving the current filters and page. Results are paged on the server, and translations are loaded only for the current page. The feature can be hidden with `GodMode:FeaturesToHide` using `dictionaryBrowser` or `Dictionary Browser`.
 
 ## Screenshots
 

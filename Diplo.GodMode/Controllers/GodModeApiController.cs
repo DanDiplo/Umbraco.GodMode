@@ -188,6 +188,27 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<IEnumerable<Lang>> GetLanguages()
         => Ok(dataBaseService.GetLanguages());
 
+    [HttpGet("dictionary")]
+    [ProducesResponseType<Page<DictionaryBrowserItem>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public ActionResult<Page<DictionaryBrowserItem>> GetDictionaryItems(
+        long page = 1, int pageSize = 25, string? search = null, int? languageId = null,
+        string status = "all", bool includeGroups = false)
+    {
+        if (page < 1 || pageSize is < 1 or > 100 || page > long.MaxValue / pageSize
+            || status is not ("all" or "missing" or "complete") || search?.Length > 500)
+        {
+            return BadRequest("Invalid dictionary paging or filter options.");
+        }
+
+        if (languageId.HasValue && !dataBaseService.GetLanguages().Any(x => x.Id == languageId.Value))
+        {
+            return BadRequest("The selected language does not exist.");
+        }
+
+        return Ok(dataBaseService.GetDictionaryItems(page, pageSize, search, languageId, status, includeGroups));
+    }
+
     [HttpGet("content")]
     [ProducesResponseType<Page<ContentItem>>(StatusCodes.Status200OK)]
     public ActionResult<Page<ContentItem>> GetContentPaged(

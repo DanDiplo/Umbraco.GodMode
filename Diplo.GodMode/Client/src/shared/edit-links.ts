@@ -1,4 +1,5 @@
 import { UMB_EDIT_DATA_TYPE_WORKSPACE_PATH_PATTERN } from "@umbraco-cms/backoffice/data-type";
+import { UMB_DICTIONARY_ENTITY_TYPE, UMB_EDIT_DICTIONARY_WORKSPACE_PATH_PATTERN } from "@umbraco-cms/backoffice/dictionary";
 import { UMB_DOCUMENT_ENTITY_TYPE, UMB_EDIT_DOCUMENT_WORKSPACE_PATH_PATTERN } from "@umbraco-cms/backoffice/document";
 import { UMB_DOCUMENT_TYPE_ENTITY_TYPE, UMB_EDIT_DOCUMENT_TYPE_WORKSPACE_PATH_PATTERN } from "@umbraco-cms/backoffice/document-type";
 import { UMB_EDIT_MEDIA_WORKSPACE_PATH_PATTERN, UMB_MEDIA_ENTITY_TYPE } from "@umbraco-cms/backoffice/media";
@@ -18,7 +19,7 @@ export function editUrl(entityType: EditableEntityType, unique: string | null | 
     return entityType === "media" ? `${url}/invariant` : url;
 }
 
-export function openEditorModal(host: UmbControllerHost, entityType: EditableEntityType, unique: string | null | undefined, e?: Event): void {
+export function openEditorModal(host: UmbControllerHost, entityType: EditableEntityType, unique: string | null | undefined, e?: Event, onClose?: () => void): void {
     if (!unique) return;
 
     void openWithModalFeedback(e, () => {
@@ -32,8 +33,8 @@ export function openEditorModal(host: UmbControllerHost, entityType: EditableEnt
                     preset: {}
                 }
             }))
-            .onSubmit(() => undefined)
-            .onReject(() => undefined)
+            .onSubmit(() => onClose?.())
+            .onReject(() => onClose?.())
             .observeRouteBuilder((routeBuilder) => {
                 const modalPath = routeBuilder({});
                 const workspacePath = editWorkspacePath(entityType, unique);
@@ -46,6 +47,8 @@ export function openEditorModal(host: UmbControllerHost, entityType: EditableEnt
 
 function workspaceEntityType(entityType: EditableEntityType): string {
     switch (entityType) {
+        case "dictionary":
+            return UMB_DICTIONARY_ENTITY_TYPE;
         case "content":
             return UMB_DOCUMENT_ENTITY_TYPE;
         case "documentType":
@@ -64,6 +67,8 @@ function workspaceEntityType(entityType: EditableEntityType): string {
 
 function editWorkspacePath(entityType: EditableEntityType, unique: string): string {
     switch (entityType) {
+        case "dictionary":
+            return UMB_EDIT_DICTIONARY_WORKSPACE_PATH_PATTERN.generateLocal({ unique });
         case "content":
             return UMB_EDIT_DOCUMENT_WORKSPACE_PATH_PATTERN.generateLocal({ unique });
         case "documentType":

@@ -710,6 +710,15 @@ export interface Page<T> {
     items: T[];
 }
 
+export interface DictionaryBrowserItem {
+    id: string;
+    key: string;
+    parentId: string | null;
+    parentName: string | null;
+    isGrouping: boolean;
+    values: Record<string, string | null>;
+}
+
 export interface PackageReleaseStatus {
     currentVersion: string;
     status: "unavailable" | "disabled" | "behind" | "upToDate" | "newerThanFeed" | "prerelease";

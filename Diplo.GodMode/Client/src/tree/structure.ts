@@ -56,6 +56,7 @@ const GROUPS: GroupDef[] = [
             "mediaBrowser",
             "memberBrowser",
             "tagBrowser",
+            "dictionaryBrowser",
             "scheduleBrowser"
         ]
     },
@@ -114,7 +115,8 @@ if (OVERVIEW_NODE) {
 
 const ROOT_NODES: GodModeTreeNode[] = [
     ...(OVERVIEW_NODE ? [OVERVIEW_NODE] : []),
-    ...GROUPS.map((group) => folderNode(group.unique, group.name, null))
+    ...GROUPS.map((group) => folderNode(group.unique, group.name, null)),
+    ...[leafNode("about", null)].filter(isNode)
 ];
 
 const childrenByParent = new Map<string, GodModeTreeNode[]>();
@@ -162,7 +164,7 @@ function visibleNodes(nodes: GodModeTreeNode[], hidden: GodModeHiddenFeatures): 
     return hidden.isEmpty ? nodes : nodes.filter((node) => isVisible(node, hidden));
 }
 
-/** Top-level tree nodes (Overview plus the category folders), minus any configured as hidden. */
+/** Top-level tree nodes (Overview, category folders and About), minus any configured as hidden. */
 export function getRootNodes(hidden: GodModeHiddenFeatures = GodModeHiddenFeatures.none): GodModeTreeNode[] {
     return visibleNodes(ROOT_NODES, hidden);
 }

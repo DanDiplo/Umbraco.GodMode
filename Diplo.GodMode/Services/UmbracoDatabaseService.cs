@@ -16,7 +16,7 @@ namespace Diplo.GodMode.Services
     /// <summary>
     /// Some old-fashioned SQL to get stuff in an efficient way that you can't easily get through APIs
     /// </summary>
-    public class UmbracoDatabaseService : IUmbracoDatabaseService
+    public partial class UmbracoDatabaseService : IUmbracoDatabaseService
     {
         private const string DatabaseTablesCacheKey = "Diplo.GodMode.DatabaseTables";
 
