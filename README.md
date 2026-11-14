@@ -29,6 +29,7 @@ Package validation and manual upload details are recorded in the [17.3.0 release
 - Trace relationships between types, templates, data types, and block elements with the Reference Graph, and see how many instances of each content type exist.
 - Browse templates, partials, controllers, generated models, registered services, Content Finders, and URL providers.
 - View content, members and media in searchable/filterable tables.
+- Find indexed text in content properties, including supported blocks and rich text, with Property Search.
 - Search dictionary keys and translations, compare language values and find missing translations with the Dictionary Browser.
 - See pending scheduled publishing, overdue schedules, publishing suspension, and when the scheduled publishing job last ran.
 - Check the server time zone, UTC date handling and Umbraco 17 system-date migration settings, and switch dates between Local, Server, and UTC display. See [Server time and scheduling diagnostics](docs/server-time-diagnostics.md).
@@ -42,6 +43,14 @@ Package validation and manual upload details are recorded in the [17.3.0 release
 - Inspect and clear Umbraco caches and restart the app where supported.
 - Hide any God Mode feature you don't need with configuration.
 - Optionally add contextual AI explanations with the separate `Diplo.GodMode.AI` companion package.
+
+## Property Search
+
+Open **Settings → God Mode → Content & schema → Property Search** to search content property values in Umbraco's existing `InternalIndex`. Choose all words within one property, a phrase, or a single word prefix. Narrow results by property alias, document type or language; language filters also include shared properties. Property aliases listed in `GodMode:AliasesToIgnore` are excluded.
+
+Results show indexed text snippets with highlighted search terms. Open a result in the native content side editor; closing it refreshes the results while keeping the query and filters. Recycle-bin content and media are excluded, and results are paged by the index.
+
+This is an indexed text search, not an exhaustive scan of saved values. Index updates can lag behind edits, some editors omit values, and flattened block text can omit hyperlink destinations and nested structure. Snippets show the containing property rather than the exact block location. Custom index analyzers may match content without producing a display snippet. The feature can be hidden with `GodMode:FeaturesToHide` using `propertySearch` or `Property Search`.
 
 ## Dictionary Browser
 

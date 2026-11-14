@@ -49,6 +49,7 @@ const GROUPS: GroupDef[] = [
         name: "Content & schema",
         ids: [
             "contentBrowser",
+            "propertySearch",
             "docTypeBrowser",
             "dataTypeBrowser",
             "templateBrowser",

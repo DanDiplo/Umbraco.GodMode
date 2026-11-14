@@ -88,6 +88,34 @@ public class GodModeApiController : ManagementApiControllerBase
 
     // ─── Doc / content / data types ─────────────────────────────────
 
+    [HttpGet("property-search/options")]
+    [ProducesResponseType<PropertySearchOptions>(StatusCodes.Status200OK)]
+    public ActionResult<PropertySearchOptions> GetPropertySearchOptions([FromServices] PropertySearchService search)
+        => Ok(search.GetOptions());
+
+    [HttpGet("property-search")]
+    [ProducesResponseType<PropertySearchResults>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public ActionResult<PropertySearchResults> SearchProperties([FromServices] PropertySearchService search,
+        string text, string mode = "words", string? property = null, string? documentType = null,
+        string? culture = null, int page = 1, int pageSize = 20)
+    {
+        var words = (text ?? "").Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        if (string.IsNullOrWhiteSpace(text) || text.Trim().Length < 2 || text.Length > 200 || words.Length > 8
+            || mode is not ("words" or "phrase" or "prefix") || (mode == "prefix" && words.Length != 1)
+            || page is < 1 or > 10000 || pageSize is < 1 or > 50)
+            return BadRequest("Enter 2–200 characters (up to eight words). Word prefix searches accept one word.");
+        var options = search.GetOptions();
+        if ((!string.IsNullOrEmpty(property) && !options.Properties.Any(x => x.Alias == property))
+            || (!string.IsNullOrEmpty(documentType) && !options.DocumentTypes.Any(x => x.Alias == documentType))
+            || (!string.IsNullOrEmpty(culture) && !dataBaseService.GetLanguages().Any(x => x.Culture.Equals(culture, StringComparison.OrdinalIgnoreCase))))
+            return BadRequest("The selected search filter is not available.");
+        try { return Ok(search.Search(text, mode, property, documentType, culture, page, pageSize)); }
+        catch (ArgumentException e) { return BadRequest(e.Message); }
+        catch (InvalidOperationException e) { return StatusCode(StatusCodes.Status503ServiceUnavailable, e.Message); }
+    }
+
     [HttpGet("content-type-map")]
     [ProducesResponseType<IEnumerable<ContentTypeMap>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<ContentTypeMap>> GetContentTypeMap()

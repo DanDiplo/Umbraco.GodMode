@@ -19,6 +19,14 @@ import { GODMODE_ENTITY_TYPE_PREFIX } from "../constants";
  */
 export const browsers: BrowserDef[] = [
     {
+        id: "propertySearch",
+        label: "Property Search",
+        icon: "icon-search",
+        description: "Search indexed property values, including text from supported blocks and rich text",
+        weight: 899,
+        element: () => import("../elements/godmode-property-search.element")
+    },
+    {
         id: "dictionaryBrowser",
         label: "Dictionary Browser",
         icon: "icon-book",

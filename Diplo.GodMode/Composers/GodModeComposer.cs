@@ -20,6 +20,7 @@ namespace Diplo.GodMode.Composers
 
             builder.Services.AddScoped<IDiagnosticService, DiagnosticService>();
             builder.Services.AddScoped<IUmbracoDatabaseService, UmbracoDatabaseService>();
+            builder.Services.AddScoped<PropertySearchService>();
             builder.Services.AddScoped<IUmbracoDataService, UmbracoDataService>();
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
             builder.Services.AddScoped<IDeliveryApiDiagnosticsService, DeliveryApiDiagnosticsService>();
