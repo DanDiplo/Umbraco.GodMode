@@ -321,3 +321,9 @@ Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. The Umbraco Marketplace reads
 ## Thanks
 
 This code is indebted to a lot of people in the Umbraco community. Particular thanks to Soren Kottal for his help, to Sebastiaan "Cultiv" Janssen for diagnostic code borrowed in earlier versions, Andy Butland for his cleverness and to everyone who maintains Umbraco docs and package examples.
+
+## Other Umbraco Packages by Diplo
+
+- [Diplo Audit Log Viewer](https://www.diplo.co.uk/packages/audit-log-viewer/) - View and search the Content changes and Audit data that is stored in your Umbraco site's umbracoLog and umbracoAudit tables
+- [Diplo Dictionary Translator](https://marketplace.umbraco.com/package/diplo.translator) - Free, open-source AI translation for Umbraco Dictionary items using Umbraco.AI and your chosen provider
+- [Diplo Translator Omni](https://translator.diplo.co.uk/) - AI translation for Umbraco 17 and 18 pages, blocks and Dictionary items. Create drafts for review, track source changes, and skip the copy-and-paste.
