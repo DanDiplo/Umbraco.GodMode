@@ -19,8 +19,8 @@ It gives developers fast access to site structure, diagnostics, configuration, c
 If Umbraco is an Allen key then God Mode is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development. [Read more](https://www.diplo.co.uk/articles/god-mode-for-umbraco-17/).
 ## Features
 
-For details of the new 17.4.0 features, see the [package release notes](Diplo.GodMode/NuGet.md#1740).
-Package validation and manual upload details are recorded in the [17.4.0 release checklist](docs/release-17.4.0.md).
+For details of the latest fixes and features, see the [package release notes](Diplo.GodMode/NuGet.md#1741).
+Package validation and manual upload details are recorded in the [17.4.1 release checklist](docs/release-17.4.1.md).
 
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.

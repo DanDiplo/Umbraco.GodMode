@@ -16,6 +16,12 @@ This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for
 
 ## Release Notes
 
+### 17.4.1
+
+* **Search across larger sites:** fixes Property Search failing when searching all properties on sites with many properties or languages. Searches no longer hit God Mode's 256-field restriction, and field queries are grouped to stay within Lucene's per-query clause limit.
+* **Clearer search errors:** shows actionable server validation messages instead of replacing every failure with a generic InternalIndex warning.
+* **Find the optional AI extension:** adds a [Diplo God Mode AI Marketplace link](https://marketplace.umbraco.com/package/diplo.godmode.ai) to About God Mode, with a description of its contextual AI explanations.
+
 ### 17.4.0
 
 * Adds **About God Mode**, with author information, contribution and issue links, and related Umbraco packages.

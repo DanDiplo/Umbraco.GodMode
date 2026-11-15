@@ -45,6 +45,26 @@ public sealed class PropertySearchTests
         => Assert.AreEqual(0, Count("missing OR *:*", "words"));
 
     [TestMethod]
+    [DataRow("embedded", "words", 2)]
+    [DataRow("embedded rich text", "phrase", 1)]
+    [DataRow("embed", "prefix", 2)]
+    [DataRow("embedded separate", "words", 0)]
+    [DataRow("hello embedded rich text missing other words here", "words", 0)]
+    public void Search_LargeMultilingualSchemaPreservesMatches(string text, string mode, int expected)
+    {
+        var fields = Enumerable.Range(0, 1500).Select(i => "property" + i + "_en-us")
+            .Append("bodyText_en-us").Append("title").ToArray();
+        Assert.AreEqual(expected, Count(text, mode, fields: fields));
+    }
+
+    [TestMethod]
+    public void Search_LargeSchemaStillAppliesDocumentTypeFilter()
+    {
+        var fields = Enumerable.Range(0, 1500).Select(i => "property" + i).Append("bodyText_en-us").ToArray();
+        Assert.AreEqual(1, Count("embedded", "words", "article", fields));
+    }
+
+    [TestMethod]
     public void Snippet_FindsTextNearEndWithoutReturningEntireProperty()
     {
         var value = new string('x', 1500) + " embedded value " + new string('z', 1500);
@@ -54,7 +74,7 @@ public sealed class PropertySearchTests
         Assert.IsTrue(snippet.StartsWith('…') && snippet.EndsWith('…'));
     }
 
-    private static int Count(string text, string mode, string? documentType = null)
+    private static int Count(string text, string mode, string? documentType = null, string[]? fields = null)
     {
         using var directory = new RAMDirectory();
         using var analyzer = new CultureInvariantWhitespaceAnalyzer();
@@ -79,7 +99,7 @@ public sealed class PropertySearchTests
         }
         using var reader = DirectoryReader.Open(directory);
         var query = new QueryParser(LuceneVersion.LUCENE_48, "bodyText_en-us", analyzer)
-            .Parse(PropertySearchService.BuildQuery(text, mode, ["bodyText_en-us", "title"], documentType));
+            .Parse(PropertySearchService.BuildQuery(text, mode, fields ?? ["bodyText_en-us", "title"], documentType));
         return new IndexSearcher(reader).Search(query, 10).TotalHits;
     }
 }

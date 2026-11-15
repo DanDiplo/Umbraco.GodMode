@@ -4,6 +4,11 @@ import "../shared/godmode-page.element";
 
 const packages = [
     {
+        name: "Diplo God Mode AI",
+        url: "https://marketplace.umbraco.com/package/diplo.godmode.ai",
+        description: "An optional AI extension for God Mode that adds contextual explanations directly to its existing views."
+    },
+    {
         name: "Diplo Translator Omni",
         url: "https://translator.diplo.co.uk/",
         description: "Translate pages, blocks and dictionary items directly inside the Umbraco backoffice using AI, with tools to keep translations up to date."

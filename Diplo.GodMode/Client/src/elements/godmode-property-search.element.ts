@@ -78,8 +78,13 @@ export class GodModePropertySearchElement extends UmbElementMixin(LitElement) {
         try {
             const result = await godmodeGet<SearchResults>("property-search", { ...this._active, page, pageSize: 20 });
             if (request === this._request) this._result = result;
-        } catch {
-            if (request === this._request) this._error = "The search could not complete. Try narrowing the filters, or check InternalIndex in Examine Management.";
+        } catch (error: unknown) {
+            if (request === this._request) {
+                const detail = typeof error === "string" ? error
+                    : error && typeof error === "object" && "detail" in error ? error.detail : undefined;
+                this._error = typeof detail === "string" && detail.trim() ? detail
+                    : "The search could not complete. Try again, or check the site logs for details.";
+            }
         } finally { if (request === this._request) this._loading = false; }
     }
 

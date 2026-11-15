@@ -36,7 +36,6 @@ public class PropertySearchService(IExamineManager examineManager, IContentTypeS
         var fields = GetFields().Where(x => (string.IsNullOrEmpty(property) || x.Alias == property)
             && (string.IsNullOrEmpty(culture) || x.Culture is null || x.Culture.Equals(culture, StringComparison.OrdinalIgnoreCase))).ToArray();
         if (fields.Length == 0) return new(0, page, 0, []);
-        if (fields.Length > 256) throw new ArgumentException("Select a property or language to narrow the search.");
 
         var query = BuildQuery(text, mode, fields.Select(x => x.FieldName), documentType);
         var hits = index.Searcher.CreateQuery().NativeQuery(query).Execute(new QueryOptions((page - 1) * pageSize, pageSize));
@@ -117,7 +116,10 @@ public class PropertySearchService(IExamineManager examineManager, IContentTypeS
         });
         // Paths include comma-separated ancestry. Both recycle-bin descendants and
         // their root are excluded before paging, independently of publication flags.
-        var query = "+__IndexType:content -path:\\-1,\\-20* +(" + string.Join(" OR ", clauses) + ")";
+        // Group fields so large multilingual schemas stay below Lucene's per-BooleanQuery
+        // clause limit without changing the process-wide limit or splitting result paging.
+        var groups = clauses.Chunk(128).Select(group => "(" + string.Join(" OR ", group) + ")");
+        var query = "+__IndexType:content -path:\\-1,\\-20* +(" + string.Join(" OR ", groups) + ")";
         if (!string.IsNullOrEmpty(documentType)) query += " +__NodeTypeAlias:\"" + QueryParserBase.Escape(documentType) + "\"";
         return query;
     }

@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.4.0</VersionPrefix>
+    <VersionPrefix>17.4.1</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Adds Dictionary Browser for comparing language values and finding missing translations, with native side-panel editing. Adds indexed Property Search with word, phrase and prefix matching, property/type/language filters, highlighted snippets, side-panel editing and published-page View links. Adds About God Mode with author, contribution and related package links. See the package README for full 17.4.0 release notes.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixes Property Search failing on sites with many properties or languages when searching all properties. Improves search error messages to show actionable server details. Adds a Marketplace link to the optional God Mode AI extension on the About page. See the package README for full 17.4.1 release notes.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->
