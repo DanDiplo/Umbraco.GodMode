@@ -28,6 +28,7 @@ namespace Diplo.GodMode.Composers
             builder.Services.AddScoped<IGodModeSnapshotService, GodModeSnapshotService>();
             builder.Services.AddScoped<IGodModeLogService, GodModeLogService>();
             builder.Services.AddScoped<IServerTimeService, ServerTimeService>();
+            builder.Services.AddScoped<ServerRegistrationCleanupService>();
             builder.Services.AddSingleton<GodModeUtcDatesResultFilter>();
             builder.Services.AddScoped<INuGetPackageInventoryService, NuGetPackageInventoryService>();
             builder.Services

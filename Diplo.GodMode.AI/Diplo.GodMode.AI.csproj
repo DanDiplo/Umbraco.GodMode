@@ -30,10 +30,10 @@
 
   <ItemGroup>
     <PackageReference Include="Umbraco.AI" />
-    <PackageReference Include="Umbraco.Cms.Api.Common" VersionOverride="[17.3.0,18.0.0)" />
-    <PackageReference Include="Umbraco.Cms.Api.Management" VersionOverride="[17.3.0,18.0.0)" />
-    <PackageReference Include="Umbraco.Cms.Core" VersionOverride="[17.3.0,18.0.0)" />
-    <PackageReference Include="Umbraco.Cms.Web.Common" VersionOverride="[17.3.0,18.0.0)" />
+    <PackageReference Include="Umbraco.Cms.Api.Common" VersionOverride="$(GodModeAiCmsVersion)" />
+    <PackageReference Include="Umbraco.Cms.Api.Management" VersionOverride="$(GodModeAiCmsVersion)" />
+    <PackageReference Include="Umbraco.Cms.Core" VersionOverride="$(GodModeAiCmsVersion)" />
+    <PackageReference Include="Umbraco.Cms.Web.Common" VersionOverride="$(GodModeAiCmsVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,15 +69,15 @@
     </None>
   </ItemGroup>
 
-  <Target Name="RestoreClientPackages" BeforeTargets="BuildClient" Condition="!Exists('$(MSBuildProjectDirectory)\Client\node_modules')">
+  <Target Name="RestoreClientPackages" BeforeTargets="BuildClient" Condition="'$(SkipFrontendBuild)' != 'true' And !Exists('$(MSBuildProjectDirectory)\Client\node_modules')">
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)\Client" Command="npm ci" />
   </Target>
 
-  <Target Name="BuildClient" BeforeTargets="PrepareForBuild">
+  <Target Name="BuildClient" BeforeTargets="PrepareForBuild" Condition="'$(SkipFrontendBuild)' != 'true'">
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)\Client" Command="npm run build" />
   </Target>
 
-  <Target Name="BuildClientForPack" BeforeTargets="Pack">
+  <Target Name="BuildClientForPack" BeforeTargets="Pack" Condition="'$(SkipFrontendBuild)' != 'true'">
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)\Client" Command="npm ci" />
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)\Client" Command="npm run build" />
   </Target>

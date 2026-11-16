@@ -44,6 +44,7 @@ export class GodModePropertySearchElement extends UmbElementMixin(LitElement) {
 
     private _submit(e?: Event) {
         e?.preventDefault();
+        if (this._initialising || !this._options?.available || this._loading) return;
         if (!this._text.trim()) { this._clearResults(); return; }
         const words = this._text.trim().split(/\s+/).filter(Boolean);
         if (this._text.trim().length < 2 || this._text.length > 200 || words.length > 8 || (this._mode === "prefix" && words.length !== 1)) {
@@ -111,9 +112,15 @@ export class GodModePropertySearchElement extends UmbElementMixin(LitElement) {
                                 <label for="search">Search property values</label>
                                 <uui-input id="search" label="Search property values" placeholder="e.g. embedded rich text" maxlength="200" autocomplete="off"
                                     .value=${this._text} @input=${this._textChanged}
-                                    @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter") this._submit(e); }}></uui-input>
+                                    @keydown=${(e: KeyboardEvent) => {
+                                        if (e.key !== "Enter") return;
+                                        e.preventDefault();
+                                        if (e.isComposing || e.keyCode === 229) return;
+                                        this._submit();
+                                    }}></uui-input>
                             </div>
                             <uui-button type="submit" look="primary" color="positive" label="Search properties"
+                                @click=${this._submit}
                                 ?disabled=${this._initialising || !this._options?.available || this._loading}>Search</uui-button>
                             ${this._text || this._result || this._error ? html`<uui-button type="button" look="secondary" label="Clear search" @click=${() => this._clearResults()}>Clear</uui-button>` : ""}
                         </div>

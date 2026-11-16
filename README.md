@@ -220,8 +220,7 @@ The optional AI add-on reads its settings from the `Diplo:GodMode:AI` section (n
     "GodMode": {
       "AI": {
         "ChatProfileAlias": "my-profile-alias",
-        "MaxOutputTokens": 1000,
-        "Temperature": 0.2
+        "MaxOutputTokens": 4096
       }
     }
   }
@@ -231,6 +230,15 @@ The optional AI add-on reads its settings from the `Diplo:GodMode:AI` section (n
 `ChatProfileAlias` is the alias of the Umbraco.AI profile used for explanations. When it is not set, Umbraco.AI selects the profile using its own defaults.
 
 `MaxOutputTokens` and `Temperature` override the profile's chat options for God Mode explanations only.
+
+Explanations use structured JSON. A small output budget can truncate the response
+and cause incomplete JSON errors. An allowance of `4096` completed an explanation
+in local testing; adjust it for your model and context rather than treating it as
+a universal minimum. Reasoning models may spend part of that allowance before
+producing visible output. Larger allowances can increase latency and cost.
+Leave `Temperature` unset unless the model supports it. If a cloned or upgraded
+site reports authentication failures, verify the provider connection credentials
+separately from its output settings.
 
 ### Revealing Redacted Diagnostics
 

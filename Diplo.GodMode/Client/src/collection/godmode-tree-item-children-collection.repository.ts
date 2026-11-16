@@ -30,10 +30,10 @@ export class GodModeTreeItemChildrenCollectionRepository extends UmbRepositoryBa
         // a real unique lists that folder's children.
         const isRoot = !entityType || unique === undefined || unique === null || unique === "null";
         if (isRoot) {
-            return this.#treeRepository.requestTreeRootItems({ skip, take });
+            return this.#treeRepository.requestTreeRootItems({ paging: { skip, take } });
         }
 
-        return this.#treeRepository.requestTreeItemsOf({ parent: { entityType, unique }, skip, take });
+        return this.#treeRepository.requestTreeItemsOf({ parent: { entityType, unique }, paging: { skip, take } });
     }
 }
 

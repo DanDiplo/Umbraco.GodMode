@@ -14,6 +14,7 @@ export type GodModeAiExplainSubjectProvider = () => GodModeAiExplainSubject | Pr
 export class GodModeAiExplainHostElement extends LitElement {
     @property({ type: Object, attribute: false }) subject?: GodModeAiExplainSubject;
     @property({ attribute: false }) subjectProvider?: GodModeAiExplainSubjectProvider;
+    @property() label = "Explain";
 
     @state() private _isAiExplainAvailable = isGodModeAiExplainAvailable();
     private _disposeAvailabilityObserver?: () => void;
@@ -37,7 +38,7 @@ export class GodModeAiExplainHostElement extends LitElement {
     override render() {
         if ((!this.subject && !this.subjectProvider) || !this._isAiExplainAvailable) return html``;
 
-        return html`<godmode-ai-explain-button .subject=${this.subject} .subjectProvider=${this.subjectProvider}></godmode-ai-explain-button>`;
+        return html`<godmode-ai-explain-button .subject=${this.subject} .subjectProvider=${this.subjectProvider} .label=${this.label}></godmode-ai-explain-button>`;
     }
 
     static override styles = [

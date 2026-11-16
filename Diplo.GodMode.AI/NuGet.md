@@ -30,6 +30,12 @@ God Mode AI uses your [Umbraco.AI](https://docs.umbraco.com/ai-in-umbraco) confi
 
 ## Configuration
 
+Scheduled Publishing includes an on-demand **Explain scheduling health** action.
+It combines the workspace's schedule, publishing-job and server-registration
+evidence into an overall assessment and suggested checks. It uses bounded samples
+with complete counts, reports unknown evidence, and does not treat a recent job
+timestamp as proof of successful publishing. It cannot execute fixes or cleanup.
+
 Settings are optional and read from the `Diplo:GodMode:AI` section of `appsettings.json`:
 
 ```json
@@ -38,8 +44,7 @@ Settings are optional and read from the `Diplo:GodMode:AI` section of `appsettin
     "GodMode": {
       "AI": {
         "ChatProfileAlias": "my-profile-alias",
-        "MaxOutputTokens": 1000,
-        "Temperature": 0.2
+        "MaxOutputTokens": 4096
       }
     }
   }
@@ -48,6 +53,18 @@ Settings are optional and read from the `Diplo:GodMode:AI` section of `appsettin
 
 * `ChatProfileAlias` is the alias of the Umbraco.AI profile used for explanations. When it is not set, Umbraco.AI selects the profile using its own defaults.
 * `MaxOutputTokens` and `Temperature` override the profile's chat options for God Mode explanations only.
+
+God Mode requests a structured JSON explanation. A small output budget can cut
+off the response and cause an incomplete JSON error. Start with an allowance such
+as `4096`, then adjust for the selected model and the size of the explanation.
+This allowance completed an explanation in local testing; it is not a guaranteed
+minimum for every model. Reasoning models may use part of the allowance before
+producing visible output. Higher limits can increase latency and cost.
+
+Leave `Temperature` unset unless the selected model supports that option. After
+cloning or upgrading a site, an authentication failure may require re-entering
+the provider connection's credentials; changing the token allowance will not fix
+authentication errors.
 
 Useful Umbraco.AI docs:
 

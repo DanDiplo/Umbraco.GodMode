@@ -8,11 +8,26 @@ from the repository root, or select this project as the Visual Studio startup
 project. The backoffice is at https://localhost:44358/umbraco/ (HTTP: 43138).
 Use the existing copied database login; startup does not reset its password.
 
-Initially this is a standalone CMS 18 host with Umbraco.AI, Clean and Contentment.
-GodMode is not installed until separately built v18 packages are available.
+Without a local package selection this is a standalone CMS 18 host with
+Umbraco.AI, Clean and Contentment. GodMode is installed through the local v18
+package build described below.
 Do not install the v17 GodMode artifacts or add v17 project references here.
 
 ## Selecting local GodMode packages
+
+From the repository root, run:
+
+```powershell
+pwsh -NoProfile -File scripts/build-v18-local.ps1
+dotnet run --project Diplo.GodMode.Testsite18/Diplo.GodMode.Testsite18.csproj
+```
+
+The helper stages shared source under ignored `artifacts/v18-build`, builds both
+clients against backoffice 18.2.0, runs the backend tests, packs core and AI, and
+inspects their assets and dependency ranges. It then selects unique local
+versions in `GodModePackage.local.props`. It does not start or stop the host,
+publish packages or change the source projects' v17 dependency defaults.
+Stop a running host before rebuilding it. Repeat the helper after source changes.
 
 `GodModePackage.local.props` is an optional, ignored machine-local selection file.
 It is not a NuGet package and must not contain the copied Omni package version.
@@ -30,7 +45,14 @@ After creating and inspecting v18 packages in `artifacts/v18-feed`, populate it:
 
 Omit `GodModeAiPackageVersion` for core-only testing. Leave packed mode disabled
 until the packages exist. Restore/build and restart after selecting a new version.
-The shared-source v18 build/package helper has not been implemented yet.
+The default experimental package range is `[18.2.0,19.0.0)`; this does not claim
+compatibility with CMS 18.0 or 18.1. The AI build uses Umbraco.AI 18.3.5. These are
+local prerelease packages for acceptance, not a declaration of public v18 support.
+
+The local host allows 4096 AI output tokens to accommodate structured explanations
+with its configured profile. A smaller response budget produced incomplete JSON
+during testing. Re-enter provider connection credentials after cloning if requests
+fail authentication. See `../docs/v18-local-verification.md` for tested scope.
 
 SQLite lives under `umbraco/Data`; database, media, logs, temporary files and local
 settings are ignored by Git. Stop the site before copying its database. Any

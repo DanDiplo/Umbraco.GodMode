@@ -208,6 +208,10 @@ namespace Diplo.GodMode.Services
             try
             {
                 return databaseService.GetRegistredServers()
+                    .OrderByDescending(x => x.IsActive)
+                    .ThenByDescending(x => x.LastNotifiedDate)
+                    .ThenByDescending(x => x.RegisteredDate)
+                    .ThenByDescending(x => x.Id)
                     .Select(x => new RegisteredServerInfo
                     {
                         Id = x.Id,

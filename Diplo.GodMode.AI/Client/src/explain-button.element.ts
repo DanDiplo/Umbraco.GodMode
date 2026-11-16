@@ -9,6 +9,7 @@ type GodModeAiExplainSubjectProvider = () => GodModeAiExplainSubject | Promise<G
 export class GodModeAiExplainButtonElement extends UmbElementMixin(LitElement) {
   @property({ type: Object, attribute: false }) subject?: GodModeAiExplainSubject;
   @property({ attribute: false }) subjectProvider?: GodModeAiExplainSubjectProvider;
+  @property() label = "Explain";
   @state() private _loading = false;
 
   private async _open(e: Event) {
@@ -31,9 +32,9 @@ export class GodModeAiExplainButtonElement extends UmbElementMixin(LitElement) {
     if (!this.subject && !this.subjectProvider) return html``;
 
     return html`
-      <uui-button class="explain-button" compact look="secondary" label="Explain" title="Explain this item with AI" ?disabled=${this._loading} @click=${this._open}>
+      <uui-button class="explain-button" compact look="secondary" label=${this.label} title=${this.label === "Explain" ? "Explain this item with AI" : `${this.label} with AI`} ?disabled=${this._loading} @click=${this._open}>
         <uui-icon name="icon-help-alt"></uui-icon>
-        ${this._loading ? "Loading..." : "Explain"}
+        ${this._loading ? "Loading..." : this.label}
       </uui-button>
     `;
   }

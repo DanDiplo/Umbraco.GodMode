@@ -34,7 +34,8 @@ const getRootItems = async (
     _args: UmbTreeRootItemsRequestArgs
 ): Promise<UmbDataSourceResponse<UmbTargetPagedModel<GodModeTreeNode>>> => {
     const items = getRootNodes(await getGodModeHiddenFeatures());
-    return { data: { total: items.length, items } };
+    // The small static catalogue is returned in full, with no unloaded siblings.
+    return { data: { total: items.length, totalBefore: 0, totalAfter: 0, items } };
 };
 
 const getChildrenOf = async (
@@ -44,7 +45,7 @@ const getChildrenOf = async (
         return getRootItems(args);
     }
     const items = getChildNodes(args.parent.unique, await getGodModeHiddenFeatures());
-    return { data: { total: items.length, items } };
+    return { data: { total: items.length, totalBefore: 0, totalAfter: 0, items } };
 };
 
 const getAncestorsOf = async () => {

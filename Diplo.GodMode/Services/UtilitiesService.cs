@@ -169,7 +169,6 @@ namespace Diplo.GodMode.Services
             var mediaCacheFolder = GetConfiguredContentRootPath(imageCacheSettings.Value.CacheFolder);
             var packageManifest = CreateAssetCheck("Package manifest", "/App_Plugins/DiploGodMode/umbraco-package.json", "App_Plugins/DiploGodMode/umbraco-package.json", Path.Combine(appPluginsRoot, "umbraco-package.json"), env.WebRootFileProvider);
             var entryPoint = CreateAssetCheck("Entry point", "/App_Plugins/DiploGodMode/index.js", "App_Plugins/DiploGodMode/index.js", Path.Combine(appPluginsRoot, "index.js"), env.WebRootFileProvider);
-            var manifestBundle = CreateAssetCheck("Manifest bundle", "/App_Plugins/DiploGodMode/index2.js", "App_Plugins/DiploGodMode/index2.js", Path.Combine(appPluginsRoot, "index2.js"), env.WebRootFileProvider);
             var packageAssetsPath = packageManifest.Path is not "" ? Path.GetDirectoryName(packageManifest.Path) : appPluginsRoot;
             var appDataTempFolder = CreateFolderSize("App_Data temp", Path.Combine(env.ContentRootPath, "App_Data", "TEMP"));
             var umbracoTempFolder = GetConfiguredContentRootPath("~/umbraco/Data/TEMP");
@@ -228,8 +227,7 @@ namespace Diplo.GodMode.Services
                 Assets =
                 [
                     packageManifest,
-                    entryPoint,
-                    manifestBundle
+                    entryPoint
                 ],
                 Folders = folders,
                 Cache = new CacheStatus

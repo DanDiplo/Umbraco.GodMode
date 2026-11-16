@@ -1,16 +1,27 @@
 import { LitElement, css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { godmodeGet } from "../api/client";
+import { godmodeGet, godmodePost } from "../api/client";
+import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
 import "../shared";
 import { parseApiDate } from "../shared/date-time";
 import { isGodModeAiExplainAvailable, observeGodModeAiExplainAvailability } from "../shared/ai-availability";
 import { editUrl, openEditorModal } from "../shared/edit-links";
 import { applySort, toggleSort, type SortState } from "../shared/sort";
+import { buildSchedulingHealthSubject } from "../shared/scheduling-ai-context";
 import type { ContentScheduleItem, ContentScheduleOverview, DistributedJobInfo } from "../shared/types";
 
 type ScheduleFilter = "all" | "Release" | "Expire" | "overdue";
 
 const PUBLISHING_JOB = "ScheduledPublishingJob";
+
+interface ServerCleanupPreview {
+    minimumAgeDays: number;
+    maximumBatchSize: number;
+    cutoffUtc: string;
+    totalEligible: number;
+    servers: Array<{ id: number; identity: string; address: string; registeredDate: string; lastNotifiedDate: string }>;
+}
+interface ServerCleanupResult { deletedIds: number[]; skippedIds: number[]; }
 
 @customElement("godmode-schedule-browser")
 export class GodModeScheduleBrowserElement extends UmbElementMixin(LitElement) {
@@ -22,6 +33,108 @@ export class GodModeScheduleBrowserElement extends UmbElementMixin(LitElement) {
     @state() private _aiAvailable = isGodModeAiExplainAvailable();
     private _disposeAiObserver?: () => void;
     @state() private _error = "";
+    @state() private _isAdmin = false;
+    @state() private _cleanupBusy = false;
+    @state() private _cleanupPreview: ServerCleanupPreview | null = null;
+    @state() private _cleanupStatus = "";
+    @state() private _cleanupError = "";
+    @state() private _selectedServerIds: number[] = [];
+    private _confirmedIds: number[] = [];
+
+    constructor() {
+        super();
+        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (context) => {
+            if (!context) return;
+            this.observe(context.isAdmin, (value) => {
+                this._isAdmin = value === true;
+                if (!this._isAdmin) this._cleanupPreview = null;
+            });
+        });
+    }
+
+    private async _reviewServerCleanup() {
+        this._cleanupBusy = true;
+        this._cleanupError = "";
+        this._cleanupStatus = "";
+        this._cleanupPreview = null;
+        this._selectedServerIds = [];
+        try { this._cleanupPreview = await godmodeGet<ServerCleanupPreview>("server-registrations/cleanup"); }
+        catch { this._cleanupError = "Old server registrations could not be reviewed. No registrations were deleted."; }
+        finally { this._cleanupBusy = false; }
+    }
+
+    private _confirmServerCleanup() {
+        this._confirmedIds = this._selectedServerIds.filter(id => this._cleanupPreview?.servers.some(x => x.id === id));
+        if (!this._confirmedIds.length || !this._isAdmin || this._cleanupBusy) return;
+        this.renderRoot.querySelector<HTMLDialogElement>("#server-cleanup-confirm")?.showModal();
+    }
+
+    private async _serverCleanupClosed(e: Event) {
+        const dialog = e.target as HTMLDialogElement;
+        const confirmed = dialog.returnValue === "delete";
+        dialog.returnValue = "";
+        const ids = this._confirmedIds;
+        this._confirmedIds = [];
+        if (!confirmed || !ids.length || !this._isAdmin || this._cleanupBusy) return;
+        this._cleanupBusy = true;
+        this._cleanupError = "";
+        this._cleanupPreview = null;
+        try {
+            const result = await godmodePost<ServerCleanupResult>("server-registrations/cleanup", undefined, { ids, confirmed: true });
+            this._cleanupStatus = `Deleted ${result.deletedIds.length} old registration(s). ${result.skippedIds.length} skipped because they were missing or no longer eligible.`;
+            await this._load();
+        } catch {
+            this._cleanupError = "Cleanup could not be confirmed. Review the registrations again before retrying.";
+        } finally { this._cleanupBusy = false; }
+    }
+
+    private _renderServerCleanup() {
+        if (!this._isAdmin) return "";
+        const preview = this._cleanupPreview;
+        return html`
+            <section class="server-cleanup" aria-labelledby="server-cleanup-heading">
+                <h4 id="server-cleanup-heading">Clean up old registrations</h4>
+                <p class="muted">Review inactive, non-publisher registrations with no check-in for over 30 days. The current instance and recently registered servers are protected. A returning instance can register again.</p>
+                <uui-button look="secondary" label="Review old server registrations" ?disabled=${this._cleanupBusy}
+                    @click=${() => void this._reviewServerCleanup()}>Review old registrations</uui-button>
+                ${this._cleanupBusy ? html`<p role="status">Checking server registrations…</p>` : ""}
+                ${this._cleanupError ? html`<p role="alert">${this._cleanupError}</p>` : ""}
+                ${this._cleanupStatus ? html`<p role="status">${this._cleanupStatus}</p>` : ""}
+                ${preview ? html`
+                    <p>${preview.totalEligible} eligible registration(s). Showing ${preview.servers.length}; at most ${preview.maximumBatchSize} are removed per cleanup.</p>
+                    ${preview.servers.length ? html`
+                        <table class="cleanup-table">
+                            <caption>Registrations proposed for deletion</caption>
+                            <thead><tr><th scope="col">Select</th><th scope="col">Server</th><th scope="col">Address</th><th scope="col">Last check-in</th><th scope="col">Registered</th></tr></thead>
+                            <tbody>${preview.servers.map(server => html`<tr>
+                                <td><input type="checkbox" aria-label=${`Select server registration ${server.id}`}
+                                    .checked=${this._selectedServerIds.includes(server.id)} ?disabled=${this._cleanupBusy}
+                                    @change=${(e: Event) => this._selectedServerIds = (e.target as HTMLInputElement).checked
+                                        ? [...this._selectedServerIds, server.id] : this._selectedServerIds.filter(id => id !== server.id)}></td>
+                                <th scope="row">${server.identity}</th><td>${server.address}</td>
+                                <td><godmode-date .value=${server.lastNotifiedDate}></godmode-date></td>
+                                <td><godmode-date .value=${server.registeredDate}></godmode-date></td>
+                            </tr>`)}</tbody>
+                        </table>
+                        <p><label><input type="checkbox" ?disabled=${this._cleanupBusy}
+                            .checked=${this._selectedServerIds.length === preview.servers.length}
+                            @change=${(e: Event) => this._selectedServerIds = (e.target as HTMLInputElement).checked ? preview.servers.map(x => x.id) : []}>
+                            Select all reviewed registrations</label></p>
+                        <uui-button look="primary" color="danger" label="Delete selected server registrations"
+                            ?disabled=${this._cleanupBusy || !this._selectedServerIds.length} @click=${() => this._confirmServerCleanup()}>Delete selected registrations (${this._selectedServerIds.length})</uui-button>
+                    ` : html`<p>No old inactive registrations qualify for cleanup.</p>`}
+                ` : ""}
+                <dialog id="server-cleanup-confirm" aria-labelledby="server-cleanup-title" @close=${(e: Event) => void this._serverCleanupClosed(e)}>
+                    <h3 id="server-cleanup-title">Delete ${this._selectedServerIds.length} old server registration(s)?</h3>
+                    <p>This permanently removes the selected registrations. Eligibility will be checked again; any server that is now active, a publisher, current or recent will be skipped.</p>
+                    <form method="dialog" class="cleanup-dialog-actions">
+                        <button value="cancel" autofocus>Cancel</button>
+                        <button value="delete" class="cleanup-delete">Delete registrations</button>
+                    </form>
+                </dialog>
+            </section>
+        `;
+    }
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -105,7 +218,7 @@ export class GodModeScheduleBrowserElement extends UmbElementMixin(LitElement) {
                 <p class="muted">Last-run timestamps show job bookkeeping, including runs that failed or skipped work. A recent timestamp does not establish successful publishing.</p>
                 ${overview.jobsCheckSucceeded ? this._renderJobs(overview.jobs) : html`<p>Job registrations could not be checked.</p>`}
             </uui-box>
-            <uui-box headline="Servers">${this._renderServers(overview)}</uui-box>
+            <uui-box headline="Servers">${this._renderServers(overview)}${this._renderServerCleanup()}</uui-box>
         `;
     }
 
@@ -139,6 +252,10 @@ export class GodModeScheduleBrowserElement extends UmbElementMixin(LitElement) {
                     <small>${job ? html`Last ran <godmode-date .value=${job.lastRun} relative></godmode-date>` : "No ScheduledPublishingJob row found"}</small>
                 </div>
             </div>
+            ${this._aiAvailable ? html`<div class="scheduling-ai-actions">
+                <godmode-ai-explain-host label="Explain scheduling health"
+                    .subjectProvider=${() => buildSchedulingHealthSubject(overview)}></godmode-ai-explain-host>
+            </div>` : ""}
         `;
     }
 
@@ -290,6 +407,16 @@ export class GodModeScheduleBrowserElement extends UmbElementMixin(LitElement) {
     }
 
     static override styles = css`
+        .scheduling-ai-actions { display: flex; justify-content: flex-end; margin-bottom: var(--uui-size-space-4); }
+        .server-cleanup { margin-top: var(--uui-size-space-5); }
+        .cleanup-table { width: 100%; border-collapse: collapse; margin-block: var(--uui-size-space-4); }
+        .cleanup-table th, .cleanup-table td { text-align: start; padding: var(--uui-size-space-3); border-bottom: 1px solid var(--uui-color-border); overflow-wrap: anywhere; }
+        dialog { color: var(--uui-color-text); background: var(--uui-color-surface); border: 1px solid var(--uui-color-border); border-radius: var(--uui-border-radius); max-inline-size: min(38rem, 85vw); }
+        dialog:modal { overscroll-behavior: contain; }
+        dialog::backdrop { background: rgb(0 0 0 / 40%); overflow: hidden; overscroll-behavior: contain; }
+        .cleanup-dialog-actions { display: flex; justify-content: flex-end; gap: var(--uui-size-space-3); }
+        .cleanup-dialog-actions button { font: inherit; padding: var(--uui-size-space-3); cursor: pointer; }
+        .cleanup-delete { color: var(--uui-color-danger-contrast); background: var(--uui-color-danger); border: 1px solid var(--uui-color-danger); }
         uui-box {
             margin-bottom: var(--uui-size-space-4);
         }

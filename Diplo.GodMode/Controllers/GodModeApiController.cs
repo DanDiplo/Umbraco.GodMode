@@ -288,6 +288,22 @@ public class GodModeApiController : ManagementApiControllerBase
     public ActionResult<ContentScheduleOverview> GetContentSchedules()
         => Ok(serverTimeService.GetContentSchedules());
 
+    [HttpGet("server-registrations/cleanup")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
+    [ProducesResponseType<ServerRegistrationCleanupPreview>(StatusCodes.Status200OK)]
+    public ActionResult<ServerRegistrationCleanupPreview> PreviewServerCleanup([FromServices] ServerRegistrationCleanupService cleanup)
+        => Ok(cleanup.Preview());
+
+    [HttpPost("server-registrations/cleanup")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
+    [ProducesResponseType<ServerRegistrationCleanupResult>(StatusCodes.Status200OK)]
+    public ActionResult<ServerRegistrationCleanupResult> DeleteServerRegistrations(
+        [FromBody] ServerRegistrationCleanupRequest request, [FromServices] ServerRegistrationCleanupService cleanup)
+    {
+        try { return Ok(cleanup.Delete(request, User.Identity?.Name ?? "backoffice administrator")); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
     [HttpGet("content-type-aliases")]
     [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<string>> GetContentTypeAliases()

@@ -7,7 +7,7 @@ This repository contains the Umbraco 17 / .NET 10 version of the Diplo GodMode p
 - `Diplo.GodMode/` is the active Umbraco 17 package project. It should be the default location for package code changes.
 - `Diplo.GodMode.AI/` is an optional companion package that adds AI explanations and modal UI. It may depend on the core package, but the core package must not depend on it.
 - `Diplo.GodMode.Testsite/` is the local Umbraco 17 demo/test site. It references the package project and is used for local verification.
-- `Diplo.GodMode.Testsite18/` is an isolated Umbraco 18 / SQLite host copied from Omni. It currently builds without GodMode installed. Its optional local-package mode must consume separately built v18 artifacts, never the v17 source projects. See its `README.md` for package selection and launch details.
+- `Diplo.GodMode.Testsite18/` is an isolated Umbraco 18 / SQLite host copied from Omni. Its optional local-package mode consumes separately built v18 artifacts, never the v17 source projects. Run `scripts/build-v18-local.ps1` to build, test, inspect and select local core/AI packages; see the host's `README.md` for details. v18 runtime acceptance remains separate from public release support.
 - `Diplo.GodMode.slnx` is the active solution and includes the core package, AI companion package, and test site.
 - Older Umbraco 13 / AngularJS code lives on the `v13` branch. Do not reintroduce AngularJS-era files into this branch.
 

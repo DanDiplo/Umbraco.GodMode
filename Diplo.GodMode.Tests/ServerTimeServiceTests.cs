@@ -167,15 +167,38 @@ public sealed class ServerTimeServiceTests
     private static IEnumerable<FutureDatedRows> SuccessfulRows() => Enumerable.Range(0, 4)
         .Select(i => new FutureDatedRows { Table = "table" + i, CheckSucceeded = true });
 
+    [TestMethod]
+    public void ScheduledServers_ListsActiveFirstThenNewestCheckInAndRegistration()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var latest = new DateTime(2026, 1, 10, 12, 0, 0, DateTimeKind.Utc);
+        var servers = new ServerModel[]
+        {
+            new() { Id = 1, IsActive = false, LastNotifiedDate = latest.AddDays(-2) },
+            new() { Id = 2, IsActive = true, LastNotifiedDate = latest.AddDays(-1) },
+            new() { Id = 4, IsActive = false, LastNotifiedDate = latest.AddDays(1) },
+            new() { Id = 3, IsActive = true, LastNotifiedDate = latest, RegisteredDate = latest.AddDays(-3) },
+            new() { Id = 5, IsActive = true, LastNotifiedDate = latest, RegisteredDate = latest.AddDays(-2) }
+        };
+
+        var overview = CreateService(cache, servers: servers).GetContentSchedules();
+
+        Assert.IsTrue(overview.ServersCheckSucceeded);
+        CollectionAssert.AreEqual(new[] { 5, 3, 2, 4, 1 }, overview.Servers.Select(x => x.Id).ToArray());
+    }
+
     private static ServerTimeService CreateService(IMemoryCache cache, string? configured = null, string zone = "UTC",
         DatabaseType? database = null, Func<string, bool>? sqlValidation = null,
-        Func<IEnumerable<FutureDatedRows>>? readRows = null)
+        Func<IEnumerable<FutureDatedRows>>? readRows = null, IEnumerable<ServerModel>? servers = null)
     {
         var db = Stub<IUmbracoDatabaseService>(method => method.Name switch
         {
             "GetDatabaseType" => database ?? DatabaseType.SQLite,
             "IsSqlServerTimeZoneValid" => (sqlValidation ?? (_ => false))((string)method.Arguments![0]!),
             "GetFutureDatedRows" => (readRows ?? SuccessfulRows)(),
+            "GetRegistredServers" => servers ?? Array.Empty<ServerModel>(),
+            "GetContentSchedules" => Array.Empty<ContentScheduleItem>(),
+            "GetDistributedJobs" => Array.Empty<DistributedJobInfo>(),
             _ => throw new NotSupportedException(method.Name)
         });
         return new ServerTimeService(new FixedTimeProvider(TimeZoneInfo.FindSystemTimeZoneById(zone)),
