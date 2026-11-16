@@ -93,8 +93,42 @@ Final stable-artifact checks are recorded below after packaging.
 
 The earlier core 18.0.0 release set is superseded by core 18.5.0, aligning its
 feature version with core 17.5.0. AI remains 17.0.0 / 18.0.0; v18 AI now requires
-core [18.5.0,19.0.0). Updated final package checksums and acceptance are recorded
-after rebuilding the release set.
+core [18.5.0,19.0.0).
+
+Final upload directory: `artifacts/releases/20261116171450415/packages/`.
+Built from clean source commit `2c4435672869b9812f4448f339b05f0f35ad209f`.
+Subsequent release-record documentation changes do not alter package inputs.
+Previous release directories contain a SUPERSEDED notice; use only this final set.
+
+| Package file | SHA-256 |
+| --- | --- |
+| Diplo.GodMode.17.5.0.nupkg | `AB2ECDE21982E269D1C4CAC4CDCBEAF2B49A50A61FE4A170BA12C6D51DCFD568` |
+| Diplo.GodMode.AI.17.0.0.nupkg | `AAFDF95F46E84BDAE1D53D9A178FFAEAF161DD0A40638291D10DC7905225BF0B` |
+| Diplo.GodMode.18.5.0.nupkg | `422D0FCF1AB5EFB03F6995CE2C5441F36129512829A5DDCFDAC102DAFEFBC77F` |
+| Diplo.GodMode.AI.18.0.0.nupkg | `49009C52DD6EA436CA57BB628AF65C3FD70E15438F1B8554B5EA05FDEE9D1D6C` |
+
+Final verification passed for the regenerated set:
+
+* Four scheduling-context tests and 107 backend tests per CMS major.
+* Both client type checks and production builds on each major.
+* All four package identities, manifests, versioned entry-point assets, README
+  target headers and dependency ranges passed inspection. AI 18.0.0 requires
+  core [18.5.0,19.0.0); CMS support remains [18.2.0,19.0.0).
+* Each stable core/AI pair restored, built and booted in an isolated host using a
+  disposable copy of its corresponding SQLite database. Deployed core and AI DLL
+  hashes matched the DLLs inside the final NuGets.
+* Both backoffices, both plugin manifests and their entry-point JavaScript returned
+  200. Served manifest versions matched the final stable versions. Anonymous God
+  Mode API requests returned 401 on both hosts.
+* Both temporary hosts were stopped; original databases and local package
+  selections were unchanged. These final checks cover startup/assets/authentication;
+  the earlier authenticated feature and real-provider acceptance used local
+  prerelease builds of the same implementation.
+
+The package directory contains SHA256SUMS.txt; its parent contains
+release-manifest.json, per-major TRX results and host smoke-results.json records.
+Logs remain under ignored artifacts/. Existing dependency advisories and the
+validation limits above still apply. No packages, tags or commits were published.
 
 ## Manual upload
 
