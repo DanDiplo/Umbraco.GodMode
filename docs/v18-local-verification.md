@@ -2,6 +2,10 @@
 
 16 November 2026. Experimental local packages, not a public support declaration.
 
+This is the historical implementation acceptance record. The later stable
+artifacts, supported ranges and final package smoke tests are recorded in the
+[17.5.0 / 18.0.0 release guide](release-17.5.0-18.0.0.md).
+
 ## Shared source and build
 
 Normal source defaults remain on Umbraco 17, with core version 17.4.1 and AI

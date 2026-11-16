@@ -277,9 +277,11 @@ When the variable is present, the diagnostics screen shows a password field. Ent
 
 The v17 branch contains two projects in one solution:
 
-- `Diplo.GodMode/Diplo.GodMode.csproj` - the Umbraco 17 package source.
+- `Diplo.GodMode/Diplo.GodMode.csproj` - shared core source, defaulting to Umbraco 17 for development builds.
 - `Diplo.GodMode.AI/Diplo.GodMode.AI.csproj` - the optional Umbraco.AI companion package.
 - `Diplo.GodMode.Testsite/Diplo.GodMode.Testsite.csproj` - a local Umbraco 17 demo/test site that references the package project.
+- `Diplo.GodMode.Testsite18/` - an isolated Umbraco 18 / SQLite host consuming separately built packages.
+- `scripts/build-release.ps1` - tests, builds and inspects all four stable release packages from isolated staging directories.
 
 Build everything from the repository root:
 

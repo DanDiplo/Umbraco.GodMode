@@ -89,6 +89,46 @@ remain; this release does not claim to fix them. The build supports CMS 17 core
 from 17.0 and AI from 17.3, but does not constitute runtime testing of every minor.
 Final stable-artifact checks are recorded below after packaging.
 
+## Final artifacts and acceptance
+
+Final run: `artifacts/releases/20261116165604675/packages/`.
+Source commit: `1f81c803178afa8e1aa841bbb181a14f98fcfb52`, clean working tree at
+build time. Subsequent release-record documentation changes do not alter package
+inputs. The final build uses its own restore cache, avoiding same-version local
+packages cached by earlier runs. Earlier release attempts are superseded; upload
+only from this final directory.
+
+| Package file | SHA-256 |
+| --- | --- |
+| Diplo.GodMode.17.5.0.nupkg | `AFAD74034F6BF872F0576F8CE6EB191229DCD0A182C25629F68EA5A789A9F3A7` |
+| Diplo.GodMode.AI.17.0.0.nupkg | `CBBFFD986FAF9B7E7727E1A421689782DBE77D81ADC77D8D78E0719C3A1BD030` |
+| Diplo.GodMode.18.0.0.nupkg | `B271061454E99A2FA47B0BE0676119A5E7EC942681F7889445B7EEF81D8BDF36` |
+| Diplo.GodMode.AI.18.0.0.nupkg | `2772AAC0B44AF65517C52207F5A401BBE397D52871C3BB025B370419BEDDD68E` |
+
+Final verification passed:
+
+* Source solution build: zero errors; existing dependency/obsolete API warnings.
+* Four scheduling-context tests, both client type checks and production builds
+  for each major, and 107 backend tests per major.
+* All four final NuGet identities, plugin assets, README targets and dependency
+  ranges passed the release script's inspection.
+* Each exact stable core/AI pair restored and built in a separate disposable host
+  with a copy of its corresponding local SQLite database. Deployed DLL hashes
+  matched the DLLs inside the final NuGets.
+* Both hosts booted with `/umbraco/` returning 200; core/AI manifests reported the
+  expected stable versions and their entry-point JavaScript returned 200.
+  Anonymous access to a God Mode API returned 401 on each host.
+* These final checks are startup/assets/authentication smoke tests. The earlier
+  authenticated feature and real-provider acceptance above was performed using
+  local prerelease builds of the same implementation, not repeated for every
+  final feature using the stable artifacts.
+* Both disposable hosts were stopped. Original test-site databases and local
+  package selections were not modified by these smoke tests.
+
+Hashes and provenance are also in `SHA256SUMS.txt` and the parent
+`release-manifest.json`. Per-major TRX and host `smoke-results.json` records remain
+under the final run directory. Logs are under ignored `artifacts/`.
+
 ## Manual upload
 
 1. Review the final validation record and hashes. Upload only the four stable
