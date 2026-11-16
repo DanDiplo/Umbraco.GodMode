@@ -5,6 +5,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $runRoot = Join-Path $repoRoot ('artifacts/releases/' + [DateTime]::UtcNow.ToString('yyyyMMddHHmmssfff'))
 $feedRoot = Join-Path $runRoot 'packages'
+$restoreRoot = Join-Path $runRoot 'restore-packages'
 New-Item -ItemType Directory -Path $feedRoot -Force | Out-Null
 $targets = @(
     @{ Major = 17; Core = '17.5.0'; Ai = '17.0.0'; Cms = '[17.0.0,18.0.0)'; AiCms = '[17.3.0,18.0.0)'; UmbracoAi = '[1.10.1,2.0.0)'; Backoffice = $null },
@@ -83,7 +84,8 @@ try {
             $readme = "**Release $version for Umbraco $($target.Major). Requires CMS $(if ($isAi) { $target.AiCms } else { $target.Cms }) and .NET 10.**`n`n" + $readme
             Set-Content -LiteralPath $readmePath -Value $readme
         }
-        $common = @('-p:SkipFrontendBuild=true', '-p:UseSharedCompilation=false')
+        # Never reuse a cached same-version local build from another release run.
+        $common = @('-p:SkipFrontendBuild=true', '-p:UseSharedCompilation=false', "-p:RestorePackagesPath=$restoreRoot")
         Invoke-Checked dotnet (@('test', '--project', (Join-Path $stageRoot 'Diplo.GodMode.Tests/Diplo.GodMode.Tests.csproj'),
             '--configuration', 'Release', '--report-trx', '--results-directory', (Join-Path $stageRoot 'test-results')) + $common)
         foreach ($package in @('Diplo.GodMode', 'Diplo.GodMode.AI')) {
