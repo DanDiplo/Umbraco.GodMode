@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "@umbraco-cms/backoffice": "^17.3.0",
-    "eslint": "^10.3.0",
+    "eslint": "^10.15.0",
     "typescript": "~5.7.2",
-    "vite": "^8.0.16"
+    "vite": "^8.2.4"
   }
 }
