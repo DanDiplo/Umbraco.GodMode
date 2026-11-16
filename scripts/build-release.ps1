@@ -41,6 +41,10 @@ try {
         foreach ($file in @('Directory.Packages.props', 'global.json')) {
             Copy-Item -LiteralPath (Join-Path $repoRoot $file) -Destination $stageRoot
         }
+        # Explicit config avoids CLI source/path normalization and inherited feeds.
+        $escapedFeed = [Security.SecurityElement]::Escape($feedRoot)
+        "<configuration><packageSources><clear /><add key='release' value='$escapedFeed' /><add key='nuget.org' value='https://api.nuget.org/v3/index.json' /></packageSources></configuration>" |
+            Set-Content -LiteralPath (Join-Path $stageRoot 'NuGet.Config')
         $propsPath = Join-Path $stageRoot 'Directory.Packages.props'
         [xml] $props = Get-Content -LiteralPath $propsPath -Raw
         $props.SelectSingleNode('//GodModeCmsVersion').InnerText = $target.Cms
@@ -95,7 +99,6 @@ try {
                 $coreVersion.InnerText = $coreRange
                 $null = $project.SelectSingleNode('//PropertyGroup').AppendChild($coreVersion)
                 $project.Save($projectPath)
-                $args += @('--source', $feedRoot, '--source', 'https://api.nuget.org/v3/index.json')
             }
             Invoke-Checked dotnet $args
             $packagePath = Join-Path $feedRoot "$package.$version.nupkg"
