@@ -1,0 +1,24 @@
+<Project>
+  <Import Project="GodModePackage.local.props" Condition="Exists('GodModePackage.local.props')" />
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
+    <RestoreAdditionalProjectSources Condition="'$(UsePackedGodModePackage)' == 'true'">$(RestoreAdditionalProjectSources);$(MSBuildThisFileDirectory)..\artifacts\v18-feed</RestoreAdditionalProjectSources>
+    <UmbracoCmsVersion Condition="'$(UmbracoCmsVersion)' == ''">18.2.0</UmbracoCmsVersion>
+    <UmbracoAiVersion Condition="'$(UmbracoAiVersion)' == ''">18.3.5</UmbracoAiVersion>
+    <UmbracoAiOpenAiVersion Condition="'$(UmbracoAiOpenAiVersion)' == ''">18.2.1</UmbracoAiOpenAiVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Clean" Version="8.0.1" />
+    <PackageVersion Include="Umbraco.AI" Version="$(UmbracoAiVersion)" />
+    <PackageVersion Include="Umbraco.AI.OpenAI" Version="$(UmbracoAiOpenAiVersion)" />
+    <PackageVersion Include="Umbraco.Cms" Version="$(UmbracoCmsVersion)" />
+    <PackageVersion Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="$(UmbracoCmsVersion)" />
+    <PackageVersion Include="Diplo.GodMode" Version="$(GodModePackageVersion)"
+                    Condition="'$(UsePackedGodModePackage)' == 'true'" />
+    <PackageVersion Include="Diplo.GodMode.AI" Version="$(GodModeAiPackageVersion)"
+                    Condition="'$(UsePackedGodModePackage)' == 'true' And '$(GodModeAiPackageVersion)' != ''" />
+    <PackageVersion Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
+    <PackageVersion Include="Umbraco.Community.Contentment" Version="7.2.1" />
+  </ItemGroup>
+</Project>
