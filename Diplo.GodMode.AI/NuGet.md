@@ -2,20 +2,39 @@
 
 Diplo God Mode AI is the optional [Umbraco.AI](https://docs.umbraco.com/ai-in-umbraco) companion package for **[Diplo God Mode](https://www.nuget.org/packages/Diplo.GodMode)**.
 
-It adds contextual **Explain** buttons to supported God Mode views, helping developers understand diagnostics, service registrations, log patterns, content metadata, data types, templates, partials, tags, and other implementation details from inside the Umbraco 17 backoffice.
+It adds contextual **Explain** buttons to supported God Mode views, helping developers understand diagnostics, service registrations, log patterns, content metadata, data types, templates, partials, tags, and other implementation details from inside the Umbraco 17 or 18 backoffice.
 
 ## Requirements
 
-This package targets:
+Both release lines require **.NET 10**. Install the version for your CMS major:
 
-* **.NET 10** (`net10.0`)
-* **Umbraco 17**
-* Published AI `1.0.0`: `Diplo.GodMode` `17.1.0` or later (including `17.4.0`)
-* `Umbraco.AI`
+| AI package | CMS | God Mode core | Umbraco.AI |
+| --- | --- | --- | --- |
+| 17.0.0 | [17.3.0,18.0.0) | [17.5.0,18.0.0) | [1.10.1,2.0.0) |
+| 18.0.0 | [18.2.0,19.0.0) | [18.0.0,19.0.0) | [18.3.5,19.0.0) |
 
-The package supports Umbraco `17.x`. Because `Umbraco.AI` currently depends on Umbraco CMS `17.3.0` or later, God Mode AI declares its Umbraco CMS dependencies as `[17.3.0,18.0.0)`.
+## Release notes: 17.0.0 / 18.0.0
 
-A local AI rebuild from the core `17.4.0` release declares a minimum God Mode dependency of `17.4.0` through its project reference. AI `1.0.0` is already published; a future AI release needs a new version before uploading.
+* Adds **Explain scheduling health** with lazy, bounded evidence, complete counts
+  and guidance that distinguishes incomplete checks and historical registrations
+  from outages. It cannot change settings or delete data.
+* Adds a separate Umbraco 18.2+ build from shared source.
+* Versions now align with the CMS major. The jump from `1.0.0` to `17.0.0` is
+  intentional; it does not require a CMS upgrade away from v17.
+* Update core and AI together for the complete new feature. Earlier AI `1.0.0`
+  remains published; existing Explain behaviour with new v17 core is expected to
+  work but that mixed-version combination has not been runtime tested.
+* Updates structured-response budget and cloned-provider authentication guidance.
+
+For Umbraco 17:
+
+```powershell
+dotnet add package Diplo.GodMode --version 17.5.0
+dotnet add package Diplo.GodMode.AI --version 17.0.0
+```
+
+For Umbraco 18.2+, use version `18.0.0` for both packages. Configure an AI provider
+package compatible with your Umbraco.AI major; it is not bundled by God Mode AI.
 
 ## Umbraco.AI Setup
 

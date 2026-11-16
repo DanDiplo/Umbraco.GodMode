@@ -5,22 +5,21 @@
 [![NuGet](https://img.shields.io/nuget/v/Diplo.GodMode?color=004880&logo=nuget&label=NuGet)](https://www.nuget.org/packages/Diplo.GodMode/)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Diplo.GodMode?color=cc9900&label=downloads)](https://www.nuget.org/packages/Diplo.GodMode/)
 [![God Mode AI](https://img.shields.io/nuget/v/Diplo.GodMode.AI?color=5b2d90&logo=nuget&label=God%20Mode%20AI)](https://www.nuget.org/packages/Diplo.GodMode.AI/)
-[![Umbraco](https://img.shields.io/badge/Umbraco-17-3544b1?logo=umbraco)](https://umbraco.com/)
+[![Umbraco](https://img.shields.io/badge/Umbraco-17%20%7C%2018-3544b1?logo=umbraco)](https://umbraco.com/)
 [![.NET](https://img.shields.io/badge/.NET-10-512bd4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://licenses.nuget.org/MIT)
 [![GitHub issues](https://img.shields.io/github/issues/DanDiplo/Umbraco.GodMode?logo=github)](https://github.com/DanDiplo/Umbraco.GodMode/issues)
 
 ## What this does
 
-This package adds a **God Mode** tree to the **Settings** section of **Umbraco 17**. 
+This package adds a **God Mode** tree to the **Settings** section of **Umbraco 17 and 18**.
 
-It gives developers fast access to site structure, diagnostics, configuration, content references, services, templates, partials, media, members, tags, and other implementation details that are useful while building or supporting an Umbraco 17 site.
+It gives developers fast access to site structure, diagnostics, configuration, content references, services, templates, partials, media, members, tags, and other implementation details that are useful while building or supporting an Umbraco site.
 
 If Umbraco is an Allen key then God Mode is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development. [Read more](https://www.diplo.co.uk/articles/god-mode-for-umbraco-17/).
 ## Features
 
-For details of the latest fixes and features, see the [package release notes](Diplo.GodMode/NuGet.md#1741).
-Package validation and manual upload details are recorded in the [17.4.1 release checklist](docs/release-17.4.1.md).
+For the latest features, compatibility and upload guidance, see the [17.5.0 / 18.0.0 release guide](docs/release-17.5.0-18.0.0.md).
 
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
@@ -100,10 +99,17 @@ Umbraco.AI setup docs:
 
 ## Download & Installation
 
-This branch targets **Umbraco 17 / .NET 10**.
+The `v17` branch is shared source for both release lines, targeting **.NET 10**.
+
+| Umbraco CMS | God Mode | Optional God Mode AI | Umbraco.AI dependency |
+| --- | --- | --- | --- |
+| 17.x (AI needs 17.3+) | 17.5.0 | 17.0.0 | [1.10.1,2.0.0) |
+| 18.2+ to below 19 | 18.0.0 | 18.0.0 | [18.3.5,19.0.0) |
+
+Choose versions for your site's CMS major. For Umbraco 17:
 
 ```powershell
-dotnet add package Diplo.GodMode
+dotnet add package Diplo.GodMode --version 17.5.0
 ```
 
 NuGet: https://www.nuget.org/packages/Diplo.GodMode/
@@ -113,10 +119,16 @@ After installation, restart the site and open the Umbraco backoffice. The **God 
 ### Add Optional AI addon
 
 ```powershell
-dotnet add package Diplo.GodMode.AI
+dotnet add package Diplo.GodMode.AI --version 17.0.0
 ```
 
 ## Configuration
+
+For Umbraco 18.2+, install core and optional AI version `18.0.0` instead.
+AI versions now align with the CMS major: the jump from `1.0.0` to `17.0.0` is
+intentional. Update both packages for the scheduling-health overview. Existing AI
+`1.0.0` is expected to retain its earlier Explain actions with the new v17 core,
+but that mixed-version combination has not been runtime tested.
 
 God Mode reads its options from the `GodMode` section of `appsettings.json`. All settings are optional; this example shows the current defaults.
 
@@ -322,7 +334,14 @@ Before publishing, inspect the generated `.nupkg` files and confirm:
 
 - `Diplo.GodMode` contains `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
 - `Diplo.GodMode.AI` contains `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
-- Published AI `1.0.0` requires `Diplo.GodMode` `17.1.0` or later and can be used with core `17.4.0`. A local AI rebuild from this release declares a minimum dependency of `17.4.0`, matching its project reference. AI `1.0.0` is already published; a future AI release needs a new version before uploading.
+- AI `17.0.0` requires core `[17.5.0,18.0.0)`; AI `18.0.0` requires core `[18.0.0,19.0.0)`. Never upload a rebuilt AI `1.0.0`.
+
+For public release artifacts, run `pwsh -NoProfile -File scripts/build-release.ps1`.
+It stages both targets independently, runs tests and client builds, and inspects
+all four packages. Direct `dotnet pack` is useful for development; the release
+helper also enforces the AI-to-core major boundary. Output, hashes and provenance
+are under ignored `artifacts/releases/<timestamp>/`. See the
+[release guide](docs/release-17.5.0-18.0.0.md) for the full process.
 
 Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. The Umbraco Marketplace reads package details from NuGet and augments them with the root `umbraco-marketplace.json` file for God Mode and `umbraco-marketplace-diplo.godmode.ai.json` for the AI add-on.
 

@@ -2,7 +2,7 @@
 
 **Diplo God Mode makes Umbraco developers invincible!**
 
-Diplo **God Mode** adds a developer-focused tree to the **Settings** section of **Umbraco 17**. It helps you inspect, search, and understand the structure of an Umbraco site from inside the backoffice, including document types, compositions, templates, partial views, data types, property editors, media, members, tags, custom controllers, registered services, generated models, diagnostics, and configuration.
+Diplo **God Mode** adds a developer-focused tree to the **Settings** section of **Umbraco 17 and 18**. It helps you inspect, search, and understand the structure of an Umbraco site from inside the backoffice, including document types, compositions, templates, partial views, data types, property editors, media, members, tags, custom controllers, registered services, generated models, diagnostics, and configuration.
 
 If [Umbraco](https://umbraco.com/) is an Allen key then **God Mode** is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development.
 
@@ -10,11 +10,21 @@ Now with optional [God Mode AI add-on](https://www.nuget.org/packages/Diplo.GodM
 
 ---
 
-This `17.x` package is the Umbraco 17 / .NET 10 version and has been rebuilt for the modern Umbraco backoffice with Lit, TypeScript, Vite, and Umbraco extension manifests.
+Choose `17.x` for Umbraco 17 and `18.x` for Umbraco 18.2+. Both target .NET 10 and the modern Lit backoffice. Release packages identify their specific target in the header.
 
 ---
 
 ## Release Notes
+
+### 17.5.0 / 18.0.0
+
+* Adds Umbraco 18.2+ packages built from shared source.
+* Scheduled Publishing shows active servers first, then newest check-ins.
+* Administrators can preview and select inactive, non-publisher registrations older than 30 days for cleanup. Current/recent instances are protected. Confirmation, a 100-entry limit and locked eligibility rechecks protect active registrations. Returning instances can register again.
+* Adds **Explain scheduling health** with the matching AI add-on, using lazy, bounded snapshot evidence. No AI fixes or deletion actions are executed.
+* Fixes Property Search button submission, tree paging compatibility and a false generated-JavaScript asset warning.
+* AI versions align with CMS: use AI `17.0.0` with core `17.5.0`, or AI `18.0.0` with core `18.0.0`.
+
 
 ### 17.4.1
 
@@ -112,13 +122,14 @@ UI/UX improvements, including:
 This version targets:
 
 * **.NET 10** (`net10.0`)
-* **Umbraco 17**
+* **Umbraco 17** for `17.x`, or **Umbraco 18.2+** for `18.x`
 
-The package supports Umbraco `17.x` and declares its Umbraco CMS dependencies as `[17.0.0,18.0.0)`. Client-side build tooling such as Vite, TypeScript, and `@umbraco-cms/backoffice` is used only when building this repository and is not required by consuming Umbraco sites.
+The CMS range is `[17.0.0,18.0.0)` for core `17.x` and `[18.2.0,19.0.0)` for core `18.x`. CMS 18.0 and 18.1 are outside this release range. Client-side build tooling such as Vite, TypeScript, and `@umbraco-cms/backoffice` is used only when building this repository and is not required by consuming Umbraco sites.
 
 The core package does not depend on `Diplo.GodMode.AI`. Without the AI add-on installed, God Mode renders no AI controls.
 Version guide:
 
+* `18.x` is for Umbraco 18.2+ / .NET 10.
 * `17.x` is for Umbraco 17 / .NET 10.
 * `13.x` is for Umbraco 13 / .NET 8.
 * `10.x` is for Umbraco 10, 11, and 12 / .NET 6.
@@ -131,8 +142,10 @@ Version guide:
 Install from NuGet:
 
 ```powershell
-dotnet add package Diplo.GodMode
+dotnet add package Diplo.GodMode --version 17.5.0
 ```
+
+For CMS 18.2+, use version `18.0.0` for both core and optional AI instead.
 
 After installation, restart the site and open the Umbraco backoffice. God Mode appears in the **Settings** section. The package manifest is served from:
 
@@ -147,7 +160,7 @@ The *optional* [God Mode AI add-on](https://www.nuget.org/packages/Diplo.GodMode
 Install from NuGet:
 
 ```powershell
-dotnet add package Diplo.GodMode.AI
+dotnet add package Diplo.GodMode.AI --version 17.0.0
 ```
 
 To use it, configure the free [Umbraco.AI](https://marketplace.umbraco.com/package/umbraco.ai) with a [provider connection](https://marketplace.umbraco.com/category/artificial-intelligence?supportsUmbracoVersionNumber=17.4&maintainedBy=hq&packageType=Package) and profile first. For example, install the [OpenAI provider](https://marketplace.umbraco.com/package/umbraco.ai.openai), create an OpenAI connection in the Umbraco backoffice, then create a profile that uses a model such as `gpt-4.1-nano`.

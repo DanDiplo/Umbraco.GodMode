@@ -11,7 +11,7 @@
     <Title>Diplo.GodMode</Title>
     <Description>Diplo God Mode makes Umbraco 17 developers invincible!</Description>
     <PackageTags>umbraco plugin package developer-tool umbraco-marketplace</PackageTags>
-    <VersionPrefix>17.4.1</VersionPrefix>
+    <VersionPrefix>17.5.0</VersionPrefix>
     <Version>$(VersionPrefix)</Version>
     <Authors>DanDiplo</Authors>
     <Company>$(Authors)</Company>
@@ -20,7 +20,7 @@
     <RepositoryUrl>https://github.com/DanDiplo/Umbraco.GodMode/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Fixes Property Search failing on sites with many properties or languages when searching all properties. Improves search error messages to show actionable server details. Adds a Marketplace link to the optional God Mode AI extension on the About page. See the package README for full 17.4.1 release notes.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds conservative administrator-only cleanup of old inactive server registrations and an optional scheduling-health AI overview. Orders active servers first and recent check-ins next. Fixes Property Search button submission and static-asset diagnostics. Shared source also supports a separate Umbraco 18 release. See the package README for compatibility and upgrade guidance.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Don't precompress: backoffice JS is shipped as-is -->

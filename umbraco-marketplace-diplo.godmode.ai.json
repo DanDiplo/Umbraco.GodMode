@@ -14,7 +14,7 @@
     "ImageUrl": "https://pbs.twimg.com/profile_images/794295655846002688/S8SQ_XFM_400x400.jpg"
   },
   "Category": "Artificial Intelligence",
-  "Description": "God Mode AI is the optional Umbraco.AI companion package for Diplo God Mode. It adds contextual Explain buttons to supported God Mode views so developers can ask for concise explanations of diagnostics, log patterns, service registrations, data types, templates, content metadata, and other implementation details.",
+  "Description": "God Mode AI is the optional Umbraco.AI companion package for Diplo God Mode. Use AI 17.x for CMS 17.3+ and AI 18.x for CMS 18.2+, with the matching core release. It adds contextual Explain buttons to supported God Mode views so developers can ask for concise explanations of diagnostics, log patterns, service registrations, data types, templates, content metadata, and other implementation details. Scheduled Publishing includes an on-demand overall health assessment using bounded snapshot evidence.",
   "DocumentationUrl": "https://github.com/DanDiplo/Umbraco.GodMode/blob/v17/README.md#optional-ai-add-on",
   "LicenseTypes": [
     "Free"
