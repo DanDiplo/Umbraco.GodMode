@@ -16,14 +16,14 @@ Choose `17.x` for Umbraco 17 and `18.x` for Umbraco 18.2+. Both target .NET 10 a
 
 ## Release Notes
 
-### 17.5.0 / 18.0.0
+### 17.5.0 / 18.5.0
 
 * Adds Umbraco 18.2+ packages built from shared source.
 * Scheduled Publishing shows active servers first, then newest check-ins.
 * Administrators can preview and select inactive, non-publisher registrations older than 30 days for cleanup. Current/recent instances are protected. Confirmation, a 100-entry limit and locked eligibility rechecks protect active registrations. Returning instances can register again.
 * Adds **Explain scheduling health** with the matching AI add-on, using lazy, bounded snapshot evidence. No AI fixes or deletion actions are executed.
 * Fixes Property Search button submission, tree paging compatibility and a false generated-JavaScript asset warning.
-* AI versions align with CMS: use AI `17.0.0` with core `17.5.0`, or AI `18.0.0` with core `18.0.0`.
+* AI versions align with CMS: use AI `17.0.0` with core `17.5.0`, or AI `18.0.0` with core `18.5.0`.
 
 
 ### 17.4.1
@@ -145,7 +145,7 @@ Install from NuGet:
 dotnet add package Diplo.GodMode --version 17.5.0
 ```
 
-For CMS 18.2+, use version `18.0.0` for both core and optional AI instead.
+For CMS 18.2+, use core `18.5.0` and optional AI `18.0.0` instead.
 
 After installation, restart the site and open the Umbraco backoffice. God Mode appears in the **Settings** section. The package manifest is served from:
 

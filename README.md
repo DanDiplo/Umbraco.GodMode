@@ -19,7 +19,7 @@ It gives developers fast access to site structure, diagnostics, configuration, c
 If Umbraco is an Allen key then God Mode is the swiss army knife that helps you get under the hood and understand how things are working, find issues, and speed up development. [Read more](https://www.diplo.co.uk/articles/god-mode-for-umbraco-17/).
 ## Features
 
-For the latest features, compatibility and upload guidance, see the [17.5.0 / 18.0.0 release guide](docs/release-17.5.0-18.0.0.md).
+For the latest features, compatibility and upload guidance, see the [17.5.0 / 18.5.0 release guide](docs/release-17.5.0-18.5.0.md).
 
 - Search document types, templates, editors, media, content, members, and tags.
 - See document type inheritance, composition usage, data type usage, and property editor usage.
@@ -104,7 +104,7 @@ The `v17` branch is shared source for both release lines, targeting **.NET 10**.
 | Umbraco CMS | God Mode | Optional God Mode AI | Umbraco.AI dependency |
 | --- | --- | --- | --- |
 | 17.x (AI needs 17.3+) | 17.5.0 | 17.0.0 | [1.10.1,2.0.0) |
-| 18.2+ to below 19 | 18.0.0 | 18.0.0 | [18.3.5,19.0.0) |
+| 18.2+ to below 19 | 18.5.0 | 18.0.0 | [18.3.5,19.0.0) |
 
 Choose versions for your site's CMS major. For Umbraco 17:
 
@@ -124,7 +124,7 @@ dotnet add package Diplo.GodMode.AI --version 17.0.0
 
 ## Configuration
 
-For Umbraco 18.2+, install core and optional AI version `18.0.0` instead.
+For Umbraco 18.2+, install core `18.5.0` and optional AI `18.0.0` instead.
 AI versions now align with the CMS major: the jump from `1.0.0` to `17.0.0` is
 intentional. Update both packages for the scheduling-health overview. Existing AI
 `1.0.0` is expected to retain its earlier Explain actions with the new v17 core,
@@ -336,14 +336,14 @@ Before publishing, inspect the generated `.nupkg` files and confirm:
 
 - `Diplo.GodMode` contains `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
 - `Diplo.GodMode.AI` contains `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`.
-- AI `17.0.0` requires core `[17.5.0,18.0.0)`; AI `18.0.0` requires core `[18.0.0,19.0.0)`. Never upload a rebuilt AI `1.0.0`.
+- AI `17.0.0` requires core `[17.5.0,18.0.0)`; AI `18.0.0` requires core `[18.5.0,19.0.0)`. Never upload a rebuilt AI `1.0.0`.
 
 For public release artifacts, run `pwsh -NoProfile -File scripts/build-release.ps1`.
 It stages both targets independently, runs tests and client builds, and inspects
 all four packages. Direct `dotnet pack` is useful for development; the release
 helper also enforces the AI-to-core major boundary. Output, hashes and provenance
 are under ignored `artifacts/releases/<timestamp>/`. See the
-[release guide](docs/release-17.5.0-18.0.0.md) for the full process.
+[release guide](docs/release-17.5.0-18.5.0.md) for the full process.
 
 Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. The Umbraco Marketplace reads package details from NuGet and augments them with the root `umbraco-marketplace.json` file for God Mode and `umbraco-marketplace-diplo.godmode.ai.json` for the AI add-on.
 

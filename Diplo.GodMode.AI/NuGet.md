@@ -11,7 +11,7 @@ Both release lines require **.NET 10**. Install the version for your CMS major:
 | AI package | CMS | God Mode core | Umbraco.AI |
 | --- | --- | --- | --- |
 | 17.0.0 | [17.3.0,18.0.0) | [17.5.0,18.0.0) | [1.10.1,2.0.0) |
-| 18.0.0 | [18.2.0,19.0.0) | [18.0.0,19.0.0) | [18.3.5,19.0.0) |
+| 18.0.0 | [18.2.0,19.0.0) | [18.5.0,19.0.0) | [18.3.5,19.0.0) |
 
 ## Release notes: 17.0.0 / 18.0.0
 
@@ -33,7 +33,7 @@ dotnet add package Diplo.GodMode --version 17.5.0
 dotnet add package Diplo.GodMode.AI --version 17.0.0
 ```
 
-For Umbraco 18.2+, use version `18.0.0` for both packages. Configure an AI provider
+For Umbraco 18.2+, use core `18.5.0` and AI `18.0.0`. Configure an AI provider
 package compatible with your Umbraco.AI major; it is not bundled by God Mode AI.
 
 ## Umbraco.AI Setup

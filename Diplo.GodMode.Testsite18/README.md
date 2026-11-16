@@ -15,7 +15,7 @@ Do not install the v17 GodMode artifacts or add v17 project references here.
 
 For stable release packages, use `scripts/build-release.ps1` from the repository
 root. It builds the public v17/v18 core and AI pairs without changing this host's
-local selection. The [release guide](../docs/release-17.5.0-18.0.0.md) records
+local selection. The [release guide](../docs/release-17.5.0-18.5.0.md) records
 compatibility, final artifact paths, validation and manual upload steps. The
 experimental workflow below remains useful during development.
 

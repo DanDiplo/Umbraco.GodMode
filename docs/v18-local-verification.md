@@ -4,7 +4,7 @@
 
 This is the historical implementation acceptance record. The later stable
 artifacts, supported ranges and final package smoke tests are recorded in the
-[17.5.0 / 18.0.0 release guide](release-17.5.0-18.0.0.md).
+[17.5.0 / 18.5.0 release guide](release-17.5.0-18.5.0.md).
 
 ## Shared source and build
 

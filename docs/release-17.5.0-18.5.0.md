@@ -1,4 +1,4 @@
-# God Mode 17.5.0 / 18.0.0 and AI 17.0.0 / 18.0.0
+# God Mode 17.5.0 / 18.5.0 and AI 17.0.0 / 18.0.0
 
 Prepared 16 November 2026 from shared source on `v17`. Publication is manual.
 
@@ -8,8 +8,8 @@ Prepared 16 November 2026 from shared source on `v17`. Publication is manual.
 | --- | --- | --- | --- |
 | Diplo.GodMode | 17.5.0 | [17.0.0,18.0.0) | None on AI |
 | Diplo.GodMode.AI | 17.0.0 | [17.3.0,18.0.0) | core [17.5.0,18.0.0), Umbraco.AI [1.10.1,2.0.0) |
-| Diplo.GodMode | 18.0.0 | [18.2.0,19.0.0) | None on AI |
-| Diplo.GodMode.AI | 18.0.0 | [18.2.0,19.0.0) | core [18.0.0,19.0.0), Umbraco.AI [18.3.5,19.0.0) |
+| Diplo.GodMode | 18.5.0 | [18.2.0,19.0.0) | None on AI |
+| Diplo.GodMode.AI | 18.0.0 | [18.2.0,19.0.0) | core [18.5.0,19.0.0), Umbraco.AI [18.3.5,19.0.0) |
 
 All packages target .NET 10. Umbraco 18.0 and 18.1 are outside this release's
 supported range. The branch name remains `v17`; no separate v18 source branch is
@@ -36,7 +36,7 @@ required. Normal development builds retain v17 dependencies.
 
 On CMS 17, update core to `17.5.0` and AI, if installed, to `17.0.0`.
 The AI version jump from `1.0.0` aligns numbering with the supported CMS major;
-it does not mean upgrading CMS to 18. On CMS 18.2+, use `18.0.0` for both packages.
+it does not mean upgrading CMS to 18. On CMS 18.2+, use core `18.5.0` and AI `18.0.0`.
 Choose provider packages for your Umbraco.AI major and restart the site after
 updating. Core still works without the AI add-on, with no AI controls or gaps.
 
@@ -91,51 +91,18 @@ Final stable-artifact checks are recorded below after packaging.
 
 ## Final artifacts and acceptance
 
-Final run: `artifacts/releases/20261116165604675/packages/`.
-Source commit: `1f81c803178afa8e1aa841bbb181a14f98fcfb52`, clean working tree at
-build time. Subsequent release-record documentation changes do not alter package
-inputs. The final build uses its own restore cache, avoiding same-version local
-packages cached by earlier runs. Earlier release attempts are superseded; upload
-only from this final directory.
-
-| Package file | SHA-256 |
-| --- | --- |
-| Diplo.GodMode.17.5.0.nupkg | `AFAD74034F6BF872F0576F8CE6EB191229DCD0A182C25629F68EA5A789A9F3A7` |
-| Diplo.GodMode.AI.17.0.0.nupkg | `CBBFFD986FAF9B7E7727E1A421689782DBE77D81ADC77D8D78E0719C3A1BD030` |
-| Diplo.GodMode.18.0.0.nupkg | `B271061454E99A2FA47B0BE0676119A5E7EC942681F7889445B7EEF81D8BDF36` |
-| Diplo.GodMode.AI.18.0.0.nupkg | `2772AAC0B44AF65517C52207F5A401BBE397D52871C3BB025B370419BEDDD68E` |
-
-Final verification passed:
-
-* Source solution build: zero errors; existing dependency/obsolete API warnings.
-* Four scheduling-context tests, both client type checks and production builds
-  for each major, and 107 backend tests per major.
-* All four final NuGet identities, plugin assets, README targets and dependency
-  ranges passed the release script's inspection.
-* Each exact stable core/AI pair restored and built in a separate disposable host
-  with a copy of its corresponding local SQLite database. Deployed DLL hashes
-  matched the DLLs inside the final NuGets.
-* Both hosts booted with `/umbraco/` returning 200; core/AI manifests reported the
-  expected stable versions and their entry-point JavaScript returned 200.
-  Anonymous access to a God Mode API returned 401 on each host.
-* These final checks are startup/assets/authentication smoke tests. The earlier
-  authenticated feature and real-provider acceptance above was performed using
-  local prerelease builds of the same implementation, not repeated for every
-  final feature using the stable artifacts.
-* Both disposable hosts were stopped. Original test-site databases and local
-  package selections were not modified by these smoke tests.
-
-Hashes and provenance are also in `SHA256SUMS.txt` and the parent
-`release-manifest.json`. Per-major TRX and host `smoke-results.json` records remain
-under the final run directory. Logs are under ignored `artifacts/`.
+The earlier core 18.0.0 release set is superseded by core 18.5.0, aligning its
+feature version with core 17.5.0. AI remains 17.0.0 / 18.0.0; v18 AI now requires
+core [18.5.0,19.0.0). Updated final package checksums and acceptance are recorded
+after rebuilding the release set.
 
 ## Manual upload
 
 1. Review the final validation record and hashes. Upload only the four stable
    NuGets from this release run; exclude `artifacts/v18-feed` local prereleases.
-2. Publish core `17.5.0`, then AI `17.0.0`; publish core `18.0.0`, then AI `18.0.0`.
+2. Publish core `17.5.0`, then AI `17.0.0`; publish core `18.5.0`, then AI `18.0.0`.
    Wait until each core is available before uploading its AI package.
-3. Push the release commit on `v17`; create core tags `17.5.0`, `18.0.0` and AI tags
+3. Push the release commit on `v17`; create core tags `17.5.0`, `18.5.0` and AI tags
    `ai-17.0.0`, `ai-18.0.0` at that same source commit, with the appropriate notes.
 4. Verify NuGet dependency ranges and allow Marketplace ingestion. The core listing
    uses `umbraco-marketplace.json`; AI uses

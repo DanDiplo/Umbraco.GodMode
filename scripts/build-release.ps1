@@ -9,7 +9,7 @@ $restoreRoot = Join-Path $runRoot 'restore-packages'
 New-Item -ItemType Directory -Path $feedRoot -Force | Out-Null
 $targets = @(
     @{ Major = 17; Core = '17.5.0'; Ai = '17.0.0'; Cms = '[17.0.0,18.0.0)'; AiCms = '[17.3.0,18.0.0)'; UmbracoAi = '[1.10.1,2.0.0)'; Backoffice = $null },
-    @{ Major = 18; Core = '18.0.0'; Ai = '18.0.0'; Cms = '[18.2.0,19.0.0)'; AiCms = '[18.2.0,19.0.0)'; UmbracoAi = '[18.3.5,19.0.0)'; Backoffice = '18.2.0' }
+    @{ Major = 18; Core = '18.5.0'; Ai = '18.0.0'; Cms = '[18.2.0,19.0.0)'; AiCms = '[18.2.0,19.0.0)'; UmbracoAi = '[18.3.5,19.0.0)'; Backoffice = '18.2.0' }
 )
 function Invoke-Checked([string] $Command, [string[]] $Arguments) {
     & $Command @Arguments

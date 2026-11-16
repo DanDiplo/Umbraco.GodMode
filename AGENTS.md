@@ -7,7 +7,7 @@ This repository contains shared Umbraco 17 / 18 source on v17, targeting .NET 10
 - `Diplo.GodMode/` is the active Umbraco 17 package project. It should be the default location for package code changes.
 - `Diplo.GodMode.AI/` is an optional companion package that adds AI explanations and modal UI. It may depend on the core package, but the core package must not depend on it.
 - `Diplo.GodMode.Testsite/` is the local Umbraco 17 demo/test site. It references the package project and is used for local verification.
-- `Diplo.GodMode.Testsite18/` is an isolated Umbraco 18 / SQLite host copied from Omni. Its optional local-package mode consumes separately built v18 artifacts, never the v17 source projects. Run `scripts/build-v18-local.ps1` to build, test, inspect and select local core/AI packages; see the host's `README.md` for details. Use scripts/build-release.ps1 for stable packages; see docs/release-17.5.0-18.0.0.md for support ranges and evidence.
+- `Diplo.GodMode.Testsite18/` is an isolated Umbraco 18 / SQLite host copied from Omni. Its optional local-package mode consumes separately built v18 artifacts, never the v17 source projects. Run `scripts/build-v18-local.ps1` to build, test, inspect and select local core/AI packages; see the host's `README.md` for details. Use scripts/build-release.ps1 for stable packages; see docs/release-17.5.0-18.5.0.md for support ranges and evidence.
 - `Diplo.GodMode.slnx` is the active solution and includes the core package, AI companion package, and test site.
 - Older Umbraco 13 / AngularJS code lives on the `v13` branch. Do not reintroduce AngularJS-era files into this branch.
 
@@ -75,7 +75,7 @@ dotnet pack Diplo.GodMode/Diplo.GodMode.csproj -c Release
 dotnet pack Diplo.GodMode.AI/Diplo.GodMode.AI.csproj -c Release
 ```
 
-Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. Inspect the generated packages before publishing: the core package must include `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`, the AI package must include `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`, and AI 17.0.0 must declare core `[17.5.0,18.0.0)` and AI 18.0.0 must declare core `[18.0.0,19.0.0)`. Use `pwsh -NoProfile -File scripts/build-release.ps1` for public artifacts; direct project packs are development builds. Do not upload the rebuilt AI `1.0.0` package if that version has already been published.
+Publish `Diplo.GodMode` before `Diplo.GodMode.AI`. Inspect the generated packages before publishing: the core package must include `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`, the AI package must include `staticwebassets/App_Plugins/DiploGodModeAI/umbraco-package.json`, and AI 17.0.0 must declare core `[17.5.0,18.0.0)` and AI 18.0.0 must declare core `[18.5.0,19.0.0)`. Use `pwsh -NoProfile -File scripts/build-release.ps1` for public artifacts; direct project packs are development builds. Do not upload the rebuilt AI `1.0.0` package if that version has already been published.
 
 The `Diplo.GodMode` and `Diplo.GodMode.AI` projects have MSBuild targets that run their client builds. When each package's `Client/node_modules` folder is missing, the build restores packages with `npm ci`; package builds also run `npm ci` and `npm run build`.
 
@@ -93,7 +93,7 @@ Then open the Umbraco backoffice and verify the GodMode package loads from `/App
 - Built manifest: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/umbraco-package.json`.
 - Vite output directory: `Diplo.GodMode/wwwroot/App_Plugins/DiploGodMode/`.
 - NuGet package should contain `staticwebassets/App_Plugins/DiploGodMode/umbraco-package.json`.
-- Core release versions: `17.5.0` (CMS 17), `18.0.0` (CMS 18.2+).
+- Core release versions: `17.5.0` (CMS 17), `18.5.0` (CMS 18.2+).
 - AI source manifest: `Diplo.GodMode.AI/Client/public/umbraco-package.json`.
 - AI built manifest: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/umbraco-package.json`.
 - AI Vite output directory: `Diplo.GodMode.AI/wwwroot/App_Plugins/DiploGodModeAI/`.
